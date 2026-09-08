@@ -1,0 +1,54 @@
+---
+name: Command Center
+about: 项目指挥中心 — single index, roster, and policy for Agent-owned ops
+title: "[Command Center] Project control plane"
+labels: "type:command-center, status:in-progress"
+---
+
+## 目的 / Purpose
+
+Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1).
+
+## Disposer / 拍板人
+
+- Handle:
+- May `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT`: **yes**
+
+## Project-ops Agent / 日常 Owner（仍为 propose）
+
+- Agent id:
+- May merge to `main`: no
+- May self-Accept phases: **no** (unless explicitly listed as disposer above)
+
+## Roster
+
+| Role | Handle / Agent | Notes |
+| --- | --- | --- |
+| Disposer | | |
+| Implementer | | |
+| Reviewer | | |
+
+## Git policy
+
+- Default branch: `main`
+- Remote: **origin only**
+- Branch names: `feat|fix|docs|evidence/{issue}-{slug}`
+- Worktrees: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
+- Direct push to default branch: **forbidden**
+
+## Phase index
+
+| Phase issue | Core problem (one sentence) | Status | Result |
+| --- | --- | --- | --- |
+| # | | backlog | |
+
+## Open exceptions
+
+| Exception issue | Phase | Status |
+| --- | --- | --- |
+| | | |
+
+## Adopt notes
+
+- Skills to load: `skills/*/SKILL.md` in agent-project-ops
+- Templates copied into `.github/`?: yes / no
