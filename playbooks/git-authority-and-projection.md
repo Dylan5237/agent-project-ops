@@ -67,7 +67,7 @@ If projection’s default branch contains commits **not** on the authority tip:
 
 1. Label the work **Blocked**. Stop projecting and stop treating projection as “already shipped.”
 2. Choose **one** disposer-written path **before** any further projection:
-   - **Backfill:** recreate the unique work as a PR **on authority** (cherry-pick or equivalent onto the authority tip). Merge on GitHub. Then fast-forward projection.
+   - **Backfill:** recreate the unique work as a PR **on authority** (cherry-pick or equivalent onto the authority tip). Merge on GitHub. Then align projection to authority (see §E). Recreated commits have new SHAs, so projection is not an ancestor of the new authority tip and fast-forward will usually fail.
    - **Abandon:** disposer comments that the unique projection commits are discarded; then align projection to authority (see §E). Unique work that was only on projection is gone unless backfilled first.
 3. Inventing a second SoT (“GitLab is production now”) is forbidden.
 
