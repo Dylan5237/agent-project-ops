@@ -7,7 +7,7 @@ labels: "type:command-center, status:in-progress"
 
 ## 目的 / Purpose
 
-Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
+Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1). If a snapshot exists, pin it below — do not float an unrecorded `main`.
 
 ## Disposer / 拍板人
 
@@ -48,7 +48,13 @@ Canonical **control plane** for this **business** repository. Chat is not state.
 | --- | --- | --- |
 | | | |
 
+## Methodology pin
+
+- Snapshot path: `.agent-project-ops/` (or n/a — load from URL only)
+- PIN url / sha / ref: (copy from `.agent-project-ops/PIN`)
+- Binding present?: `AGENTS.md` / `.agents/skills/` / `.cursor/rules/` — yes / no
+
 ## Adopt notes
 
-- Skills to load: `skills/*/SKILL.md` in agent-project-ops
+- Skills to load: `.agents/skills/` wrappers → `.agent-project-ops/skills/`, or `skills/*/SKILL.md` in agent-project-ops
 - Templates copied into `.github/`?: yes / no

@@ -1,0 +1,9 @@
+# Methodology pin — filled by scripts/bootstrap-project.sh
+# url=  git remote or https URL of Dylan5237/agent-project-ops (or a fork of the methodology, not a product)
+# sha=  full git object name of the snapshot
+# ref=  branch or tag requested at bootstrap (informational)
+# fetched_at=  ISO-8601
+url={{METHODOLOGY_URL}}
+sha={{METHODOLOGY_SHA}}
+ref={{METHODOLOGY_REF}}
+fetched_at={{FETCHED_AT}}

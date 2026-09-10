@@ -1,0 +1,5 @@
+# Optional Aider binding. Official: https://aider.chat/docs/config/aider_conf.html
+# Aider does not treat AGENTS.md as magic unless listed here.
+
+read:
+  - AGENTS.md

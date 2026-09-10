@@ -1,0 +1,11 @@
+# Binding files — disposer reviews changes to process.
+# Replace @DISPOSER with the GitHub handle passed to bootstrap (no org secrets here).
+
+/.github/CODEOWNERS @DISPOSER
+/AGENTS.md @DISPOSER
+/CLAUDE.md @DISPOSER
+/.cursor/rules/ @DISPOSER
+/.agents/skills/ @DISPOSER
+/.claude/skills/ @DISPOSER
+/.agent-project-ops/PIN @DISPOSER
+/.githooks/ @DISPOSER

@@ -10,7 +10,7 @@ Skill-first **project operations** for vibe-coding: the local coding Agent is of
 
 | Role | How they use this repo |
 | --- | --- |
-| Local coding Agent | Read `PRINCIPLES.md` + every `skills/*/SKILL.md`; follow playbooks step-by-step. |
+| Local coding Agent | Read `PRINCIPLES.md` + every `skills/*/SKILL.md`; follow playbooks step-by-step. New empty folder → [bootstrap](./playbooks/bootstrap-project.md) (proposed). |
 | Human owner / reviewer | Dispose: freeze, Accept, merge policy, Architecture Exception. |
 | Optional GitHub | Copy `templates/` into a **business** repo’s `.github/` — never required to use the skills. |
 
@@ -33,7 +33,24 @@ Skill-first **project operations** for vibe-coding: the local coding Agent is of
 
 3. Open a **Command Center** issue in the business repo and run [playbooks/start-project.md](./playbooks/start-project.md).
 
-No bootstrap CI, no deploy configs, no app `package.json`. This repo stays documentation + tiny optional scripts.
+No app `package.json`, deploy stack, or product CI in **this** repository. Optional bootstrap (below) scaffolds **binding files** in a business repo; it is not an application framework.
+
+## Bootstrap (proposed)
+
+End-state: tell a local Agent *“Initialize this project using Dylan5237/agent-project-ops.”* The Agent should create a folder, write auto-load binding (`AGENTS.md` and equivalents), vendor a **pinned** methodology snapshot, create `.worktrees/`, create a **GitHub private** `origin`, and ask whether to add a **projection** remote (mirror/FF only).
+
+That path is specified in [docs/rfcs/0001-bootstrap-and-binding.md](./docs/rfcs/0001-bootstrap-and-binding.md) (depends on Principle 10 / [playbooks/git-authority-and-projection.md](./playbooks/git-authority-and-projection.md)). Stubs:
+
+| Piece | Path |
+| --- | --- |
+| Skill | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) |
+| Playbook | [playbooks/bootstrap-project.md](./playbooks/bootstrap-project.md) |
+| Script | [scripts/bootstrap-project.sh](./scripts/bootstrap-project.sh) (`--dry-run` first) |
+| Binding templates | [templates/AGENTS.md](./templates/AGENTS.md), `templates/CLAUDE.md`, `templates/cursor-rules/` |
+
+Existing-repo adopt (chat URL, no scaffold) remains valid. Bootstrap does **not** replace start-project: after the repo exists, still open Command Center, label, Freeze before `feat/`.
+
+Honest limit: files in the business repo raise the chance later Agents obey; they cannot stop `--no-verify`, admin bypass, or a non-compliant model. See the RFC threat model.
 
 ## 地图 / Map
 
@@ -41,6 +58,7 @@ No bootstrap CI, no deploy configs, no app `package.json`. This repo stays docum
 
 | File | Use when |
 | --- | --- |
+| [playbooks/bootstrap-project.md](./playbooks/bootstrap-project.md) | **No repo yet:** folder, binding, GitHub private origin, optional projection |
 | [playbooks/start-project.md](./playbooks/start-project.md) | First Command Center, labels, protect `main`, first Phase |
 | [playbooks/phase-lifecycle.md](./playbooks/phase-lifecycle.md) | Freeze → Implement → Verify → Accept → CLOSED |
 | [playbooks/staff-and-dispatch.md](./playbooks/staff-and-dispatch.md) | Who owns what; how to dispatch Agents |
@@ -55,6 +73,7 @@ No bootstrap CI, no deploy configs, no app `package.json`. This repo stays docum
 
 | Skill | Path |
 | --- | --- |
+| Bootstrap project (proposed) | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) |
 | GitHub multi-agent project ops | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
 | Git worktree and branch | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
 | Git authority and projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
@@ -64,13 +83,14 @@ No bootstrap CI, no deploy configs, no app `package.json`. This repo stays docum
 
 - Issue/PR markdown: [templates/](./templates/)
 - Label dictionary: [templates/labels.md](./templates/labels.md)
-- Optional helper: [scripts/new-worktree.sh](./scripts/new-worktree.sh)
+- Optional helpers: [scripts/new-worktree.sh](./scripts/new-worktree.sh), [scripts/bootstrap-project.sh](./scripts/bootstrap-project.sh)
+- RFCs: [docs/rfcs/](./docs/rfcs/)
 - External illustrations only: [examples/README.md](./examples/README.md)
 
 ## NON-GOALS
 
 - **Not a product.** No domain SOPs, stage graphs tied to a business, or vendor runtime docs.
-- **Not a framework.** No app dependencies, deploy pipelines, or “clone this to start coding.”
+- **Not a framework.** No app dependencies or deploy pipelines. Optional bootstrap scaffolds **agent binding** in an empty generic repo; it does not ship a product starter kit.
 - **Not a second control plane.** Chat, Notion, and shop-floor bots are out of scope. GitHub + git + local Agent only.
 - **Not a license to self-Accept.** Agents propose; the named disposer Accepts.
 - **Not coupled to example repos.** Links in `examples/` are optional reading.

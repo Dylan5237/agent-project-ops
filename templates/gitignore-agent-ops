@@ -1,0 +1,6 @@
+# Created by agent-project-ops bootstrap. Do not commit worktrees or local overlays.
+
+.worktrees/
+CLAUDE.local.md
+AGENTS.override.md
+.DS_Store

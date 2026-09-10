@@ -1,0 +1,17 @@
+---
+description: agent-project-ops binding — PRINCIPLES, remotes, worktrees (always on)
+alwaysApply: true
+---
+
+# agent-project-ops (Cursor project rule)
+
+This repository is bound to the methodology snapshot in `.agent-project-ops/`. Read `AGENTS.md` and `.agent-project-ops/PRINCIPLES.md` before proposing work.
+
+- Chat is not state. GitHub Issues/PRs and git objects are.
+- You propose; the Command Center disposer disposes. Do not self-Accept phases.
+- PR merge is not Phase PASS.
+- One write authority: `origin` (GitHub). Extra remotes are **projection** (mirror/FF only). Do not push topic branches there. Do not invent a second source of truth.
+- Work in `.worktrees/{issue}-{owner}-{slug}` from the current **authority tip**. Keep the primary checkout clean.
+- If remotes, freeze, evidence, or protection are missing: fail closed (`status:blocked`), do not force `main`.
+
+Skills: `.agents/skills/*/SKILL.md` wrap `.agent-project-ops/skills/`.
