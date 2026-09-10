@@ -1,0 +1,46 @@
+name: bootstrap-contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'templates/**'
+      - 'playbooks/bootstrap-project.md'
+      - 'playbooks/start-project.md'
+      - 'skills/bootstrap-project/**'
+      - 'tests/bootstrap-local.sh'
+      - '.github/workflows/bootstrap-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'templates/**'
+      - 'playbooks/bootstrap-project.md'
+      - 'playbooks/start-project.md'
+      - 'skills/bootstrap-project/**'
+      - 'tests/bootstrap-local.sh'
+      - '.github/workflows/bootstrap-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          bash -n scripts/bootstrap-project.sh
+          bash -n tests/bootstrap-local.sh
+      - name: Dry-run contract
+        run: |
+          bash scripts/bootstrap-project.sh --dry-run \
+            --name smoke-project \
+            --dir /tmp/smoke-project \
+            --disposer @apo-test \
+            --no-projection \
+            --skip-github \
+            --yes
+      - name: Local scaffold and fresh-clone contract
+        run: bash tests/bootstrap-local.sh
