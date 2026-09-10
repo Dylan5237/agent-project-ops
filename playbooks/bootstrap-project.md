@@ -48,7 +48,7 @@ If the git repo already exists, **do not** re-run full bootstrap. Add missing bi
    - optional `projection` → named on Command Center as mirror/FF only.
    - anything else → stop; disposer must classify.
 
-5. **Hooks (if installed).** `git config core.hooksPath` → `.githooks`. Client-side only; `--no-verify` still exists. Server protection is the real gate.
+5. **Hooks (if installed).** `git config core.hooksPath` → `.githooks`. Allows the **first** push that **creates** `main` on `origin` (empty remote); denies later direct updates to `main` and topic pushes to `projection`. Client-side only; `--no-verify` still exists. Server protection is the real gate.
 
 6. **Continue with start-project.** Open Command Center (include methodology PIN + remotes). Create labels. Protect `main` if bootstrap could not. Open Phase-0. **No implementation branches.**
 

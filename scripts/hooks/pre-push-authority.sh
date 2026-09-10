@@ -54,8 +54,14 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
 
-  # origin / other: never direct-push default branch
+  # origin / other: do not update an existing default branch (PRs only).
+  # Allow the first publish when the remote ref does not exist yet (all-zero
+  # remote SHA): bootstrap `gh repo create --push`, or later `git push -u origin main`
+  # after --skip-github. That is creating the authority tip, not a silent force.
   if [[ "${remote_ref}" == "refs/heads/${default_branch}" ]]; then
+    if [[ "${remote_sha}" == "${zero}" ]]; then
+      continue
+    fi
     deny "direct push to ${default_branch} on ${remote_name} is forbidden; open a PR on GitHub (authority)"
   fi
 done

@@ -312,6 +312,9 @@ if [[ "${install_hooks}" -eq 1 ]]; then
   cp "${METHODOLOGY_ROOT}/scripts/hooks/pre-push-authority.sh" .githooks/pre-push
   chmod +x .githooks/pre-push
   git config core.hooksPath .githooks
+  # Hook allows the first origin push of main (remote SHA all-zero) so
+  # `gh repo create --push` and a later first publish after --skip-github work.
+  # Later updates to main on origin are still denied (PR required).
 fi
 
 # Keep an empty worktrees dir in tree via .gitkeep? RFC says gitignore the dir.
