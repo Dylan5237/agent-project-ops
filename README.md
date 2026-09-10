@@ -4,13 +4,13 @@ Skill-first **project operations** for vibe-coding: the local coding Agent is of
 
 本仓库是**方法论**，不是产品。零业务 SOP、零领域模型、零运行时/低代码栈。任何业务仓库都可以把 Agent 指向这里的 `skills/` 与 `PRINCIPLES.md`。
 
-**Principles:** [PRINCIPLES.md](./PRINCIPLES.md) (v0.1)
+**Principles:** [PRINCIPLES.md](./PRINCIPLES.md) (v0.1.1)
 
 ## 给谁用 / Who
 
 | Role | How they use this repo |
 | --- | --- |
-| Local coding Agent | Read `PRINCIPLES.md` + the three `skills/*/SKILL.md` files; follow playbooks step-by-step. |
+| Local coding Agent | Read `PRINCIPLES.md` + every `skills/*/SKILL.md`; follow playbooks step-by-step. |
 | Human owner / reviewer | Dispose: freeze, Accept, merge policy, Architecture Exception. |
 | Optional GitHub | Copy `templates/` into a **business** repo’s `.github/` — never required to use the skills. |
 
@@ -44,8 +44,9 @@ No bootstrap CI, no deploy configs, no app `package.json`. This repo stays docum
 | [playbooks/start-project.md](./playbooks/start-project.md) | First Command Center, labels, protect `main`, first Phase |
 | [playbooks/phase-lifecycle.md](./playbooks/phase-lifecycle.md) | Freeze → Implement → Verify → Accept → CLOSED |
 | [playbooks/staff-and-dispatch.md](./playbooks/staff-and-dispatch.md) | Who owns what; how to dispatch Agents |
-| [playbooks/git-worktree.md](./playbooks/git-worktree.md) | One task, one worktree |
-| [playbooks/git-branch-and-remote.md](./playbooks/git-branch-and-remote.md) | `origin` only; branch names; never push `main` |
+| [playbooks/git-worktree.md](./playbooks/git-worktree.md) | One task, one worktree; start from current authority tip |
+| [playbooks/git-branch-and-remote.md](./playbooks/git-branch-and-remote.md) | Default: `origin` only; branch names; never push `main` |
+| [playbooks/git-authority-and-projection.md](./playbooks/git-authority-and-projection.md) | Optional second remote = projection/mirror only |
 | [playbooks/issues-and-prs.md](./playbooks/issues-and-prs.md) | Issues, PRs, status labels |
 | [playbooks/verification-and-evidence.md](./playbooks/verification-and-evidence.md) | Evidence vs implementation |
 | [playbooks/blocked-and-exceptions.md](./playbooks/blocked-and-exceptions.md) | `blocked` + Architecture Exception |
@@ -56,6 +57,7 @@ No bootstrap CI, no deploy configs, no app `package.json`. This repo stays docum
 | --- | --- |
 | GitHub multi-agent project ops | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
 | Git worktree and branch | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
+| Git authority and projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
 | Issues, PRs, and evidence | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
 
 ### Templates & examples
