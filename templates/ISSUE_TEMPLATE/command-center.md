@@ -7,18 +7,27 @@ labels: "type:command-center, status:in-progress"
 
 ## 目的 / Purpose
 
-Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
+Canonical **control plane** for this business repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
+
+## Methodology binding
+
+- PIN URL:
+- PIN SHA:
+- PIN ref/date:
+- Root binding files present: yes / no
 
 ## Disposer / 拍板人
 
 - Handle:
 - May `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT`: **yes**
+- Distinct GitHub identity from day-to-day Agent credentials?: yes / no / unknown
 
 ## Project-ops Agent / 日常 Owner（仍为 propose）
 
 - Agent id:
-- May merge to `main`: no
-- May self-Accept phases: **no** (unless explicitly listed as disposer above)
+- GitHub identity used for git/PR operations (if known):
+- May push directly to `main`: no
+- May self-Accept phases: **no**
 
 ## Roster
 
@@ -28,13 +37,35 @@ Canonical **control plane** for this **business** repository. Chat is not state.
 | Implementer | | |
 | Reviewer | | |
 
-## Git policy
+## Git authority / remotes
 
 - Default branch: `main`
-- Remote: **origin only** (default). Optional `projection` remote: mirror/FF from origin only; never a topic-push target (`playbooks/git-authority-and-projection.md`)
+- Authority remote: `origin`
+- Projection remote(s): `(none)` or names
+- `.agent-project-ops/remotes` matches the line above: yes / no / n/a
+- Unknown extra remotes: **BLOCKED until classified**
 - Branch names: `feat|fix|docs|evidence/{issue}-{slug}`
 - Worktrees: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
 - Direct push to default branch: **forbidden**
+
+## Protection capability
+
+Record what was actually verified, not what was requested:
+
+- Capability: **A / B / C**
+  - A = PR + code-owner/independent review gate verified
+  - B = PR-only; no independent-human-review guarantee
+  - C = unprotected or protection could not be verified → **BLOCKED**
+- Force push disabled: yes / no / unknown
+- Default-branch deletion disabled: yes / no / unknown
+- Notes / plan limitation:
+
+If Agent and disposer use the same GitHub identity, GitHub cannot distinguish human from Agent actions; do not describe CODEOWNERS as a human-vs-Agent security boundary in that configuration.
+
+## Hook state for this clone
+
+- `git config --get core.hooksPath` = `.githooks`: yes / no
+- If this was a fresh clone and value was missing, installer run: yes / no / n/a
 
 ## Phase index
 
@@ -42,13 +73,14 @@ Canonical **control plane** for this **business** repository. Chat is not state.
 | --- | --- | --- | --- |
 | # | | backlog | |
 
-## Open exceptions
+## Open exceptions / blocks
 
-| Exception issue | Phase | Status |
+| Issue / block | Phase | Status |
 | --- | --- | --- |
 | | | |
 
 ## Adopt notes
 
-- Skills to load: `skills/*/SKILL.md` in agent-project-ops
-- Templates copied into `.github/`?: yes / no
+- Binding path: root `AGENTS.md` → pinned `.agent-project-ops/PRINCIPLES.md`
+- Relevant project skills: `.agents/skills/*/SKILL.md`
+- Projection operations require `git-authority-and-projection` before non-origin push.
