@@ -93,12 +93,16 @@ expect_deny 'projection seed != authority tip' git push projection-bad HEAD:refs
 git reset -q --hard "${base_tip}"
 
 # 9. Make projection diverge out-of-band, then confirm the hook rejects the
-# authority tip because the update would not be fast-forward.
+# authority tip because the update would not be fast-forward. First transfer
+# the object to the bare repo under a temporary ref while deliberately bypassing
+# the hook as test-fixture setup; then move projection/main to that object.
 git checkout -q -b projection-only "${base_tip}"
 printf 'projection-only\n' >> tracked.txt
 git commit -qam projection-only
 projection_only="$(git rev-parse HEAD)"
+git push --no-verify -q projection HEAD:refs/heads/test-fixture-object
 git --git-dir="${tmp}/remotes/projection.git" update-ref refs/heads/main "${projection_only}"
+git --git-dir="${tmp}/remotes/projection.git" update-ref -d refs/heads/test-fixture-object
 git checkout -q main
 git reset -q --hard "${base_tip}"
 expect_deny 'non-fast-forward projection update' git push projection HEAD:refs/heads/main
@@ -112,7 +116,7 @@ if git -C clone-check config --get core.hooksPath >/dev/null 2>&1; then
 else
   ok 'fresh clone hooksPath initially unset'
 fi
-expect_allow 'fresh clone explicit hook install' bash "${tmp}/clone-check/.agent-project-ops/scripts/install-hooks.sh"
+expect_allow 'fresh clone explicit hook install' bash -lc "cd '${tmp}/clone-check' && bash .agent-project-ops/scripts/install-hooks.sh"
 if [[ "$(git -C clone-check config --get core.hooksPath)" == '.githooks' ]]; then
   ok 'fresh clone hooksPath restored'
 else
