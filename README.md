@@ -39,7 +39,7 @@ No app `package.json`, deploy stack, or product CI in **this** repository. Optio
 
 End-state: tell a local Agent *“Initialize this project using Dylan5237/agent-project-ops.”* The Agent should create a folder, write auto-load binding (`AGENTS.md` and equivalents), vendor a **pinned** methodology snapshot, create `.worktrees/`, create a **GitHub private** `origin`, and ask whether to add a **projection** remote (mirror/FF only).
 
-That path is specified in [docs/rfcs/0001-bootstrap-and-binding.md](./docs/rfcs/0001-bootstrap-and-binding.md) (depends on Principle 10 / [playbooks/git-authority-and-projection.md](./playbooks/git-authority-and-projection.md)). Stubs:
+That path is specified in [docs/rfcs/0001-bootstrap-and-binding.md](./docs/rfcs/0001-bootstrap-and-binding.md) (depends on Principle 10 / [playbooks/git-authority-and-projection.md](./playbooks/git-authority-and-projection.md)). Evidence survey: [docs/research/2026-09-10-bootstrap-and-binding-research.md](./docs/research/2026-09-10-bootstrap-and-binding-research.md). Stubs:
 
 | Piece | Path |
 | --- | --- |
@@ -85,6 +85,7 @@ Honest limit: files in the business repo raise the chance later Agents obey; the
 - Label dictionary: [templates/labels.md](./templates/labels.md)
 - Optional helpers: [scripts/new-worktree.sh](./scripts/new-worktree.sh), [scripts/bootstrap-project.sh](./scripts/bootstrap-project.sh)
 - RFCs: [docs/rfcs/](./docs/rfcs/)
+- Research: [docs/research/](./docs/research/)
 - External illustrations only: [examples/README.md](./examples/README.md)
 
 ## NON-GOALS

@@ -4,6 +4,7 @@
 - **Date:** 2026-09-10
 - **Depends on:** [PR #2](https://github.com/Dylan5237/agent-project-ops/pull/2) (Principle 10, authority vs projection). This RFC is stacked on that work; do not duplicate or weaken it.
 - **Identity:** Methodology only. Zero business/product coupling.
+- **Research (findings only):** [docs/research/2026-09-10-bootstrap-and-binding-research.md](../research/2026-09-10-bootstrap-and-binding-research.md) — auto-load, bootstrap CLIs, remotes, enforcement, skills, worktrees, security, with primary URLs. This RFC consumes that note; §4 is a short pointer plus design-facing summary.
 
 ---
 
@@ -53,6 +54,8 @@ PR #2 documents **what to do** when a second remote exists. This RFC documents *
 ---
 
 ## 4. Research findings
+
+**Full survey (standalone):** [docs/research/2026-09-10-bootstrap-and-binding-research.md](../research/2026-09-10-bootstrap-and-binding-research.md). That file is the evidence-backed report (questions, citations, uncertainties). This section is the **design-facing digest** only.
 
 Sources below were fetched or verified 2026-09-10. Where behavior is vendor-specific or version-dependent, this RFC says **uncertain** instead of inventing a capability.
 
