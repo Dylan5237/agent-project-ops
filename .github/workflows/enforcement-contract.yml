@@ -1,0 +1,40 @@
+name: enforcement-contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/hooks/**'
+      - 'scripts/lib/**'
+      - 'scripts/install-hooks.sh'
+      - 'tests/hook-behavior.sh'
+      - 'tests/url-guard.sh'
+      - '.github/workflows/enforcement-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/hooks/**'
+      - 'scripts/lib/**'
+      - 'scripts/install-hooks.sh'
+      - 'tests/hook-behavior.sh'
+      - 'tests/url-guard.sh'
+      - '.github/workflows/enforcement-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax check
+        run: |
+          bash -n scripts/hooks/pre-push-authority.sh
+          bash -n scripts/lib/url-guard.sh
+          bash -n scripts/install-hooks.sh
+          bash -n tests/hook-behavior.sh
+          bash -n tests/url-guard.sh
+      - name: URL guard matrix
+        run: bash tests/url-guard.sh
+      - name: Authority/projection behavior matrix
+        run: bash tests/hook-behavior.sh
