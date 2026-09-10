@@ -1,8 +1,8 @@
-# PRINCIPLES — v0.1
+# PRINCIPLES — v0.1.1
 
 These invariants are **binding**. A local Agent that owns a project must load this file with the skills in `skills/` before proposing work. If a playbook step conflicts with an invariant, the invariant wins.
 
-Version: **v0.1**  
+Version: **v0.1.1**  
 Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 ---
@@ -44,7 +44,7 @@ Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 - Unknown architecture → Architecture Exception, not a speculative refactor.
 - Cannot verify → no PASS proposal.
-- Cannot reach `origin` or protected `main` rules → do not invent a second remote as a workaround.
+- Cannot reach `origin` or protected `main` rules → do not invent a second remote as a workaround. A **projection** remote (Principle 10) is not that workaround.
 
 ## 6. One phase one core problem
 
@@ -76,9 +76,23 @@ Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 - Branch prefix `evidence/` is reserved for evidence PRs.
 - Mixing them makes Phase Accept unverifiable. Fail closed and split.
 
+## 10. One write authority / 至多一个可写权威
+
+Git **写入权威**只有一个：承载 Issues/PR 的 GitHub 仓库（通常 `origin`）上的约定分支 tip。投影远端（镜像、内部 Git 宿主等）只允许 **读** 或从权威 **快进**；本地与 Cloud Agent 工作区是草稿，不是第三套 SoT。
+
+- Inventing a second source of truth (pushing day-to-day features to the projection, or treating a sandbox `main` as landed history) is forbidden.
+- Projection outage or reject → fail closed (stop release); do not retarget workflow to the mirror.
+- **PR merge ≠ Phase PASS** remains Principle 3: landing on the authority default branch is not Accept.
+
+Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional second remote).
+
 ---
 
 ## Change control
 
 - Invariants are versioned. Breaking changes bump the version in this file and in `README.md`.
-- Playbooks may add steps; they may not weaken these nine rules.
+- Playbooks may add steps; they may not weaken these ten rules.
+
+### Changelog
+
+- **v0.1.1** — Principle 10: at most one write authority; projection remotes are read-or-FF-from-authority.

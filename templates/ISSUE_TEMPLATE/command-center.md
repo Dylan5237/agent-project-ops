@@ -7,7 +7,7 @@ labels: "type:command-center, status:in-progress"
 
 ## 目的 / Purpose
 
-Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1).
+Canonical **control plane** for this **business** repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
 
 ## Disposer / 拍板人
 
@@ -31,7 +31,7 @@ Canonical **control plane** for this **business** repository. Chat is not state.
 ## Git policy
 
 - Default branch: `main`
-- Remote: **origin only**
+- Remote: **origin only** (default). Optional `projection` remote: mirror/FF from origin only; never a topic-push target (`playbooks/git-authority-and-projection.md`)
 - Branch names: `feat|fix|docs|evidence/{issue}-{slug}`
 - Worktrees: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
 - Direct push to default branch: **forbidden**

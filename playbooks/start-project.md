@@ -14,7 +14,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - You can create Issues and labels on the business repo.
 - You can set branch protection on `main` (or the default branch).
 - Agent has read access to this methodology repo (`PRINCIPLES.md` + `skills/`).
-- `PRINCIPLES.md` v0.1 is in force. Methodology files are **not** copied as product code.
+- `PRINCIPLES.md` v0.1.1 is in force. Methodology files are **not** copied as product code.
 
 ## Steps
 
@@ -22,7 +22,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 2. **Create labels.** Apply the dictionary in `templates/labels.md` (status, type, phase). Do not invent overlapping status names.
 3. **Protect `main`.** Require pull requests; disallow direct pushes from Agents. `main` is integration history, not a work branch. See `playbooks/git-branch-and-remote.md`.
 4. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill: disposer (human or named owner), default branch, Agent roster, link to methodology, “how we freeze / Accept.” Pin it if the host allows.
-5. **Record remotes.** Command Center must state: **only `origin`**. No second remote for “backup workflow.”
+5. **Record remotes.** Default: Command Center states **only `origin`**. No second remote for “backup workflow.” If a **projection** mirror is required, name it on Command Center as projection-only and follow `playbooks/git-authority-and-projection.md` (Principle 10) — still not a backup or second SoT.
 6. **Open Phase-0 (or Phase-1) issue.** One core problem only. Use `templates/ISSUE_TEMPLATE/phase.md`. Label `type:phase` + `status:backlog`.
 7. **Do not implement yet.** Run Freeze on that Phase (`playbooks/phase-lifecycle.md`) before any `feat/` / `fix/` branch.
 8. **Optional:** copy `templates/ISSUE_TEMPLATE` and `templates/PULL_REQUEST_TEMPLATE` into the business repo `.github/` so humans get the same forms.
