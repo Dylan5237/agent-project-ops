@@ -1,0 +1,8 @@
+---
+description: agent-project-ops self-dogfood control-plane binding
+alwaysApply: true
+---
+
+Read and follow `AGENTS.md` first. For self-dogfood, the durable control plane is Command Center #10: https://github.com/Dylan5237/agent-project-ops/issues/10
+
+Use local `PRINCIPLES.md`, `playbooks/`, and `skills/` as the methodology source. Do not recursively vendor this repository. Direct push to `main` is forbidden. Agent cannot self-Accept a Phase.
