@@ -10,6 +10,11 @@ pass() { echo "PASS: $*"; }
 
 src_sha="$(git -C "${root}" rev-parse HEAD)"
 dest="${tmp}/sample-project"
+bootstrap_out="${tmp}/bootstrap-local.out"
+
+root_eol="$(git -C "${root}" check-attr eol -- scripts/bootstrap-project.sh)"
+[[ "${root_eol}" == *'eol: lf' ]] || fail "methodology bootstrap script is not pinned to LF: ${root_eol}"
+pass 'methodology shell scripts are pinned to LF'
 
 bash "${root}/scripts/bootstrap-project.sh" \
   --name sample-project \
@@ -17,7 +22,17 @@ bash "${root}/scripts/bootstrap-project.sh" \
   --disposer @apo-test \
   --no-projection \
   --skip-github \
-  --yes >/tmp/bootstrap-local.out
+  --yes >"${bootstrap_out}" 2>&1
+
+if grep -Fq '.agent-project-ops/PRINCIPLES.md:' "${bootstrap_out}"; then
+  cat "${bootstrap_out}" >&2
+  fail 'bootstrap executed Markdown while rendering skill wrappers'
+fi
+if grep -Eq 'command not found|syntax error near unexpected token' "${bootstrap_out}"; then
+  cat "${bootstrap_out}" >&2
+  fail 'bootstrap emitted shell execution errors while rendering files'
+fi
+pass 'wrapper rendering does not execute Markdown/backticks'
 
 [[ -d "${dest}/.git" ]] || fail 'generated git repository missing'
 [[ -f "${dest}/AGENTS.md" ]] || fail 'AGENTS.md missing'
@@ -29,8 +44,15 @@ bash "${root}/scripts/bootstrap-project.sh" \
 [[ -f "${dest}/.agent-project-ops/scripts/install-hooks.sh" ]] || fail 'hook installer missing from snapshot'
 [[ -f "${dest}/.agent-project-ops/scripts/lib/url-guard.sh" ]] || fail 'URL guard missing from snapshot'
 [[ -f "${dest}/.githooks/pre-push" ]] || fail 'tracked pre-push hook missing'
+[[ -f "${dest}/.gitattributes" ]] || fail '.gitattributes missing'
 [[ -d "${dest}/.worktrees" ]] || fail '.worktrees local directory missing'
 pass 'binding/scaffold files exist'
+
+hook_eol="$(git -C "${dest}" check-attr eol -- .githooks/pre-push)"
+install_eol="$(git -C "${dest}" check-attr eol -- .agent-project-ops/scripts/install-hooks.sh)"
+[[ "${hook_eol}" == *'eol: lf' ]] || fail "generated hook is not pinned to LF: ${hook_eol}"
+[[ "${install_eol}" == *'eol: lf' ]] || fail "generated shell script is not pinned to LF: ${install_eol}"
+pass 'generated executable shell surfaces are pinned to LF'
 
 pin_sha="$(sed -n 's/^sha=//p' "${dest}/.agent-project-ops/PIN")"
 [[ "${pin_sha}" == "${src_sha}" ]] || fail "PIN SHA mismatch: ${pin_sha} != ${src_sha}"
@@ -52,8 +74,9 @@ pass 'gitignore and disposer substitution are correct'
 wrapper="${dest}/.agents/skills/github-multi-agent-project-ops/SKILL.md"
 [[ -f "${wrapper}" ]] || fail 'project skill wrapper missing'
 grep -q '^name: github-multi-agent-project-ops$' "${wrapper}" || fail 'wrapper name frontmatter incorrect'
+grep -Fq 'Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.' "${wrapper}" || fail 'wrapper literal methodology path missing'
 [[ -f "${dest}/.claude/skills/github-multi-agent-project-ops/SKILL.md" ]] || fail 'Claude wrapper missing'
-pass 'project skill wrappers are discoverable'
+pass 'project skill wrappers are discoverable and rendered literally'
 
 # Fresh clone: tracked hook arrives, local core.hooksPath does not.
 git clone -q "${dest}" "${tmp}/clone-check"
