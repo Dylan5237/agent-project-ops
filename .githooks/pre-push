@@ -4,4 +4,4 @@ set -euo pipefail
 root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [[ -n "${root}" ]] || { echo "agent-project-ops self hook: cannot resolve repository root" >&2; exit 1; }
 
-exec "${root}/scripts/hooks/pre-push-authority.sh" "$@"
+exec bash "${root}/scripts/hooks/pre-push-authority.sh" "$@"
