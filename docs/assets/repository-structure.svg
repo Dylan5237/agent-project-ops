@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Repository structure and control plane</title><desc id="desc">Generated project layout, bindings, remote registry, protection capabilities, and GitHub control plane.</desc>
+  <defs><style>.s{font-family:Inter,Segoe UI,Arial,"Noto Sans SC",sans-serif}.h{font-weight:800;fill:#0d2b59}.m{fill:#526984}.t{font-size:29px;font-weight:760}.p{font-size:22px}.mono{font-family:Consolas,Menlo,monospace;font-size:24px;fill:#17365f}.tag{font-size:21px;font-weight:750}</style><filter id="sh"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-opacity=".08"/></filter></defs>
+  <rect width="1600" height="980" rx="34" fill="#fbfdff"/>
+  <g class="s">
+    <text x="72" y="94" font-size="62" class="h">Repository structure & control plane · 仓库结构</text>
+    <text x="72" y="144" font-size="27" class="m">Portable repository state lets later Agents recover project rules without the original chat.</text>
+
+    <g transform="translate(68 214)" filter="url(#sh)"><rect width="720" height="650" rx="28" fill="#f3f8ff" stroke="#b8d5f4" stroke-width="2"/></g>
+    <text x="106" y="268" class="t" fill="#1768bd">Generated project</text>
+    <g transform="translate(110 316)" class="mono">
+      <text y="0">your-project/</text>
+      <text y="42">├── AGENTS.md</text><text x="430" y="42" class="p m">canonical agent rules</text>
+      <text y="84">├── CLAUDE.md</text><text x="430" y="84" class="p m">adapter → AGENTS.md</text>
+      <text y="126">├── .agent-project-ops/</text>
+      <text x="38" y="168">├── PIN</text><text x="430" y="168" class="p m">real methodology SHA</text>
+      <text x="38" y="210">├── remotes</text><text x="430" y="210" class="p m">authority / projection registry</text>
+      <text x="38" y="252">├── PRINCIPLES.md</text><text x="430" y="252" class="p m">pinned methodology snapshot</text>
+      <text x="38" y="294">├── playbooks/</text><text x="430" y="294" class="p m">project operating flows</text>
+      <text x="38" y="336">└── scripts/</text><text x="430" y="336" class="p m">hook installer / utilities</text>
+      <text y="378">├── .githooks/pre-push</text><text x="430" y="378" class="p m">client fail-closed guard</text>
+      <text y="420">├── .github/</text><text x="430" y="420" class="p m">CODEOWNERS / Copilot / CI</text>
+      <text y="462">├── .cursor/rules/</text><text x="430" y="462" class="p m">always-on adapter</text>
+      <text y="504">├── .agents/skills/</text><text x="430" y="504" class="p m">Agent entrypoints</text>
+      <text y="546">└── src/ ...</text><text x="430" y="546" class="p m">your product code</text>
+    </g>
+
+    <g transform="translate(828 214)">
+      <g filter="url(#sh)"><rect width="704" height="150" rx="26" fill="#edfbf5" stroke="#a0dfc7"/></g>
+      <text x="32" y="48" class="t" fill="#0b855d">Bindings · 绑定</text>
+      <text x="32" y="86" class="p" fill="#17365f" font-weight="700">AGENTS.md is canonical; Claude / Cursor / Copilot converge on it.</text>
+      <text x="32" y="120" class="p m">规则留在仓库中，而不是留在某一次对话中。</text>
+
+      <g transform="translate(0 178)" filter="url(#sh)"><rect width="704" height="150" rx="26" fill="#edf6ff" stroke="#a6d0fa"/></g>
+      <text x="32" y="226" class="t" fill="#1768bd">Runtime registry · 远程登记</text>
+      <text x="32" y="264" class="p" fill="#17365f" font-weight="700">.agent-project-ops/remotes explicitly declares authority and projection.</text>
+      <text x="32" y="298" class="p m">未知 remote 不猜测，直接 fail closed。</text>
+
+      <g transform="translate(0 356)" filter="url(#sh)"><rect width="704" height="170" rx="26" fill="#fff8e8" stroke="#ebca79"/></g>
+      <text x="32" y="404" class="t" fill="#936200">Protection capability · 保护级别</text>
+      <rect x="32" y="432" width="190" height="66" rx="16" fill="#dff6eb"/><text x="52" y="474" class="tag" fill="#087f5b">A · review gate</text>
+      <rect x="244" y="432" width="190" height="66" rx="16" fill="#e7f1ff"/><text x="264" y="474" class="tag" fill="#1768bd">B · PR-only</text>
+      <rect x="456" y="432" width="214" height="66" rx="16" fill="#ffe6e9"/><text x="476" y="474" class="tag" fill="#ba3548">C · BLOCKED</text>
+      <text x="32" y="516" class="p m">Capability is observed and reported — never silently upgraded.</text>
+
+      <g transform="translate(0 554)" filter="url(#sh)"><rect width="704" height="180" rx="26" fill="#f4f1ff" stroke="#cec2f1"/></g>
+      <text x="32" y="602" class="t" fill="#55459b">GitHub control plane · 控制面</text>
+      <text x="32" y="646" class="tag" fill="#17365f">Command Center</text><text x="230" y="646" class="p m">single project index</text>
+      <text x="32" y="684" class="tag" fill="#17365f">Phase issue</text><text x="230" y="684" class="p m">Freeze → Implement → Verify → Accept</text>
+      <text x="32" y="722" class="tag" fill="#17365f">Evidence PR</text><text x="230" y="722" class="p m">proof separated from implementation</text>
+    </g>
+
+    <g transform="translate(76 904)"><text x="0" y="0" font-size="25" font-weight="800" fill="#0d2b59">Why this structure exists:</text><text x="270" y="0" class="p m">portable rules · auditable state · safer multi-Agent handoff · explicit authority.</text></g>
+  </g>
+</svg>
