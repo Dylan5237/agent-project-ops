@@ -227,6 +227,7 @@ cp "${METHODOLOGY_ROOT}/templates/cursor-rules/agent-project-ops.mdc" .cursor/ru
 cp "${METHODOLOGY_ROOT}/templates/github/copilot-instructions.md" .github/copilot-instructions.md
 subst "${METHODOLOGY_ROOT}/templates/github/CODEOWNERS" .github/CODEOWNERS
 cp "${METHODOLOGY_ROOT}/templates/gitignore-agent-ops" .gitignore
+cp "${METHODOLOGY_ROOT}/templates/gitattributes-agent-ops" .gitattributes
 cp "${METHODOLOGY_ROOT}/templates/aider.conf.yml" .aider.conf.yml
 cp "${METHODOLOGY_ROOT}/templates/continue-rules/agent-project-ops.md" .continue/rules/agent-project-ops.md
 cp "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/"*.md .github/ISSUE_TEMPLATE/
@@ -239,15 +240,12 @@ write_wrapper() {
   [[ -f "${src}" ]] || return 0
   fm="$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; print; if(n==2) exit; next} n==1{print}' "${src}")"
   mkdir -p ".agents/skills/${skill_name}" ".claude/skills/${skill_name}"
-  cat > ".agents/skills/${skill_name}/SKILL.md" <<EOF
-${fm}
-
-# ${skill_name} (pinned wrapper)
-
-Follow the full pinned skill at [../../../.agent-project-ops/skills/${skill_name}/SKILL.md](../../../.agent-project-ops/skills/${skill_name}/SKILL.md).
-
-Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.
-EOF
+  {
+    printf '%s\n\n' "${fm}"
+    printf '# %s (pinned wrapper)\n\n' "${skill_name}"
+    printf 'Follow the full pinned skill at [../../../.agent-project-ops/skills/%s/SKILL.md](../../../.agent-project-ops/skills/%s/SKILL.md).\n\n' "${skill_name}" "${skill_name}"
+    printf '%s\n' 'Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.'
+  } > ".agents/skills/${skill_name}/SKILL.md"
   cp ".agents/skills/${skill_name}/SKILL.md" ".claude/skills/${skill_name}/SKILL.md"
 }
 
