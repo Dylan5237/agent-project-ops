@@ -16,13 +16,16 @@ root_eol="$(git -C "${root}" check-attr eol -- scripts/bootstrap-project.sh)"
 [[ "${root_eol}" == *'eol: lf' ]] || fail "methodology bootstrap script is not pinned to LF: ${root_eol}"
 pass 'methodology shell scripts are pinned to LF'
 
-bash "${root}/scripts/bootstrap-project.sh" \
+if ! bash "${root}/scripts/bootstrap-project.sh" \
   --name sample-project \
   --dir "${dest}" \
   --disposer @apo-test \
   --no-projection \
   --skip-github \
-  --yes >"${bootstrap_out}" 2>&1
+  --yes >"${bootstrap_out}" 2>&1; then
+  cat "${bootstrap_out}" >&2
+  fail 'bootstrap-project.sh failed'
+fi
 
 if grep -Fq '.agent-project-ops/PRINCIPLES.md:' "${bootstrap_out}"; then
   cat "${bootstrap_out}" >&2
