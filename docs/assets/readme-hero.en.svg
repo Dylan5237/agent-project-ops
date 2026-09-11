@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="820" viewBox="0 0 1600 820" role="img" aria-labelledby="title desc">
+  <title id="title">agent-project-ops overview</title>
+  <desc id="desc">Skill-first multi-agent project operations with four verified gates and explicit authority rules.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fbff"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#123" flood-opacity=".08"/></filter>
+    <style>.sans{font-family:Inter,Segoe UI,Arial,sans-serif}.title{font-weight:800;fill:#0d2b59}.muted{fill:#506784}.small{font-size:24px}.gate{font-size:28px;font-weight:700}.pass{font-size:24px;font-weight:800;fill:#087f5b}.rule{font-size:25px;font-weight:700;fill:#17365f}</style>
+  </defs>
+  <rect width="1600" height="820" rx="34" fill="url(#bg)"/>
+  <g class="sans">
+    <text x="76" y="112" font-size="78" class="title">agent-project-ops</text>
+    <text x="76" y="170" font-size="36" font-weight="650" fill="#38527b">Skill-first multi-agent project operations</text>
+    <text x="76" y="224" font-size="28" class="muted">Safe, controlled, and verifiable collaboration for AI Agents in real projects.</text>
+    <g transform="translate(1190 58)" filter="url(#shadow)"><rect width="330" height="126" rx="28" fill="#0bb27b"/><text x="34" y="53" fill="white" font-size="34" font-weight="800">v0.1</text><text x="34" y="91" fill="white" font-size="23" font-weight="650">Ready for real controlled use</text></g>
+    <g transform="translate(72 304)">
+      <g filter="url(#shadow)"><rect width="330" height="210" rx="26" fill="#edf6ff" stroke="#a8d2ff"/></g><text x="30" y="52" class="gate" fill="#1769c2">G1 · Bootstrap</text><text x="30" y="98" class="small muted">Initialization and durable binding</text><text x="30" y="146" class="pass">✓ PASS</text><text x="30" y="184" class="small muted">PR #8</text>
+      <g transform="translate(376 0)" filter="url(#shadow)"><rect width="330" height="210" rx="26" fill="#ecfbf5" stroke="#9de2c7"/></g><text x="406" y="52" class="gate" fill="#0a8a61">G2 · Live Bootstrap</text><text x="406" y="98" class="small muted">Real GitHub repo, PIN and remotes</text><text x="406" y="146" class="pass">✓ PASS</text><text x="406" y="184" class="small muted">Private smoke + Windows</text>
+      <g transform="translate(752 0)" filter="url(#shadow)"><rect width="330" height="210" rx="26" fill="#fff8e8" stroke="#f2cf79"/></g><text x="782" y="52" class="gate" fill="#9a6500">G3 · Server Protection</text><text x="782" y="98" class="small muted">PR gate and Capability A/B/C</text><text x="782" y="146" class="pass">✓ PASS</text><text x="782" y="184" class="small muted">--no-verify rejected by GitHub</text>
+      <g transform="translate(1128 0)" filter="url(#shadow)"><rect width="330" height="210" rx="26" fill="#fff0f2" stroke="#f3b3bc"/></g><text x="1158" y="52" class="gate" fill="#b33a4c">G4 · Self-dogfood</text><text x="1158" y="98" class="small muted">Full lifecycle on this repository</text><text x="1158" y="146" class="pass">✓ PASS</text><text x="1158" y="184" class="small muted">Phase #11 accepted</text>
+    </g>
+    <g transform="translate(74 592)"><rect width="1450" height="150" rx="28" fill="#f4f7fb" stroke="#dbe6f3"/><text x="34" y="52" class="rule">GitHub = Single Source of Truth</text><text x="400" y="52" class="rule">Projection ≠ second authority</text><text x="802" y="52" class="rule">Unknown remotes → fail closed</text><text x="1176" y="52" class="rule">Merge ≠ Phase PASS</text><text x="34" y="102" class="small muted">Chat ≠ state · One task = one worktree/branch/PR · Agent proposes · Disposer decides</text></g>
+  </g>
+</svg>

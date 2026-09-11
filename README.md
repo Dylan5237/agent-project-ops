@@ -1,5 +1,9 @@
+<p align="right">
+  <strong>English</strong> · <a href="./README.zh-CN.md">简体中文</a>
+</p>
+
 <p align="center">
-  <img src="./docs/assets/readme-hero.svg" alt="agent-project-ops overview" width="100%" />
+  <img src="./docs/assets/readme-hero.en.svg" alt="agent-project-ops overview" width="100%" />
 </p>
 
 <p align="center">
@@ -13,7 +17,7 @@
 
 <p align="center">
   <strong>Bootstrap once. Enforce continuously. Verify independently.</strong><br/>
-  把 AI Agent 从“这次对话里的临时助手”，变成真实项目中可持续、可审计、可接力的协作成员。
+  Turn AI Agents from temporary chat assistants into durable, auditable collaborators for real projects.
 </p>
 
 <p align="center">
@@ -28,28 +32,28 @@
 
 ## What is agent-project-ops?
 
-`agent-project-ops` 是一套 **Skill-first 的多 Agent 项目治理方法论**。
+`agent-project-ops` is a **skill-first methodology for multi-Agent project operations**.
 
-它不提供业务框架，也不发明新的代码托管平台。它解决的是一个更底层的问题：
+It does not provide an application framework, business SOP, runtime, or deployment stack. It solves a more fundamental problem:
 
-> 当 ChatGPT、Claude Code、Cursor、Copilot 和本地 Coding Agent 长期参与真实项目时，如何让项目状态、写权威、分支纪律、验证证据和人类拍板边界不随着会话切换而失控？
+> When ChatGPT, Claude Code, Cursor, Copilot, and local coding Agents participate in real software projects over time, how do you keep project state, write authority, branch discipline, verification evidence, and human decision boundaries from drifting across sessions and tools?
 
-核心约束只有几条：
+The core rules are intentionally small:
 
 | Rule | Meaning |
 | --- | --- |
-| **GitHub `origin` = authority** | 唯一写权威；其他远端只能是 projection |
-| **Chat ≠ state** | 项目事实进入 repo、Issue、PR、CI、evidence |
-| **One task = one worktree / branch / PR** | 并行工作彼此隔离 |
-| **Unknown remotes fail closed** | 未分类远端默认拒绝 |
-| **Merge ≠ Phase PASS** | Agent 提证据，Disposer 决定 `ACCEPT / RETURN` |
-| **Server protection is the real gate** | client hook 可被绕过，不能当最终安全边界 |
+| **GitHub `origin` = authority** | One write authority; other remotes may only be projections |
+| **Chat ≠ state** | Project facts belong in the repo, Issues, PRs, CI, and evidence |
+| **One task = one worktree / branch / PR** | Parallel work stays isolated and traceable |
+| **Unknown remotes fail closed** | Unclassified remotes are rejected by default |
+| **Merge ≠ Phase PASS** | The Agent proposes evidence; the disposer decides `ACCEPT / RETURN` |
+| **Server protection is the real gate** | Client hooks are bypassable and are not the final security boundary |
 
-> v0.1 已完成真实仓库 bootstrap、server-side protection 绕过测试和 self-dogfood 全生命周期验证，可用于 **real controlled use**。
+> v0.1 has passed real-repository bootstrap, server-side protection bypass tests, fresh-clone recovery, and a full self-dogfood lifecycle. It is ready for **real controlled use**.
 
 ## Start in 3 minutes
 
-### Recommended: tell an Agent what you want
+### Recommended: tell a compatible Agent what you want
 
 ```text
 Run the bootstrap-project skill from agent-project-ops and initialize this project.
@@ -70,12 +74,12 @@ bash scripts/bootstrap-project.sh \
 
 Bootstrap creates durable repo bindings, pins the methodology SHA, installs the tracked local hook, registers authority/projection remotes, creates GitHub `origin`, and reports protection capability **A / B / C**.
 
-**Then read → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, and projection rules.
+**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, and projection rules.
 
-> GitHub Free + **private repo** cannot provide the branch protection required by this methodology, so bootstrap correctly reports **Capability C / BLOCKED**. Client hooks are bypassable with `--no-verify`; server-side protection is the real gate.
+> GitHub Free + **private repositories** cannot provide the branch protection required by this methodology, so bootstrap correctly reports **Capability C / BLOCKED**. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate.
 
 <p align="center">
-  <img src="./docs/assets/how-it-works.svg" alt="How agent-project-ops works" width="100%" />
+  <img src="./docs/assets/how-it-works.en.svg" alt="How agent-project-ops works" width="100%" />
 </p>
 
 ## What changes after bootstrap?
@@ -100,9 +104,9 @@ your-project/
 └── ... your product code
 ```
 
-A fresh Agent should be able to recover the project's authority, rules, current control plane, and handoff path from durable state instead of relying on the bootstrap chat.
+A fresh compatible Agent should be able to recover authority, rules, control-plane pointers, and the handoff path from durable state rather than the original bootstrap chat.
 
-See the full structure and takeover procedure in [Getting Started](./docs/GETTING_STARTED.md#what-bootstrap-writes).
+See [Getting Started](./docs/GETTING_STARTED.md#what-bootstrap-writes) for the full structure and takeover procedure.
 
 ## Daily operating model
 
@@ -114,7 +118,7 @@ Issue / Phase → Freeze → Worktree / Branch → Implement → PR / CI
                              Disposer ACCEPT / RETURN
 ```
 
-AI 可以自主推进实现、测试、CI 和证据整理；只有在 Freeze、Accept、Architecture Exception 等真正需要 disposer 决策的边界才打断人。
+The Agent can autonomously implement, test, inspect CI, and prepare evidence. It pauses only at real disposer boundaries such as Freeze, Accept, Return, and Architecture Exception.
 
 Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verification-and-evidence](./playbooks/verification-and-evidence.md)
 
@@ -126,7 +130,7 @@ Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verifi
 | **B** | PR required + admins enforced; no independent-human guarantee | accepted for controlled use |
 | **C** | protection unavailable or unverifiable | **BLOCKED / fail closed** |
 
-`agent-project-ops` never upgrades a C environment by wording alone. Capability is reported from the environment that actually exists.
+`agent-project-ops` never upgrades a Capability C environment by wording alone. Capability is reported from the environment that actually exists.
 
 ## Verified v0.1
 
@@ -159,13 +163,13 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 This project deliberately does **not** claim:
 
 - a product/app runtime, domain model, deploy stack, or business SOP;
-- universal Agent compliance with repo instructions;
+- universal Agent compliance with repository instructions;
 - client hooks as a security boundary;
 - GitLab or another mirror as a second source of truth;
 - PR merge as project acceptance;
 - silent upgrades to the latest methodology revision.
 
-Business repos pin a real methodology SHA. Agents propose. The named disposer accepts.
+Business repositories pin a real methodology SHA. Agents propose. The named disposer accepts.
 
 ## License
 
