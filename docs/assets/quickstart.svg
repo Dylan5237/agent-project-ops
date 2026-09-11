@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860">
+  <rect width="1440" height="860" fill="#fbfdff"/>
+  <g font-family="Inter,Segoe UI,Microsoft YaHei,Arial,sans-serif" fill="#10284d">
+    <text x="70" y="82" font-size="52" font-weight="800">Quick start and daily workflow</text>
+    <text x="72" y="124" font-size="24" fill="#667892">Bootstrap once. Then repeat the same controlled loop for every task.</text>
+    <text x="72" y="160" font-size="22" fill="#667892">每个项目初始化一次；之后每个任务重复同一套可审计协作流程</text>
+
+    <g transform="translate(70 215)">
+      <rect width="610" height="560" rx="24" fill="#eef6ff" stroke="#bdd9ff"/>
+      <circle cx="52" cy="54" r="28" fill="#1677ff"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">1</text>
+      <text x="96" y="64" font-size="31" font-weight="800">Bootstrap once</text>
+      <text x="34" y="112" font-size="18" fill="#667892">Recommended Agent instruction</text>
+      <rect x="34" y="132" width="542" height="74" rx="14" fill="#10243f"/>
+      <text x="54" y="162" font-size="17" fill="#cde3ff">Run the bootstrap-project skill from agent-project-ops</text>
+      <text x="54" y="188" font-size="17" fill="#cde3ff">and initialize this project.</text>
+
+      <text x="34" y="250" font-size="20" font-weight="800">Bootstrap establishes</text>
+      <text x="48" y="292" font-size="19">✓ GitHub authority repository (private by default)</text>
+      <text x="48" y="332" font-size="19">✓ Root Agent bindings + project skill wrappers</text>
+      <text x="48" y="372" font-size="19">✓ Real-SHA methodology PIN</text>
+      <text x="48" y="412" font-size="19">✓ Authority / projection remote registry</text>
+      <text x="48" y="452" font-size="19">✓ Tracked pre-push guard + explicit installer</text>
+      <text x="48" y="492" font-size="19">✓ Protection capability A / B / C report</text>
+      <rect x="34" y="515" width="542" height="28" rx="14" fill="#dff7ec"/>
+      <text x="305" y="535" text-anchor="middle" font-size="17" font-weight="800" fill="#0a9763">Then open the Command Center and first Phase</text>
+    </g>
+
+    <g transform="translate(720 215)">
+      <rect width="650" height="560" rx="24" fill="#effcf8" stroke="#bce9db"/>
+      <circle cx="52" cy="54" r="28" fill="#10b981"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">2</text>
+      <text x="96" y="64" font-size="31" font-weight="800">Work every day</text>
+
+      <g font-size="19">
+        <circle cx="64" cy="126" r="20" fill="#dcecff"/><text x="64" y="133" text-anchor="middle" font-weight="800">1</text><text x="108" y="133" font-weight="800">Create Issue / Phase</text><text x="360" y="133" fill="#667892">define one core problem</text>
+        <line x1="64" y1="148" x2="64" y2="171" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="194" r="20" fill="#dcecff"/><text x="64" y="201" text-anchor="middle" font-weight="800">2</text><text x="108" y="201" font-weight="800">FREEZE ACK</text><text x="360" y="201" fill="#667892">lock scope + acceptance</text>
+        <line x1="64" y1="216" x2="64" y2="239" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="262" r="20" fill="#dcecff"/><text x="64" y="269" text-anchor="middle" font-weight="800">3</text><text x="108" y="269" font-weight="800">Create worktree + branch</text><text x="360" y="269" fill="#667892">isolated task workspace</text>
+        <line x1="64" y1="284" x2="64" y2="307" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="330" r="20" fill="#dcecff"/><text x="64" y="337" text-anchor="middle" font-weight="800">4</text><text x="108" y="337" font-weight="800">Implement + test</text><text x="360" y="337" fill="#667892">follow frozen contract</text>
+        <line x1="64" y1="352" x2="64" y2="375" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="398" r="20" fill="#dcecff"/><text x="64" y="405" text-anchor="middle" font-weight="800">5</text><text x="108" y="405" font-weight="800">Open PR + run CI</text><text x="360" y="405" fill="#667892">reviewable implementation</text>
+        <line x1="64" y1="420" x2="64" y2="443" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="466" r="20" fill="#dcecff"/><text x="64" y="473" text-anchor="middle" font-weight="800">6</text><text x="108" y="473" font-weight="800">Evidence READY</text><text x="360" y="473" fill="#667892">replayable proof</text>
+        <line x1="64" y1="488" x2="64" y2="511" stroke="#9eb7d3" stroke-width="3"/>
+        <circle cx="64" cy="534" r="20" fill="#dff7ec"/><text x="64" y="541" text-anchor="middle" font-weight="800">7</text><text x="108" y="541" font-weight="800">Disposer ACCEPT / RETURN</text><text x="390" y="541" fill="#667892">final human decision</text>
+      </g>
+    </g>
+
+    <rect x="70" y="800" width="1300" height="40" rx="18" fill="#f4f7fb"/>
+    <text x="720" y="826" text-anchor="middle" font-size="18" fill="#526984">Fresh clone can recover the rules; it must explicitly reinstall local hook configuration.</text>
+  </g>
+</svg>
