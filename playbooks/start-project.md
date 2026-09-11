@@ -6,39 +6,44 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 
 ## When
 
-- A new business repo (or an existing one with no Command Center).
-- You are adopting `agent-project-ops` for the first time on that repo.
+- A repo was just created by `bootstrap-project`.
+- A business repo already exists and is adopting `agent-project-ops`.
+- The repository has no Command Center yet.
 
 ## Preconditions
 
 - You can create Issues and labels on the business repo.
-- You can set branch protection on `main` (or the default branch).
-- Agent has read access to this methodology repo (`PRINCIPLES.md` + `skills/`).
-- `PRINCIPLES.md` v0.1.1 is in force. Methodology files are **not** copied as product code.
+- GitHub is the write authority (`origin`).
+- `PRINCIPLES.md` v0.1.1 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
+- If the repo was bootstrapped, `.agent-project-ops/PIN` contains a real methodology SHA and `.agent-project-ops/remotes` is the remote registry.
 
 ## Steps
 
-1. **Point the Agent.** In the business repo, instruct the Agent to load this methodology’s `PRINCIPLES.md` and `skills/*/SKILL.md`. Confirm it restates: Chat ≠ state; Agent proposes / control plane disposes.
-2. **Create labels.** Apply the dictionary in `templates/labels.md` (status, type, phase). Do not invent overlapping status names.
-3. **Protect `main`.** Require pull requests; disallow direct pushes from Agents. `main` is integration history, not a work branch. See `playbooks/git-branch-and-remote.md`.
-4. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill: disposer (human or named owner), default branch, Agent roster, link to methodology, “how we freeze / Accept.” Pin it if the host allows.
-5. **Record remotes.** Default: Command Center states **only `origin`**. No second remote for “backup workflow.” If a **projection** mirror is required, name it on Command Center as projection-only and follow `playbooks/git-authority-and-projection.md` (Principle 10) — still not a backup or second SoT.
-6. **Open Phase-0 (or Phase-1) issue.** One core problem only. Use `templates/ISSUE_TEMPLATE/phase.md`. Label `type:phase` + `status:backlog`.
-7. **Do not implement yet.** Run Freeze on that Phase (`playbooks/phase-lifecycle.md`) before any `feat/` / `fix/` branch.
-8. **Optional:** copy `templates/ISSUE_TEMPLATE` and `templates/PULL_REQUEST_TEMPLATE` into the business repo `.github/` so humans get the same forms.
+1. **Load the binding.** Prefer root `AGENTS.md` in a bootstrapped repo, then read `.agent-project-ops/PRINCIPLES.md`. For manual adoption, explicitly load this methodology. Confirm: Chat ≠ state; Agent proposes / control plane disposes; merge ≠ Phase PASS.
+2. **Fresh-clone hook check.** Run `git config --get core.hooksPath`. A clone does not inherit this local config. In a bootstrapped repo, if it is not `.githooks`, run `bash .agent-project-ops/scripts/install-hooks.sh`. Missing client hook is not permission to push `main`.
+3. **Create labels.** Apply `templates/labels.md` (or the pinned snapshot copy) without inventing overlapping status names.
+4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/BLOCKED. Never call B an independent-human-review gate.
+5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill disposer, PIN, default branch, protection capability, Agent roster, and Freeze/Accept policy.
+6. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a projection is required, it remains mirror/FF only and `git-authority-and-projection` applies before any non-origin push. Unknown remotes → Blocked.
+7. **Open Phase-0/Phase-1.** One core problem only. Use the Phase template with backlog status.
+8. **Do not implement yet.** Run Freeze on that Phase before any `feat/` / `fix/` branch.
 
 ## Done when
 
-- [ ] Command Center issue exists, is the single index, and names the disposer.
-- [ ] Status labels `backlog` / `in-progress` / `blocked` / `verification` / `done` exist.
-- [ ] Default branch rejects direct Agent pushes.
-- [ ] At least one Phase issue exists with a single core problem and is not yet implementing.
-- [ ] Agent can find playbooks from the Command Center body (URL or path).
+- [ ] Command Center exists as the single project index and names the disposer.
+- [ ] Status labels exist.
+- [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
+- [ ] Command Center records protection capability A/B/C; capability C is explicitly Blocked.
+- [ ] Command Center records authority/projection and matches `.agent-project-ops/remotes` when present.
+- [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
+- [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
 
 ## Anti-patterns
 
-- Treating the methodology clone as the product repo.
+- Treating the methodology repository as the product repository.
+- Treating a tracked hook file as proof `core.hooksPath` is active after clone.
+- Calling PR-only protection “human approval enforced” when Agent and disposer share an identity.
 - Skipping Command Center and tracking work only in chat.
-- Opening three Phases that are actually one problem (or one Phase that is a roadmap).
 - Pushing “just this once” to `main`.
+- Adding a second write authority or using projection as a fallback.
 - Embedding business SOP into this methodology repository.
