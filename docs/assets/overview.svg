@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7fbff"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+  </defs>
+  <rect width="1440" height="760" fill="url(#bg)"/>
+  <g font-family="Inter,Segoe UI,Microsoft YaHei,Arial,sans-serif" fill="#0f274d">
+    <text x="72" y="96" font-size="64" font-weight="800">agent-project-ops</text>
+    <text x="74" y="142" font-size="26" font-weight="650" fill="#37527a">Skill-first multi-agent project operations for real software projects</text>
+    <text x="74" y="184" font-size="24" fill="#667892">让 AI Agent 在真实项目中按可持续、可验证、可接管的规则协作</text>
+
+    <rect x="1088" y="52" rx="28" ry="28" width="276" height="78" fill="#0bb783"/>
+    <text x="1125" y="92" font-size="30" font-weight="800" fill="#fff">v0.1</text>
+    <text x="1205" y="82" font-size="17" font-weight="700" fill="#fff">READY FOR</text>
+    <text x="1205" y="106" font-size="17" font-weight="700" fill="#fff">CONTROLLED USE</text>
+
+    <g transform="translate(72 245)">
+      <rect width="300" height="220" rx="22" fill="#eef6ff" stroke="#b7d6ff"/>
+      <circle cx="52" cy="54" r="25" fill="#1677ff"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">1</text>
+      <text x="92" y="58" font-size="24" font-weight="800">G1 Bootstrap</text>
+      <text x="34" y="108" font-size="17" fill="#49617f">Durable bindings + real PIN</text>
+      <text x="34" y="140" font-size="17" fill="#49617f">Bootstrap contract CI</text>
+      <rect x="34" y="184" width="232" height="26" rx="13" fill="#dff8ec"/><text x="120" y="204" font-size="17" font-weight="800" fill="#0b9b66">PASS</text>
+    </g>
+
+    <g transform="translate(398 245)">
+      <rect width="300" height="220" rx="22" fill="#effcf8" stroke="#b5ead8"/>
+      <circle cx="52" cy="54" r="25" fill="#10b981"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">2</text>
+      <text x="92" y="58" font-size="23" font-weight="800">G2 Live Bootstrap</text>
+      <text x="34" y="108" font-size="17" fill="#49617f">Real GitHub repo smoke</text>
+      <text x="34" y="140" font-size="17" fill="#49617f">Fresh clone + Windows hardened</text>
+      <rect x="34" y="184" width="232" height="26" rx="13" fill="#dff8ec"/><text x="120" y="204" font-size="17" font-weight="800" fill="#0b9b66">PASS</text>
+    </g>
+
+    <g transform="translate(724 245)">
+      <rect width="300" height="220" rx="22" fill="#fff9e9" stroke="#f2d488"/>
+      <circle cx="52" cy="54" r="25" fill="#f0a500"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">3</text>
+      <text x="92" y="58" font-size="24" font-weight="800">G3 Protection</text>
+      <text x="34" y="108" font-size="17" fill="#49617f">Server PR gate verified</text>
+      <text x="34" y="140" font-size="17" fill="#49617f">--no-verify rejected server-side</text>
+      <rect x="34" y="184" width="232" height="26" rx="13" fill="#dff8ec"/><text x="120" y="204" font-size="17" font-weight="800" fill="#0b9b66">PASS</text>
+    </g>
+
+    <g transform="translate(1050 245)">
+      <rect width="318" height="220" rx="22" fill="#fff1f1" stroke="#f4baba"/>
+      <circle cx="52" cy="54" r="25" fill="#e45757"/><text x="44" y="64" font-size="28" font-weight="800" fill="#fff">4</text>
+      <text x="92" y="58" font-size="23" font-weight="800">G4 Self-dogfood</text>
+      <text x="34" y="108" font-size="17" fill="#49617f">Full Phase lifecycle in this repo</text>
+      <text x="34" y="140" font-size="17" fill="#49617f">Fresh-agent takeover + ACCEPT</text>
+      <rect x="34" y="184" width="250" height="26" rx="13" fill="#dff8ec"/><text x="129" y="204" font-size="17" font-weight="800" fill="#0b9b66">PASS</text>
+    </g>
+
+    <g transform="translate(72 530)">
+      <rect width="1296" height="146" rx="24" fill="#f7f9fc" stroke="#dfe7f3"/>
+      <text x="30" y="40" font-size="18" font-weight="800" fill="#1677ff">AUTHORITY</text>
+      <text x="30" y="72" font-size="18" font-weight="700">GitHub origin = single</text><text x="30" y="98" font-size="18" font-weight="700">write authority</text>
+      <line x1="328" y1="28" x2="328" y2="116" stroke="#d5dfec"/>
+      <text x="360" y="40" font-size="18" font-weight="800" fill="#10a875">PROJECTION</text>
+      <text x="360" y="72" font-size="18" font-weight="700">Mirrors never become</text><text x="360" y="98" font-size="18" font-weight="700">a second SoT</text>
+      <line x1="680" y1="28" x2="680" y2="116" stroke="#d5dfec"/>
+      <text x="712" y="40" font-size="18" font-weight="800" fill="#e49a00">FAIL CLOSED</text>
+      <text x="712" y="72" font-size="18" font-weight="700">Unknown remotes or</text><text x="712" y="98" font-size="18" font-weight="700">missing gates block work</text>
+      <line x1="1030" y1="28" x2="1030" y2="116" stroke="#d5dfec"/>
+      <text x="1062" y="40" font-size="18" font-weight="800" fill="#7b61d1">VERIFICATION</text>
+      <text x="1062" y="72" font-size="18" font-weight="700">Merge ≠ Phase PASS</text>
+      <text x="1062" y="98" font-size="17" fill="#667892">Evidence → disposer decision</text>
+    </g>
+
+    <text x="720" y="725" text-anchor="middle" font-size="24" font-weight="800" fill="#1f4c8f">Bootstrap once · enforce continuously · verify independently</text>
+  </g>
+</svg>
