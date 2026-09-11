@@ -1,3 +1,7 @@
+<p align="right">
+  <strong>English</strong> · <a href="./GETTING_STARTED.zh-CN.md">简体中文</a>
+</p>
+
 # Getting Started
 
 This guide is the shortest path from **“I want AI Agents to work on a real project”** to a repository with durable project governance.
@@ -12,9 +16,9 @@ You need:
 
 - Git
 - Bash / Git Bash
-- GitHub CLI (`gh`) if bootstrap should create/configure the GitHub repository
+- GitHub CLI (`gh`) if bootstrap should create or configure the GitHub repository
 - a real git checkout of `agent-project-ops`
-- a named human disposer, e.g. `@your-handle`
+- a named human disposer, for example `@your-handle`
 
 The disposer is the person allowed to make decisions such as:
 
@@ -23,7 +27,7 @@ The disposer is the person allowed to make decisions such as:
 - `PHASE RETURN`
 - `EXCEPTION ACCEPT`
 
-The Agent may prepare and propose these decisions, but does not self-Accept.
+The Agent may prepare and propose these decisions, but it does not self-Accept.
 
 ---
 
@@ -40,7 +44,7 @@ The methodology reports what GitHub can actually enforce.
 Important:
 
 - client hooks can be bypassed with `--no-verify`;
-- therefore client hooks are an early local guard, **not** the final security boundary;
+- client hooks are therefore an early local guard, **not** the final security boundary;
 - server-side GitHub protection is the real gate for protected branches;
 - GitHub Free private repositories do not provide the required protection here, so they correctly fall to **Capability C**;
 - GitHub Free public repositories can provide the PR-only protection used for Capability B.
@@ -76,7 +80,7 @@ bash scripts/bootstrap-project.sh \
   --yes
 ```
 
-For a GitHub Free account where protected private repos are unavailable, use a public smoke/project only when public visibility is acceptable:
+For a GitHub Free account where protected private repositories are unavailable, use a public smoke/project only when public visibility is acceptable:
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -118,7 +122,7 @@ bash scripts/bootstrap-project.sh \
 The second remote never becomes a second source of truth.
 
 <p align="center">
-  <img src="./assets/quick-start.svg" alt="agent-project-ops quick start" width="100%" />
+  <img src="./assets/quick-start.en.svg" alt="agent-project-ops quick start" width="100%" />
 </p>
 
 ---
@@ -158,7 +162,7 @@ Key files:
 The project pins a real methodology SHA. It does not silently float with methodology `main`.
 
 <p align="center">
-  <img src="./assets/repository-structure.svg" alt="Repository structure and control plane" width="100%" />
+  <img src="./assets/repository-structure.en.svg" alt="Repository structure and control plane" width="100%" />
 </p>
 
 ---
@@ -190,7 +194,7 @@ If protection is **C**, stop. Do not reinterpret it as “good enough.”
 
 Git does **not** clone local `core.hooksPath` configuration.
 
-That means a fresh clone will contain the tracked hook files but will not automatically activate them.
+A fresh clone contains the tracked hook files but does not automatically activate them.
 
 Check:
 
