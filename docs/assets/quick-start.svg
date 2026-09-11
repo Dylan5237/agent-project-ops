@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">agent-project-ops quick start</title><desc id="desc">Bootstrap once, then use an Issue to Freeze, implement, verify, and accept each task.</desc>
+  <defs><style>.s{font-family:Inter,Segoe UI,Arial,"Noto Sans SC",sans-serif}.h{font-weight:800;fill:#0d2b59}.m{fill:#536b88}.t{font-size:29px;font-weight:750}.p{font-size:23px}.n{font-size:25px;font-weight:800}.mono{font-family:Consolas,Menlo,monospace;font-size:24px;fill:#eaf3ff}</style><filter id="sh"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-opacity=".08"/></filter></defs>
+  <rect width="1600" height="980" rx="34" fill="#fbfdff"/>
+  <g class="s">
+    <text x="74" y="94" font-size="62" class="h">Quick start & daily workflow · 快速上手</text>
+    <text x="74" y="144" font-size="27" class="m">Bootstrap once per project. Repeat a controlled lifecycle for every task.</text>
+
+    <g transform="translate(68 214)" filter="url(#sh)"><rect width="680" height="650" rx="28" fill="#edf6ff" stroke="#a6d0fb" stroke-width="2"/></g>
+    <text x="104" y="270" class="t" fill="#1768bd">1 · Bootstrap once / 一次初始化</text>
+    <rect x="104" y="304" width="608" height="220" rx="22" fill="#13283f"/>
+    <text x="132" y="348" class="mono">./scripts/bootstrap-project.sh \</text>
+    <text x="132" y="388" class="mono">  --name my-project \</text>
+    <text x="132" y="428" class="mono">  --disposer @your-handle \</text>
+    <text x="132" y="468" class="mono">  --no-projection \</text>
+    <text x="132" y="508" class="mono">  --yes</text>
+    <g transform="translate(104 554)">
+      <text x="0" y="0" class="n" fill="#164b88">✓ GitHub authority</text><text x="300" y="0" class="p m">创建/绑定 origin</text>
+      <text x="0" y="48" class="n" fill="#164b88">✓ Durable bindings</text><text x="300" y="48" class="p m">AGENTS.md + adapters</text>
+      <text x="0" y="96" class="n" fill="#164b88">✓ Real PIN SHA</text><text x="300" y="96" class="p m">固定方法论版本</text>
+      <text x="0" y="144" class="n" fill="#164b88">✓ Remote registry</text><text x="300" y="144" class="p m">authority / projection 显式登记</text>
+      <text x="0" y="192" class="n" fill="#164b88">✓ Hook install</text><text x="300" y="192" class="p m">本地 fail-closed guard</text>
+      <text x="0" y="240" class="n" fill="#164b88">✓ Capability report</text><text x="300" y="240" class="p m">A / B / C 如实报告</text>
+    </g>
+
+    <g transform="translate(786 214)" filter="url(#sh)"><rect width="746" height="650" rx="28" fill="#edfbf5" stroke="#a1dfc8" stroke-width="2"/></g>
+    <text x="824" y="270" class="t" fill="#0b855d">2 · Work every day / 日常工作流</text>
+    <g transform="translate(826 314)">
+      <line x1="32" y1="20" x2="32" y2="500" stroke="#8bcfb8" stroke-width="5"/>
+      <g><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">1</text><text x="82" y="36" class="n" fill="#163a65">Create Issue / Phase</text><text x="380" y="36" class="p m">定义范围与验收标准</text></g>
+      <g transform="translate(0 70)"><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">2</text><text x="82" y="36" class="n" fill="#163a65">FREEZE ACK</text><text x="380" y="36" class="p m">冻结合同后才允许实现</text></g>
+      <g transform="translate(0 140)"><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">3</text><text x="82" y="36" class="n" fill="#163a65">Worktree + branch</text><text x="380" y="36" class="p m">一个任务一个隔离工作区</text></g>
+      <g transform="translate(0 210)"><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">4</text><text x="82" y="36" class="n" fill="#163a65">Implement + test</text><text x="380" y="36" class="p m">实现冻结范围，不顺手扩张</text></g>
+      <g transform="translate(0 280)"><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">5</text><text x="82" y="36" class="n" fill="#163a65">Open PR + CI</text><text x="380" y="36" class="p m">通过 PR 进入 authority</text></g>
+      <g transform="translate(0 350)"><circle cx="32" cy="28" r="27" fill="#1679e9"/><text x="23" y="37" fill="white" class="n">6</text><text x="82" y="36" class="n" fill="#163a65">Evidence READY</text><text x="380" y="36" class="p m">可复验，不只说“完成了”</text></g>
+      <g transform="translate(0 420)"><circle cx="32" cy="28" r="27" fill="#0ba66f"/><text x="23" y="37" fill="white" class="n">7</text><text x="82" y="36" class="n" fill="#163a65">Disposer ACCEPT / RETURN</text><text x="430" y="36" class="p m">最终拍板</text></g>
+    </g>
+
+    <g transform="translate(78 902)"><text x="0" y="0" font-size="25" font-weight="800" fill="#0d2b59">Fresh Agent takeover:</text><text x="236" y="0" class="p m">repo instructions + GitHub control plane survive chat/session changes.</text><text x="944" y="0" class="p" font-weight="700" fill="#0b855d">换 Agent，不换规则。</text></g>
+  </g>
+</svg>
