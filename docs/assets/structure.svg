@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1020" viewBox="0 0 1440 1020">
+  <rect width="1440" height="900" fill="#fbfdff"/>
+  <g font-family="Inter,Segoe UI,Microsoft YaHei,Arial,sans-serif" fill="#10284d">
+    <text x="70" y="82" font-size="52" font-weight="800">Repository structure and control plane</text>
+    <text x="72" y="124" font-size="24" fill="#667892">A portable repository contract for multi-agent work — without turning chat into project state</text>
+    <text x="72" y="160" font-size="22" fill="#667892">把规则、权限、远端分类和阶段状态落到仓库与 GitHub 控制面</text>
+
+    <g transform="translate(70 210)">
+      <rect width="610" height="610" rx="24" fill="#eef6ff" stroke="#bdd9ff"/>
+      <text x="34" y="52" font-size="28" font-weight="800">Generated project skeleton</text>
+      <g font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="20">
+        <text x="36" y="100" font-weight="800">your-project/</text>
+        <text x="58" y="138">├─ .agent-project-ops/</text>
+        <text x="86" y="172">│  ├─ PIN</text>
+        <text x="86" y="206">│  ├─ remotes</text>
+        <text x="86" y="240">│  ├─ PRINCIPLES.md</text>
+        <text x="86" y="274">│  ├─ playbooks/</text>
+        <text x="86" y="308">│  └─ scripts/</text>
+        <text x="58" y="342">├─ .githooks/</text>
+        <text x="86" y="376">│  └─ pre-push</text>
+        <text x="58" y="410">├─ .github/</text>
+        <text x="86" y="444">│  ├─ CODEOWNERS</text>
+        <text x="86" y="478">│  └─ copilot-instructions.md</text>
+        <text x="58" y="512">├─ .cursor/rules/</text>
+        <text x="58" y="546">├─ AGENTS.md</text>
+        <text x="58" y="580">├─ CLAUDE.md</text>
+      </g>
+      <rect x="34" y="600" width="542" height="1" fill="#d8e4f3"/>
+    </g>
+
+    <g transform="translate(720 210)">
+      <rect width="650" height="142" rx="22" fill="#effcf8" stroke="#bce9db"/>
+      <text x="32" y="46" font-size="27" font-weight="800">Bindings</text>
+      <text x="32" y="82" font-size="20">AGENTS.md is the canonical operating contract.</text>
+      <text x="32" y="112" font-size="19" fill="#667892">Claude / Cursor / Copilot adapters converge on the same rules.</text>
+
+      <rect y="166" width="650" height="142" rx="22" fill="#eef6ff" stroke="#bdd9ff"/>
+      <text x="32" y="212" font-size="27" font-weight="800">Runtime registry</text>
+      <text x="32" y="248" font-size="20">.agent-project-ops/remotes declares authority + projection.</text>
+      <text x="32" y="278" font-size="19" fill="#667892">Unknown remotes fail closed until explicitly classified.</text>
+
+      <rect y="332" width="650" height="190" rx="22" fill="#fff9e9" stroke="#f0d58f"/>
+      <text x="32" y="378" font-size="27" font-weight="800">Protection capability</text>
+      <rect x="32" y="406" width="180" height="78" rx="14" fill="#e3f8ee"/><text x="50" y="438" font-size="24" font-weight="800" fill="#0a9463">A</text><text x="86" y="434" font-size="16" font-weight="700">PR + independent</text><text x="86" y="458" font-size="16">review gate</text>
+      <rect x="235" y="406" width="180" height="78" rx="14" fill="#e8f2ff"/><text x="253" y="438" font-size="24" font-weight="800" fill="#1677ff">B</text><text x="289" y="435" font-size="18" font-weight="700">PR-only</text><text x="289" y="460" font-size="18">server gate</text>
+      <rect x="438" y="406" width="180" height="78" rx="14" fill="#ffe7e7"/><text x="456" y="438" font-size="24" font-weight="800" fill="#d74b4b">C</text><text x="492" y="435" font-size="18" font-weight="700">Unprotected /</text><text x="492" y="460" font-size="18">unknown → BLOCKED</text>
+
+      <rect y="546" width="650" height="214" rx="22" fill="#f5f2ff" stroke="#d9cff8"/>
+      <text x="32" y="592" font-size="27" font-weight="800">GitHub control plane</text>
+      <text x="32" y="630" font-size="20">Command Center</text><text x="250" y="630" font-size="19" fill="#667892">single project index + authority policy</text>
+      <text x="32" y="666" font-size="20">Phase issues</text><text x="250" y="666" font-size="19" fill="#667892">Freeze → Implement → Verify → Accept</text>
+      <text x="32" y="702" font-size="20">Implementation PR</text><text x="250" y="702" font-size="19" fill="#667892">change under review + CI</text>
+      <text x="32" y="738" font-size="20">Evidence</text><text x="250" y="738" font-size="18" fill="#667892">replayable proof, separate from conclusion</text>
+    </g>
+
+    <text x="720" y="995" text-anchor="middle" font-size="22" font-weight="800" fill="#1f4c8f">Portable rules · auditable state · safer multi-agent handoff</text>
+  </g>
+</svg>
