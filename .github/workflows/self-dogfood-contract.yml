@@ -1,0 +1,45 @@
+name: self-dogfood-contract
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - '.cursor/rules/agent-project-ops-self.mdc'
+      - '.github/copilot-instructions.md'
+      - '.agent-project-ops/remotes'
+      - '.githooks/pre-push'
+      - 'scripts/install-hooks.sh'
+      - 'scripts/hooks/pre-push-authority.sh'
+      - 'tests/self-dogfood-binding.sh'
+      - '.github/workflows/self-dogfood-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
+      - '.cursor/rules/agent-project-ops-self.mdc'
+      - '.github/copilot-instructions.md'
+      - '.agent-project-ops/remotes'
+      - '.githooks/pre-push'
+      - 'scripts/install-hooks.sh'
+      - 'scripts/hooks/pre-push-authority.sh'
+      - 'tests/self-dogfood-binding.sh'
+      - '.github/workflows/self-dogfood-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Syntax check
+        run: |
+          bash -n .githooks/pre-push
+          bash -n tests/self-dogfood-binding.sh
+      - name: Self-binding and fresh-takeover contract
+        run: bash tests/self-dogfood-binding.sh
