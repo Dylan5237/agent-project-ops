@@ -246,7 +246,7 @@ ${fm}
 
 Follow the full pinned skill at [../../../.agent-project-ops/skills/${skill_name}/SKILL.md](../../../.agent-project-ops/skills/${skill_name}/SKILL.md).
 
-Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.
+Do not invent a parallel process. \`.agent-project-ops/PRINCIPLES.md\` wins.
 EOF
   cp ".agents/skills/${skill_name}/SKILL.md" ".claude/skills/${skill_name}/SKILL.md"
 }
