@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820">
+  <rect width="1440" height="820" fill="#fbfdff"/>
+  <g font-family="Inter,Segoe UI,Microsoft YaHei,Arial,sans-serif" fill="#10284d">
+    <text x="70" y="82" font-size="52" font-weight="800">How agent-project-ops works</text>
+    <text x="72" y="124" font-size="24" fill="#667892">Durable rules in the repo · server-side enforcement where available · replayable evidence</text>
+    <text x="72" y="162" font-size="22" fill="#667892">规则持久化在仓库，关键写路径由服务器保护，阶段结果由证据复验</text>
+
+    <g transform="translate(70 220)">
+      <rect width="300" height="430" rx="22" fill="#eef6ff" stroke="#bad8ff"/>
+      <circle cx="50" cy="48" r="24" fill="#1677ff"/><text x="43" y="57" font-size="24" font-weight="800" fill="#fff">1</text>
+      <text x="88" y="56" font-size="28" font-weight="800">Authority</text>
+      <text x="34" y="108" font-size="23" font-weight="800">GitHub origin</text>
+      <text x="34" y="138" font-size="21" fill="#526984">Single Source of Truth</text>
+      <line x1="34" y1="164" x2="266" y2="164" stroke="#d5e3f6"/>
+      <text x="34" y="208" font-size="17">• Normal changes flow</text><text x="52" y="234" font-size="17">through PRs</text>
+      <text x="34" y="274" font-size="17">• Local checkout = draft</text><text x="52" y="300" font-size="17">workspace</text>
+      <text x="34" y="340" font-size="17">• Direct main update</text><text x="52" y="366" font-size="17">is forbidden</text>
+    </g>
+
+    <g transform="translate(405 220)">
+      <rect width="300" height="430" rx="22" fill="#effcf8" stroke="#bae8d8"/>
+      <circle cx="50" cy="48" r="24" fill="#10b981"/><text x="43" y="57" font-size="24" font-weight="800" fill="#fff">2</text>
+      <text x="88" y="56" font-size="28" font-weight="800">Projection</text>
+      <text x="34" y="108" font-size="23" font-weight="800">Optional mirror only</text>
+      <text x="34" y="138" font-size="21" fill="#526984">Never a second authority</text>
+      <line x1="34" y1="164" x2="266" y2="164" stroke="#d5e3f6"/>
+      <text x="34" y="208" font-size="17">• Must match current</text><text x="52" y="234" font-size="17">authority tip</text>
+      <text x="34" y="274" font-size="17">• Default branch only</text>
+      <text x="34" y="314" font-size="17">• Non-fast-forward denied</text>
+    </g>
+
+    <g transform="translate(740 220)">
+      <rect width="300" height="430" rx="22" fill="#fff9e9" stroke="#f0d58f"/>
+      <circle cx="50" cy="48" r="24" fill="#f0a500"/><text x="43" y="57" font-size="24" font-weight="800" fill="#fff">3</text>
+      <text x="88" y="56" font-size="28" font-weight="800">Fail closed</text>
+      <text x="34" y="108" font-size="23" font-weight="800">Unknown = blocked</text>
+      <text x="34" y="138" font-size="21" fill="#526984">No silent capability claims</text>
+      <line x1="34" y1="164" x2="266" y2="164" stroke="#e9dfc7"/>
+      <text x="34" y="208" font-size="17">• Unknown remote → deny</text>
+      <text x="34" y="248" font-size="17">• Missing registry/guard</text><text x="52" y="274" font-size="17">→ deny</text>
+      <text x="34" y="314" font-size="17">• Protection reports</text><text x="52" y="340" font-size="17">A / B / C</text>
+    </g>
+
+    <g transform="translate(1075 220)">
+      <rect width="295" height="430" rx="22" fill="#fff1f4" stroke="#f4c0ca"/>
+      <circle cx="50" cy="48" r="24" fill="#d85b75"/><text x="43" y="57" font-size="24" font-weight="800" fill="#fff">4</text>
+      <text x="88" y="56" font-size="28" font-weight="800">Verification</text>
+      <text x="34" y="108" font-size="23" font-weight="800">Merge ≠ Phase PASS</text>
+      <text x="34" y="138" font-size="21" fill="#526984">Evidence before acceptance</text>
+      <line x1="34" y1="164" x2="261" y2="164" stroke="#ecd8dc"/>
+      <text x="34" y="208" font-size="17">• Freeze before</text><text x="52" y="234" font-size="17">implementation</text>
+      <text x="34" y="274" font-size="17">• Evidence must be</text><text x="52" y="300" font-size="17">replayable</text>
+      <text x="34" y="340" font-size="17">• Agent proposes</text><text x="52" y="366" font-size="17">EVIDENCE READY</text>
+      <text x="34" y="406" font-size="17">• Disposer ACCEPTs / RETURNs</text>
+    </g>
+
+    <rect x="70" y="690" width="1300" height="78" rx="18" fill="#f4f7fb" stroke="#dfe6ef"/>
+    <text x="100" y="722" font-size="19" font-weight="800" fill="#1677ff">KEY RULES</text>
+    <text x="245" y="722" font-size="19">Chat ≠ state</text>
+    <text x="430" y="722" font-size="19">One task = one worktree / branch / PR</text>
+    <text x="800" y="722" font-size="19">Client hook is bypassable</text>
+    <text x="1080" y="722" font-size="19">Server policy is the real gate</text>
+    <text x="720" y="752" text-anchor="middle" font-size="17" fill="#667892">Simple rules · explicit authority · replayable outcomes</text>
+  </g>
+</svg>
