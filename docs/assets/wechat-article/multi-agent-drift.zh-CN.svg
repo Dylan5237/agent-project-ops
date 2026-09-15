@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">四个 AI，同时在改一个项目</title>
+  <desc id="desc">多个 AI Agent 从不同会话和设备进入同一个项目，项目状态在本地、GitHub、GitLab 和历史会话之间分叉。</desc>
+  <defs>
+    <style>
+      .s{font-family:Inter,Segoe UI,Arial,"Noto Sans SC",sans-serif}
+      .h{font-weight:800;fill:#0d2b59}
+      .m{fill:#506784}
+      .tag{font-weight:700}
+      .arrow{stroke:#8aa2c0;stroke-width:5;fill:none;marker-end:url(#ah)}
+      .fork{stroke:#d8a414;stroke-width:5;fill:none;stroke-dasharray:14 10;marker-end:url(#ah2)}
+    </style>
+    <marker id="ah" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#8aa2c0"/></marker>
+    <marker id="ah2" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d8a414"/></marker>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-opacity=".08"/></filter>
+  </defs>
+  <rect width="1600" height="1000" rx="34" fill="#fbfdff"/>
+  <g class="s">
+    <text x="74" y="96" font-size="60" class="h">四个 AI，同时在改一个项目</text>
+    <text x="74" y="148" font-size="26" class="m">每个会话都有效率，合在一起：哪一份才是真的？</text>
+
+    <!-- 左侧：4 个 agent 入口 -->
+    <g filter="url(#sh)"><rect x="70" y="220" width="360" height="150" rx="24" fill="#edf3ff" stroke="#9ecbfa" stroke-width="2"/></g>
+    <text x="102" y="282" font-size="30" class="tag" fill="#164b88">Claude Code</text>
+    <text x="102" y="326" font-size="22" class="m">公司笔记本 · 改需求 · session A</text>
+
+    <g filter="url(#sh)"><rect x="70" y="410" width="360" height="150" rx="24" fill="#edf3ff" stroke="#9ecbfa" stroke-width="2"/></g>
+    <text x="102" y="472" font-size="30" class="tag" fill="#164b88">Codex</text>
+    <text x="102" y="516" font-size="22" class="m">家里台式机 · 修 bug · session B</text>
+
+    <g filter="url(#sh)"><rect x="70" y="600" width="360" height="150" rx="24" fill="#edf3ff" stroke="#9ecbfa" stroke-width="2"/></g>
+    <text x="102" y="662" font-size="30" class="tag" fill="#164b88">ChatGPT 网页版</text>
+    <text x="102" y="706" font-size="22" class="m">过需求 · 抠方案 · session C</text>
+
+    <g filter="url(#sh)"><rect x="70" y="790" width="360" height="150" rx="24" fill="#edf3ff" stroke="#9ecbfa" stroke-width="2"/></g>
+    <text x="102" y="852" font-size="30" class="tag" fill="#164b88">Kimi Code</text>
+    <text x="102" y="896" font-size="22" class="m">不着急的重构 · session D</text>
+
+    <!-- 中间：同一个项目 -->
+    <g filter="url(#sh)"><rect x="640" y="420" width="330" height="290" rx="28" fill="#0d2b59"/></g>
+    <text x="805" y="520" font-size="34" font-weight="800" fill="#ffffff" text-anchor="middle" class="s">同一个真实项目</text>
+    <text x="805" y="572" font-size="24" fill="#bcd2f0" text-anchor="middle" class="s">同一个仓库</text>
+    <text x="805" y="616" font-size="24" fill="#bcd2f0" text-anchor="middle" class="s">四条并行会话</text>
+    <text x="805" y="660" font-size="24" fill="#f5c84c" text-anchor="middle" class="s">谁的状态作数？</text>
+
+    <!-- 连线 agent -> project -->
+    <path class="arrow" d="M430 295 C 560 295, 600 460, 640 500"/>
+    <path class="arrow" d="M430 485 L 640 545"/>
+    <path class="arrow" d="M430 675 C 560 675, 600 580, 640 570"/>
+    <path class="arrow" d="M430 865 C 570 865, 610 660, 640 630"/>
+
+    <!-- 右侧：状态分叉 -->
+    <g filter="url(#sh)"><rect x="1180" y="200" width="360" height="150" rx="24" fill="#fff8e8" stroke="#ebcb79" stroke-width="2"/></g>
+    <text x="1212" y="262" font-size="30" class="tag" fill="#8f6104">Local 本地</text>
+    <text x="1212" y="306" font-size="22" class="m">领先 3 个提交 · 未推送</text>
+
+    <g filter="url(#sh)"><rect x="1180" y="390" width="360" height="150" rx="24" fill="#fff8e8" stroke="#ebcb79" stroke-width="2"/></g>
+    <text x="1212" y="452" font-size="30" class="tag" fill="#8f6104">GitHub</text>
+    <text x="1212" y="496" font-size="22" class="m">两条已合并 PR · 1 条在 review</text>
+
+    <g filter="url(#sh)"><rect x="1180" y="580" width="360" height="150" rx="24" fill="#fff8e8" stroke="#ebcb79" stroke-width="2"/></g>
+    <text x="1212" y="642" font-size="30" class="tag" fill="#8f6104">GitLab 镜像</text>
+    <text x="1212" y="686" font-size="22" class="m">一条不知来源的领先提交</text>
+
+    <g filter="url(#sh)"><rect x="1180" y="770" width="360" height="150" rx="24" fill="#fff8e8" stroke="#ebcb79" stroke-width="2"/></g>
+    <text x="1212" y="832" font-size="30" class="tag" fill="#8f6104">历史会话</text>
+    <text x="1212" y="876" font-size="22" class="m">关键决定只活在这里 · 已关</text>
+
+    <!-- project -> 分叉 -->
+    <path class="fork" d="M970 480 C 1060 430, 1090 310, 1180 280"/>
+    <path class="fork" d="M970 530 L 1180 465"/>
+    <path class="fork" d="M970 600 L 1180 655"/>
+    <path class="fork" d="M970 650 C 1060 700, 1090 810, 1180 845"/>
+
+    <text x="805" y="975" font-size="26" class="m" text-anchor="middle">AI 越多效率越高，但「哪份是真的」越来越难判断 —— 这不是 Prompt 问题，是项目治理问题。</text>
+  </g>
+</svg>
