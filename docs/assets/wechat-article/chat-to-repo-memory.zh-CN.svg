@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="920" viewBox="0 0 1600 920" role="img" aria-labelledby="title desc">
+  <title id="title">项目的记忆应该住在哪里</title>
+  <desc id="desc">会话记忆是易碎的、分散的；把项目记忆搬进仓库，就可以被克隆、审计和接力。</desc>
+  <defs>
+    <style>
+      .s{font-family:Inter,Segoe UI,Arial,"Noto Sans SC",sans-serif}
+      .h{font-weight:800;fill:#0d2b59}
+      .m{fill:#506784}
+      .tag{font-weight:700}
+    </style>
+    <marker id="ah" markerWidth="12" markerHeight="12" refX="9" refY="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#0ca56f"/></marker>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="7" stdDeviation="10" flood-opacity=".08"/></filter>
+  </defs>
+  <rect width="1600" height="920" rx="34" fill="#fbfdff"/>
+  <g class="s">
+    <text x="74" y="96" font-size="60" class="h">项目的记忆，到底应该住在哪里？</text>
+    <text x="74" y="148" font-size="26" class="m">聊天可以产生决策，但聊天不能成为项目的事实存储层。</text>
+
+    <!-- 左：会话记忆 -->
+    <g filter="url(#sh)"><rect x="70" y="210" width="560" height="600" rx="28" fill="#f4f6fa" stroke="#c3cede" stroke-width="2"/></g>
+    <text x="102" y="272" font-size="32" class="tag" fill="#44536b">会话记忆 · Session Memory</text>
+    <text x="102" y="314" font-size="22" class="m">易碎 · 分散 · 会消失</text>
+
+    <g opacity="0.9">
+      <rect x="102" y="350" width="230" height="90" rx="16" fill="#ffffff" stroke="#c3cede" transform="rotate(-3 217 395)"/>
+      <text x="130" y="402" font-size="22" class="m" transform="rotate(-3 217 395)">session A · 已关闭</text>
+      <rect x="360" y="360" width="230" height="90" rx="16" fill="#ffffff" stroke="#c3cede" transform="rotate(2.5 475 405)"/>
+      <text x="388" y="412" font-size="22" class="m" transform="rotate(2.5 475 405)">session B · 截断</text>
+      <rect x="102" y="480" width="230" height="90" rx="16" fill="#ffffff" stroke="#c3cede" transform="rotate(2 217 525)"/>
+      <text x="130" y="532" font-size="22" class="m" transform="rotate(2 217 525)">session C · 换模型丢上下文</text>
+      <rect x="360" y="490" width="230" height="90" rx="16" fill="#ffffff" stroke="#c3cede" transform="rotate(-2 475 535)"/>
+      <text x="388" y="542" font-size="22" class="m" transform="rotate(-2 475 535)">session D · 新成员读不到</text>
+    </g>
+    <text x="102" y="650" font-size="24" class="m">决定散落在对话里：</text>
+    <text x="102" y="694" font-size="24" class="m">为什么这么做？没人说得清。</text>
+    <text x="102" y="762" font-size="26" class="tag" fill="#a33b3b">会话一关，依据就没了。</text>
+
+    <!-- 中：迁移箭头 -->
+    <path d="M660 510 L 900 510" stroke="#0ca56f" stroke-width="7" fill="none" marker-end="url(#ah)"/>
+    <text x="780" y="462" font-size="25" font-weight="800" fill="#0a6b4a" text-anchor="middle" class="s">把项目记忆</text>
+    <text x="780" y="500" font-size="25" font-weight="800" fill="#0a6b4a" text-anchor="middle" class="s">搬进持久状态</text>
+
+    <!-- 右：仓库 -->
+    <g filter="url(#sh)"><rect x="940" y="210" width="590" height="600" rx="28" fill="#edfbf5" stroke="#9cdec4" stroke-width="2"/></g>
+    <text x="972" y="272" font-size="32" class="tag" fill="#117451">仓库 · Durable Repository</text>
+    <text x="972" y="314" font-size="22" class="m">可克隆 · 可审计 · 可接力</text>
+
+    <g font-size="23">
+      <rect x="972" y="350" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="995" y="400" class="tag" fill="#174e3a">AGENTS.md</text>
+      <rect x="1242" y="350" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="1265" y="400" class="tag" fill="#174e3a">Issue / Phase</text>
+      <rect x="972" y="456" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="995" y="506" class="tag" fill="#174e3a">PR / CI</text>
+      <rect x="1242" y="456" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="1265" y="506" class="tag" fill="#174e3a">Evidence 证据</text>
+      <rect x="972" y="562" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="995" y="612" class="tag" fill="#174e3a">PIN 固定版本</text>
+      <rect x="1242" y="562" width="250" height="86" rx="16" fill="#ffffff" stroke="#caeadc"/><text x="1265" y="612" class="tag" fill="#174e3a">Command Center</text>
+    </g>
+    <text x="972" y="716" font-size="24" class="m">新成员、新 Agent：clone 下来就能读到全部依据。</text>
+    <text x="972" y="762" font-size="26" class="tag" fill="#0a6b4a">Chat 会消失，Repo 可以被接力。</text>
+
+    <text x="800" y="880" font-size="30" font-weight="800" fill="#0d2b59" text-anchor="middle" class="s">项目的记忆，不在会话里，在仓库里。</text>
+  </g>
+</svg>
