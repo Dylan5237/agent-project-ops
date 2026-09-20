@@ -3,6 +3,7 @@
 Command Center: [#10](https://github.com/Dylan5237/agent-project-ops/issues/10)  
 Phase: [#27](https://github.com/Dylan5237/agent-project-ops/issues/27) (`freeze:acked`, `status:verification`)  
 Implementation PR: [#28](https://github.com/Dylan5237/agent-project-ops/pull/28) (`pr:implementation`)  
+Evidence PR: [#29](https://github.com/Dylan5237/agent-project-ops/pull/29) (`pr:evidence`)  
 ADR decision: [#26](https://github.com/Dylan5237/agent-project-ops/issues/26) `DISPOSER ACK` — Option 3  
 Ops covered: [#24](https://github.com/Dylan5237/agent-project-ops/issues/24), [#25](https://github.com/Dylan5237/agent-project-ops/issues/25)
 
@@ -23,6 +24,7 @@ Independent verifier: Cursor Cloud Agent (this evidence branch). Disposer remain
 | Merge-base / `origin/main` at verification | `82c99296342364739fcacfe8f46f602d2535f8f0` |
 | GitHub PR #28 merge-commit preview (not landed) | `ba1e5679b828063d4bce873e7e9c62166cb4b38f` |
 | Evidence branch base | `82c99296342364739fcacfe8f46f602d2535f8f0` (`main`) |
+| Evidence commit (this file, first revision) | `c559087359730fa5670877fa90690dbb7578b1d3` |
 
 Reviewed: `gh pr view 28` JSON (head, files, commits) plus checkout of the impl SHA and `git diff origin/main...29e72bd` (20 files, +249 / −20). No other commits on the impl branch.
 
@@ -198,7 +200,20 @@ Shell scaffold can still complete; that is not the playbook Done-when.
 - Implementation used one branch/PR (`cursor/phase-27-fleet-index-b305` → #28). No direct `main` push observed.
 - CC #10 §1 was updated to **VERIFICATION** by apo项目经理 after the impl Agent recorded `BLOCKED:` (read-only `gh`) on PR #28. Observed §1 at verification: current phase #27, status **VERIFICATION**, Next Action = independent verification. That satisfies the “CC §1 on label move” gate for the impl→verification flip.
 - This verifier also cannot edit Issue bodies (`gh` read-only). After this evidence lands, CC §1 Next Action should become **disposer review of evidence / `PHASE ACCEPT` or `PHASE RETURN`**. Proposed text is below; gap recorded as `BLOCKED:` for §1 rewrite by this Agent, not chat-only.
-- This verifier cannot comment on Issue #27 via `gh` (read-only). Verdict is on this evidence PR and a comment on PR #28. Copy-paste for #27 is below.
+- This verifier cannot comment on Issue #27 via `gh` (read-only). Verdict is on evidence PR #29 and a comment on PR #28. Copy-paste for #27:
+
+```
+## EVIDENCE READY (independent verifier) — not PHASE ACCEPT
+
+Overall: **PASS** (in-repo frozen gates).
+
+- Impl PR: #28 HEAD `29e72bdabaf1f5e3785f1d767575b2ca8cc843c3`
+- Evidence PR: #29 (`pr:evidence`) — `docs/evidence/phase-27-fleet-index.md`
+- Residual: live box REGISTRY not readable from the verifier VM; disposer should spot-check the 8 `owner/repo` rows before Accept.
+- Deferred (explicit): box-mirror sync after merge; Grok Bot skill-copy. Not silent.
+
+Merge ≠ PASS. Disposer `@Dylan5237` records `PHASE ACCEPT` or `PHASE RETURN`.
+```
 
 ### Proposed CC #10 §1 after this evidence
 
