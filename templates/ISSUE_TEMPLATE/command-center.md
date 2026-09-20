@@ -5,6 +5,22 @@ title: "[Command Center] Project control plane"
 labels: "type:command-center, status:in-progress"
 ---
 
+## 1. One-glance / 一眼状态（agents keep fresh）
+
+Agents **must** rewrite this section on every gate flip / phase status / Freeze / blocked / verification / Accept. This is Agent duty, not a user habit. Chat pings are not a substitute. If this section cannot be updated → `BLOCKED:` on GitHub.
+
+| Field | Value |
+| --- | --- |
+| **Current phase** | # |
+| **Status word** | backlog / implementation / blocked / verification / awaiting Accept |
+| **Last closed phase** | — |
+| **Open gates** | |
+| **Single Next Action** | |
+
+Updated: YYYY-MM-DD. Chat ≠ State.
+
+After this issue exists, **Register to Fleet REGISTRY**: upsert `owner/repo` + this Command Center number into `Dylan5237/agent-project-ops` `fleet/REGISTRY.md` and confirm the box mirror. Fail closed if skipped.
+
 ## 目的 / Purpose
 
 Canonical **control plane** for this business repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
@@ -84,3 +100,4 @@ If Agent and disposer use the same GitHub identity, GitHub cannot distinguish hu
 - Binding path: root `AGENTS.md` → pinned `.agent-project-ops/PRINCIPLES.md`
 - Relevant project skills: `.agents/skills/*/SKILL.md`
 - Projection operations require `git-authority-and-projection` before non-origin push.
+- Fleet index SoT: `Dylan5237/agent-project-ops` `fleet/REGISTRY.md` (box path is a mirror).

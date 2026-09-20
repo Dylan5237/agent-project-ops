@@ -39,5 +39,6 @@ PR merge ≠ Phase PASS. Propose `EVIDENCE READY`; disposer writes `PHASE ACCEPT
 4. On gaps: `BLOCKED:` comment + `status:blocked`.
 5. Frozen field wrong → new Architecture Exception issue; do not edit-and-continue.
 6. Redact secrets from logs.
+7. On every status/gate flip: update Command Center **section 1** and the Phase status label. [ ] **CC §1 updated**. Cannot edit CC → `BLOCKED:` on GitHub, not chat-only.
 
 Do not add a second control plane (chat logs, unofficial boards) as a substitute.

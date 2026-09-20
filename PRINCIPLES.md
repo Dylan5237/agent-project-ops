@@ -22,6 +22,7 @@ Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 - Canonical state lives in: GitHub Issue bodies + comments, labels, PR descriptions, and commits on named branches.
 - If it is not on the Issue/PR/git object, it did not happen.
 - Summarize chat decisions **into the Issue** in the same turn they are made.
+- Command Center **section 1** is the one-glance Agents keep current on every gate flip (skill duty; see `skills/github-multi-agent-project-ops`). Chat pings are not a substitute.
 
 ## 3. PR merge ≠ Phase PASS
 

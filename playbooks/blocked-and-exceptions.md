@@ -25,6 +25,7 @@ Stop when the contract or environment is insufficient (**fail closed**), and rou
 3. Park the worktree: commit WIP on the topic branch **or** stash and push the branch so another Agent can resume. Do not leave the only copy on one laptop unsynced if others must continue.
 4. Do not open unrelated `feat/` work “to stay productive” against the same Phase.
 5. When unblocked: comment `UNBLOCKED:` with proof, restore `status:in-progress` or `verification`.
+6. Update Command Center **section 1** on both block and unblock. [ ] **CC §1 updated**. If CC cannot be edited, the `BLOCKED:` comment on the Issue is still required; do not leave the gap chat-only.
 
 ### B. Architecture Exception / 架构例外
 
@@ -49,6 +50,7 @@ Disposer may close a Phase with `SUPERSEDED BY #n` without Accept. Record it on 
 - [ ] No implementation commits after a disputed freeze without Exception Accept.
 - [ ] Accepted exceptions produce a new Freeze comment.
 - [ ] Command Center lists open exceptions.
+- [ ] **CC §1 updated** (or GitHub `BLOCKED:` states why §1 could not be rewritten).
 
 ## Anti-patterns
 

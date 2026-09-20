@@ -8,6 +8,8 @@ This repository is the **methodology repository itself**. It is running a bounde
 - GitHub `origin` is the sole write authority.
 - Projection remotes: `(none)` unless the Command Center explicitly changes that classification.
 - Self-dogfood Command Center: https://github.com/Dylan5237/agent-project-ops/issues/10
+- Keep Command Center #10 **section 1** current on every gate flip (Agent duty, not a user habit).
+- Fleet index: [`fleet/REGISTRY.md`](./fleet/REGISTRY.md) (SoT; box path is a mirror). ADR: [`docs/adr/0002-canonical-fleet-index.md`](./docs/adr/0002-canonical-fleet-index.md).
 - The **current Phase is discovered from the Command Center Phase index**, not from chat and not from a hard-coded phase number in this file.
 - Methodology source: local `PRINCIPLES.md`, then the relevant files under `playbooks/` and `skills/`.
 

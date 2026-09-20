@@ -36,7 +36,8 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    - Label PR `pr:implementation`. Do not add product-only labels from a business SOP pack.
 5. **Open evidence PR** (if artifacts are in git) with `templates/PULL_REQUEST_TEMPLATE/evidence.md`, label `pr:evidence`, branch `evidence/{issue}-{slug}`.
 6. **Comments are the log.** Status changes get a one-line reason. Paste command output **summaries** that matter; do not dump secrets.
-7. **Close rules.** Close tasks when their PR is merged **and** the Phase still owns Accept. Close Phase only after `PHASE ACCEPT` or documented supersede. Closing a PR ≠ closing a Phase.
+7. **CC §1 on every status/gate change.** Same turn: rewrite Command Center section 1 and keep exactly one Phase `status:*` label. [ ] **CC §1 updated**. If CC cannot be edited → `BLOCKED:` on GitHub, not chat-only.
+8. **Close rules.** Close tasks when their PR is merged **and** the Phase still owns Accept. Close Phase only after `PHASE ACCEPT` or documented supersede. Closing a PR ≠ closing a Phase.
 
 ## Done when
 
@@ -44,6 +45,7 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
 - [ ] Exactly one `status:*` label on each tracked Issue.
 - [ ] PRs declare implementation vs evidence.
 - [ ] Command Center table lists open Phases.
+- [ ] **CC §1 updated** for the latest status/gate flip (or `BLOCKED:` recorded on GitHub).
 
 ## Anti-patterns
 
@@ -52,3 +54,4 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
 - PR with no linked Issue.
 - Using Projects/boards as the only state and leaving Issues blank.
 - Merging then deleting the Issue before Accept is recorded.
+- Changing a Phase status label without rewriting Command Center §1 (or recording `BLOCKED:` on GitHub).

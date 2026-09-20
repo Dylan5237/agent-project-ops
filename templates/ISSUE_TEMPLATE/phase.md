@@ -41,6 +41,13 @@ labels: "type:phase, status:backlog"
 - [ ] Contract written in this body
 - [ ] Disposer comment: `FREEZE ACK` + date
 - [ ] No `feat/`/`fix/` branch before ACK
+- [ ] **CC §1 updated** on this Freeze / status change
+
+## Control-plane hygiene
+
+On every gate flip / phase status / Freeze / blocked / verification: update Command Center **section 1** and this Phase status label in the same turn. Agent duty, not user habit. If CC cannot be updated → `BLOCKED:` on GitHub.
+
+- [ ] **CC §1 updated**
 
 ## Implementation links
 
