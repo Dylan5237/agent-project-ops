@@ -3,7 +3,7 @@
 Command Center: [#10](https://github.com/Dylan5237/agent-project-ops/issues/10)  
 Phase: [#32](https://github.com/Dylan5237/agent-project-ops/issues/32) (`freeze:acked`, `status:verification`)  
 Implementation PR: [#33](https://github.com/Dylan5237/agent-project-ops/pull/33) (`pr:implementation`)  
-Evidence PR: this pack (`pr:evidence`)  
+Evidence PR: [#34](https://github.com/Dylan5237/agent-project-ops/pull/34) (`pr:evidence`)  
 Scope cut (disposer, 2026-09-20): **`Dylan5237/zentao-mcp` is out of this Phase** (no scrub / no repo edits).
 
 This document is **evidence only**. It does not change product/docs under test. Merge of this evidence PR is **not** Phase PASS. The Agent does **not** issue `PHASE ACCEPT`.
@@ -232,7 +232,7 @@ PR #33 contains tests that **are** product/methodology code (`tests/share-export
 Overall: **PASS** (in-repo frozen gates; zentao-mcp out of scope per 2026-09-20 cut).
 
 - Impl PR: #33 HEAD `2998ac559ca919ef93cc5cfff52d5cc7a9798410`
-- Evidence: `docs/evidence/phase-32-gitlab-share-export.md` (this evidence PR)
+- Evidence: `docs/evidence/phase-32-gitlab-share-export.md` (evidence PR #34)
 - Gates 1–6: PASS. Residuals: RFC 0001 historical GitLab-as-projection text is superseded by an ADR 0003 banner; `projection=` misclassification would still FF a full tree (documented contract error); this Agent cannot edit CC #10 §1 (`BLOCKED:` for §1 rewrite by project-ops / disposer).
 - Tests: local share-export / hook-behavior (15/0) / bootstrap-local / self-dogfood PASS; Actions runs 35501899267, 35501899303, 35501899318 success on the same SHA.
 
