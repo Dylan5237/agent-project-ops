@@ -18,7 +18,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | agent-project-ops | Dylan5237/agent-project-ops | #10 | 负责人：apo项目经理（Grok Bot） |
 | agent-team-workbench | Dylan5237/agent-team-workbench | #15 | |
 | req-to-page | Dylan5237/req-to-page | #6 | |
-| zentao-mcp | Dylan5237/zentao-mcp | #1 | 禅道 21.1 MCP（client lib + stdio + CLI），Phase 1 待 Freeze |
+| zentao-mcp | Dylan5237/zentao-mcp | #1 | 禅道 21.1 MCP（client lib + stdio + CLI）；CC #1；Phase #2 in progress |
 | architecture-expert | Dylan5237/architecture-expert | （待确认 CC；门禁常看 #12） | 若无 CC，晨报标「未知+缺 Command Center」 |
 
 ## 晨报读法（强制）
