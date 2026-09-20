@@ -55,13 +55,19 @@ install_eol="$(git -C "${dest}" check-attr eol -- .agent-project-ops/scripts/ins
 pass 'generated executable shell surfaces are pinned to LF'
 
 pin_sha="$(sed -n 's/^sha=//p' "${dest}/.agent-project-ops/PIN")"
+pin_url="$(sed -n 's/^url=//p' "${dest}/.agent-project-ops/PIN")"
 [[ "${pin_sha}" == "${src_sha}" ]] || fail "PIN SHA mismatch: ${pin_sha} != ${src_sha}"
 [[ "${pin_sha}" != 'unknown' && "${pin_sha}" != 'local:unknown' ]] || fail 'unsupported unknown PIN emitted'
+[[ "${pin_url}" != *@* ]] || fail "PIN URL contains userinfo: ${pin_url}"
 pass 'PIN carries the real methodology SHA'
 
 [[ "$(sed -n 's/^authority=//p' "${dest}/.agent-project-ops/remotes")" == 'origin' ]] || fail 'authority registry is not origin'
 [[ "$(sed -n 's/^projection=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'origin-only registry incorrect'
+[[ "$(sed -n 's/^share_export=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'share_export registry incorrect'
+[[ -f "${dest}/.agent-project-ops/scripts/share-export.sh" ]] || fail 'share-export helper missing from snapshot'
+[[ -f "${dest}/.agent-project-ops/scripts/lib/share-export-denylist.sh" ]] || fail 'share-export denylist missing from snapshot'
 pass 'remote registry is explicit and clone-portable'
+pass 'share-export helper is vendored into the snapshot'
 
 [[ "$(git -C "${dest}" config --get core.hooksPath)" == '.githooks' ]] || fail 'bootstrap checkout hook not installed'
 pass 'bootstrap checkout has core.hooksPath=.githooks'

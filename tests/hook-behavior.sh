@@ -77,6 +77,23 @@ expect_deny 'topic -> projection' git push projection HEAD:refs/heads/feat/test
 expect_deny 'topic -> unregistered remote' git push gitlab HEAD:refs/heads/feat/test
 expect_deny 'first main -> unregistered remote' git push gitlab "${base_tip}":refs/heads/main
 
+# 5b. A remote classified as share_export is never pushable from the bound clone.
+git checkout -q -b feat/share-export-test "${base_tip}"
+printf 'share-export-topic\n' >> tracked.txt
+git commit -qam share-export-topic
+cat > .agent-project-ops/remotes <<'EOF'
+authority=origin
+projection=projection,projection-bad
+share_export=gitlab
+EOF
+git add .agent-project-ops/remotes
+git commit -qam 'classify gitlab as share_export'
+expect_deny 'topic -> share_export remote' git push gitlab HEAD:refs/heads/feat/share-export-test
+expect_deny 'main -> share_export remote' git push gitlab "${base_tip}":refs/heads/main
+git checkout -q main
+git reset -q --hard "${base_tip}"
+
+
 # 7. Default-branch deletion is denied.
 expect_deny 'delete main -> authority' git push origin :refs/heads/main
 

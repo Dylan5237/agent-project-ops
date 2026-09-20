@@ -5,3 +5,4 @@ Accepted architecture decisions for this methodology repository. They do not wea
 | ADR | Title | Status |
 | --- | --- | --- |
 | [0002](./0002-canonical-fleet-index.md) | Canonical fleet index (git SoT + box mirror) | Accepted (disposer #26, 2026-09-20) |
+| [0003](./0003-share-export-vs-projection.md) | Share-export ≠ full-tree projection (colleague GitLab) | Accepted (disposer FREEZE ACK #32, 2026-09-20) |

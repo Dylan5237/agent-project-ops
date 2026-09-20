@@ -1,3 +1,5 @@
+> **Supersede (2026-09-20, [ADR 0003](../adr/0003-share-export-vs-projection.md) / Phase #32):** Colleague-share GitLab is **share-export**, not a projection remote. Sentences below that use GitLab as the projection example are **rejected** for that use case. Optional `--projection-url` remains a same-history FF mirror on a host the Command Center classifies as projection.
+
 # RFC 0001 — Bootstrap and agent binding
 
 - **Status:** Proposed

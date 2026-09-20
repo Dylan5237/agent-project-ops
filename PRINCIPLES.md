@@ -85,7 +85,7 @@ Git **写入权威**只有一个：承载 Issues/PR 的 GitHub 仓库（通常 `
 - Projection outage or reject → fail closed (stop release); do not retarget workflow to the mirror.
 - **PR merge ≠ Phase PASS** remains Principle 3: landing on the authority default branch is not Accept.
 
-Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional second remote).
+Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional same-history second remote), `playbooks/share-export.md` (colleague GitLab = filtered business tree, not a projection).
 
 ---
 

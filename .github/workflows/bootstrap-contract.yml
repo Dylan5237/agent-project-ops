@@ -5,9 +5,12 @@ on:
     paths:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
+      - 'scripts/share-export.sh'
+      - 'scripts/lib/share-export-denylist.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/start-project.md'
+      - 'playbooks/share-export.md'
       - 'skills/bootstrap-project/**'
       - 'tests/bootstrap-local.sh'
       - '.github/workflows/bootstrap-contract.yml'
@@ -16,9 +19,12 @@ on:
     paths:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
+      - 'scripts/share-export.sh'
+      - 'scripts/lib/share-export-denylist.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/start-project.md'
+      - 'playbooks/share-export.md'
       - 'skills/bootstrap-project/**'
       - 'tests/bootstrap-local.sh'
       - '.github/workflows/bootstrap-contract.yml'
@@ -35,6 +41,7 @@ jobs:
         run: |
           bash -n scripts/bootstrap-project.sh
           bash -n tests/bootstrap-local.sh
+          bash -n scripts/share-export.sh
       - name: Dry-run contract
         run: |
           bash scripts/bootstrap-project.sh --dry-run \

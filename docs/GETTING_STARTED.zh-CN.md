@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### 可选的 projection
+### 可选的 projection 与同事 share-export
 
-只有在确实需要镜像或投射时，才添加第二个 git host：
+**projection** 远端是 GitHub 的**同历史**快进镜像（含完整 ops）。只有 Command Center 把该宿主登记为 projection 时才添加 —— **不要**把同事 GitLab 填到这里。
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -115,11 +115,23 @@ bash scripts/bootstrap-project.sh \
   --dir ../my-project \
   --github OWNER/my-project \
   --disposer @OWNER \
-  --projection-url git@gitlab.example:group/my-project.git \
+  --projection-url git@git.internal.example:group/my-project.git \
   --yes
 ```
 
 第二远端永远不能成为第二事实源。
+
+**同事 GitLab** 是 [share-export](../playbooks/share-export.md)：过滤后的业务树。不要把它的 URL 当作 `--projection-url`。GitHub `origin` 建立之后：
+
+```bash
+bash scripts/share-export.sh \
+  --dir ../my-project \
+  --ref origin/main \
+  --push git@gitlab.example:group/my-project.git \
+  --yes
+```
+
+合同：[ADR 0003](./adr/0003-share-export-vs-projection.md)。若 denylist 路径（绑定、hook、Agent 入口）仍会出现在待发布树中，助手会拒绝推送。默认**保留** `.github/workflows/`，以便纯业务 CI 随导出走；Issue/PR 模板和 CODEOWNERS 会被去掉。
 
 <p align="center">
   <img src="./assets/quick-start.zh-CN.svg" alt="agent-project-ops 快速上手" width="100%" />
@@ -155,7 +167,7 @@ your-project/
 
 - `AGENTS.md`：Agent 的统一项目指引；
 - `.agent-project-ops/PIN`：项目实际绑定的方法论 repo/ref/SHA；
-- `.agent-project-ops/remotes`：显式登记 authority / projection；
+- `.agent-project-ops/remotes`：显式登记 authority / projection / share-export；
 - `.githooks/pre-push`：本地 guard，会对未登记远端和禁止的 push fail closed；
 - 各类 Agent 适配文件：Claude、Cursor、Copilot、Continue、Aider 等都尽量收敛到同一套持久规则。
 
@@ -218,21 +230,31 @@ git config --get core.hooksPath
 
 ---
 
-## 7. Authority 与 projection
+## 7. Authority、projection 与 share-export
 
 默认推荐：**只使用 `origin`**。
 
-确实需要第二个 git host 时：
+当第二个 git host 是 **同历史 projection**（必须由 Command Center 登记为 projection）时：
 
 ```text
 GitHub origin
    │
-   │ 唯一写权威
+   │ 唯一写权威（完整 ops 树）
    ▼
 accepted main
    │
-   └────────────► GitLab / mirror / deployment projection
-                  仅作为投射
+   └────────────► 内部 git 宿主 / 部署投射
+                  同一批 commit，仅快进
+```
+
+当第二个宿主是 **同事 GitLab** 时，**不是**上图：
+
+```text
+GitHub origin  （SoT + ops）
+   │
+   │ scripts/share-export.sh（去掉 denylist）
+   ▼
+同事 GitLab  （仅业务文件；不是 SoT；SHA 也不同）
 ```
 
 规则：
@@ -240,12 +262,13 @@ accepted main
 1. `origin` 是唯一写权威；
 2. 未知 remote 在完成分类前必须阻塞；
 3. topic branch 推送到 authority；
-4. projection 只能接受 authority 已通过的默认分支状态；
+4. projection 只能接受 authority 已通过的默认分支状态，且必须是**同一历史**；
 5. 第一次 projection seed 也必须等于当前 authority tip；
 6. non-fast-forward projection update 会被拒绝；
-7. projection 不能变成第二控制面。
+7. projection 不能变成第二控制面；
+8. 同事 GitLab 使用 [share-export](../playbooks/share-export.md)，禁止对绑定后的 clone 做 `git push --mirror`。
 
-详见 [git-authority-and-projection](../playbooks/git-authority-and-projection.md)。
+详见 [git-authority-and-projection](../playbooks/git-authority-and-projection.md) 与 [share-export](../playbooks/share-export.md)。
 
 ---
 
@@ -257,7 +280,7 @@ Bootstrap 负责建立持久化仓库绑定。下一步是建立项目运行状�
 
 - Command Center
 - disposer 记录
-- authority / projection 记录
+- authority / projection / share-export 记录
 - protection capability 记录
 - 项目 labels
 - 第一个 Phase
@@ -309,6 +332,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 - disposer 是谁；
 - 哪个 remote 是 authority；
 - 是否存在 projection；
+- 同事 GitLab 是否被分类为 share-export 而不是 projection；
 - Command Center 在哪里；
 - 当前活动 Phase 是哪个；
 - 是否禁止直接 push `main`；
@@ -345,6 +369,7 @@ and follow the playbooks.
 - 业务 / 领域框架；
 - 部署平台；
 - GitLab 与 GitHub 共同作为 authority；
+- 把 GitLab 当成含 `agent-project-ops` 绑定的全量 projection；
 - hook 无法被绕过；
 - PR merge 自动代表工作通过验收；
 - 缺少 server-side protection 时仍可以默认信任。
@@ -359,7 +384,8 @@ and follow the playbooks.
 
 - [PRINCIPLES.md](../PRINCIPLES.md)：不可妥协的设计原则
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md)：初始化合同细节
-- [start-project playbook](../playbooks/start-project.md)：建立项目控制面
+- [share-export playbook](../playbooks/share-export.md)：同事 GitLab = 过滤后的业务树
+- [start-project playbook](../playbooks/start-project.md)：建立控制面
 - [phase-lifecycle](../playbooks/phase-lifecycle.md)：完整运行一个 Phase
 - [Agent skills](../skills/)：兼容 Agent 的执行入口
 - [Self-dogfood evidence](./evidence/phase-11-self-dogfood.md)：v0.1 已验证生命周期证据

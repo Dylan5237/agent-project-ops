@@ -6,8 +6,10 @@ on:
       - 'scripts/hooks/**'
       - 'scripts/lib/**'
       - 'scripts/install-hooks.sh'
+      - 'scripts/share-export.sh'
       - 'tests/hook-behavior.sh'
       - 'tests/url-guard.sh'
+      - 'tests/share-export.sh'
       - '.github/workflows/enforcement-contract.yml'
   push:
     branches: [main]
@@ -15,8 +17,10 @@ on:
       - 'scripts/hooks/**'
       - 'scripts/lib/**'
       - 'scripts/install-hooks.sh'
+      - 'scripts/share-export.sh'
       - 'tests/hook-behavior.sh'
       - 'tests/url-guard.sh'
+      - 'tests/share-export.sh'
       - '.github/workflows/enforcement-contract.yml'
 
 permissions:
@@ -31,10 +35,15 @@ jobs:
         run: |
           bash -n scripts/hooks/pre-push-authority.sh
           bash -n scripts/lib/url-guard.sh
+          bash -n scripts/lib/share-export-denylist.sh
           bash -n scripts/install-hooks.sh
+          bash -n scripts/share-export.sh
           bash -n tests/hook-behavior.sh
           bash -n tests/url-guard.sh
+          bash -n tests/share-export.sh
       - name: URL guard matrix
         run: bash tests/url-guard.sh
       - name: Authority/projection behavior matrix
         run: bash tests/hook-behavior.sh
+      - name: Share-export denylist contract
+        run: bash tests/share-export.sh

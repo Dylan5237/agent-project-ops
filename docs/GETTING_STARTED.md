@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### Optional projection
+### Optional projection vs colleague share-export
 
-Only add another git host when you really need a mirror/projection:
+A **projection** remote is a same-history fast-forward mirror of GitHub (full tree, including ops). Only add one when Command Center names that host as projection — **not** for colleague GitLab.
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -115,11 +115,23 @@ bash scripts/bootstrap-project.sh \
   --dir ../my-project \
   --github OWNER/my-project \
   --disposer @OWNER \
-  --projection-url git@gitlab.example:group/my-project.git \
+  --projection-url git@git.internal.example:group/my-project.git \
   --yes
 ```
 
-The second remote never becomes a second source of truth.
+That second remote never becomes a second source of truth.
+
+**Colleague GitLab** is a [share-export](../playbooks/share-export.md): a filtered business tree. Do not pass its URL as `--projection-url`. After GitHub `origin` exists:
+
+```bash
+bash scripts/share-export.sh \
+  --dir ../my-project \
+  --ref origin/main \
+  --push git@gitlab.example:group/my-project.git \
+  --yes
+```
+
+Contract: [ADR 0003](./adr/0003-share-export-vs-projection.md). The helper refuses to publish if denylist paths (bindings, hooks, Agent entry files) would be included. Default **keeps** `.github/workflows/` so pure business CI can travel with the export; Issue/PR templates and CODEOWNERS are stripped.
 
 <p align="center">
   <img src="./assets/quick-start.en.svg" alt="agent-project-ops quick start" width="100%" />
@@ -155,7 +167,7 @@ Key files:
 
 - `AGENTS.md` — canonical project instructions for Agents;
 - `.agent-project-ops/PIN` — exact methodology repo/ref/SHA used by this project;
-- `.agent-project-ops/remotes` — explicit authority/projection registry;
+- `.agent-project-ops/remotes` — explicit authority/projection/share-export registry;
 - `.githooks/pre-push` — local guard that fails closed on unregistered remotes and forbidden pushes;
 - repo-specific adapter files — Claude, Cursor, Copilot, Continue, Aider, etc. converge toward the same durable rules.
 
@@ -218,21 +230,31 @@ This behavior is intentional and tested. The methodology fails closed rather tha
 
 ---
 
-## 7. Authority and projection
+## 7. Authority, projection, and share-export
 
 Default recommendation: **use only `origin`**.
 
-When a second git host is required:
+When a second git host is a **same-history projection** (Command Center must name it as such):
 
 ```text
 GitHub origin
    │
-   │ sole write authority
+   │ sole write authority (full ops tree)
    ▼
 accepted main
    │
-   └────────────► GitLab / mirror / deployment projection
-                  projection only
+   └────────────► internal git host / deployment projection
+                  same commits, FF only
+```
+
+When the second host is **colleague GitLab**, it is **not** that diagram:
+
+```text
+GitHub origin  (SoT + ops)
+   │
+   │ scripts/share-export.sh (strip denylist)
+   ▼
+colleague GitLab  (business files only; not SoT; not the same SHAs)
 ```
 
 Rules:
@@ -240,12 +262,13 @@ Rules:
 1. `origin` is the sole write authority;
 2. unknown remotes are blocked until classified;
 3. topic branches go to authority;
-4. projection accepts only the authority-approved default branch state;
+4. projection accepts only the authority-approved default branch state **and the same history**;
 5. first projection seed must match the current authority tip;
 6. non-fast-forward projection updates are rejected;
-7. projection never becomes a second control plane.
+7. projection never becomes a second control plane;
+8. colleague GitLab uses [share-export](../playbooks/share-export.md), never `git push --mirror` of the bound clone.
 
-See [git-authority-and-projection](../playbooks/git-authority-and-projection.md).
+See [git-authority-and-projection](../playbooks/git-authority-and-projection.md) and [share-export](../playbooks/share-export.md).
 
 ---
 
@@ -257,7 +280,7 @@ Follow [start-project](../playbooks/start-project.md) to create:
 
 - Command Center
 - disposer record
-- authority/projection record
+- authority / projection / share-export record
 - protection capability record
 - project labels
 - first Phase
@@ -309,6 +332,7 @@ A fresh compatible Agent entering the repository should be able to determine, fr
 - who the disposer is;
 - which remote is the authority;
 - whether any projection exists;
+- whether colleague GitLab is share-export rather than projection;
 - where the Command Center is;
 - which Phase is active;
 - whether direct `main` pushes are forbidden;
@@ -345,6 +369,7 @@ For long-term use, deliberately add durable repo-level bindings, remote registry
 - a business/domain framework;
 - a deployment platform;
 - GitLab as co-authority;
+- GitLab as a full-tree projection of `agent-project-ops` bindings;
 - that hooks cannot be bypassed;
 - that a merged PR means accepted work;
 - automatic trust when server-side protection is missing.
@@ -359,6 +384,7 @@ The model is simple:
 
 - [PRINCIPLES.md](../PRINCIPLES.md) — the non-negotiable design rules
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md) — bootstrap contract in detail
+- [share-export playbook](../playbooks/share-export.md) — colleague GitLab = filtered business tree
 - [start-project playbook](../playbooks/start-project.md) — establish the control plane
 - [phase-lifecycle](../playbooks/phase-lifecycle.md) — run a Phase end to end
 - [Agent skills](../skills/) — executable entrypoints for compatible Agents

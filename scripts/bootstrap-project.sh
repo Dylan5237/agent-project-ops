@@ -31,7 +31,8 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
   --owner OWNER               GitHub user/org (default: authenticated gh user)
   --github-repo OWNER/NAME    Override GitHub repository name
   --private | --public        Visibility (default: private)
-  --projection-url URL        Optional credential-free projection git URL
+  --projection-url URL        Optional credential-free same-history projection git URL
+                              (not colleague-share GitLab; that is share-export)
   --no-projection             Explicitly create origin-only configuration
   --require-codeowner-review  Request protection level A (independent review)
   --skip-github               Local scaffold only; do not create GitHub repo
@@ -43,7 +44,8 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
 
 Supported bootstrap requires a real methodology git SHA. It never writes
 `sha=unknown`. Client hooks are bypassable; server policy is reported as
-capability A/B/C and is never overstated.
+capability A/B/C and is never overstated. Colleague GitLab is share-export
+(scripts/share-export.sh), not --projection-url.
 EOF
 }
 
@@ -96,7 +98,7 @@ fi
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
 
 if [[ "${no_projection}" -eq 0 && -z "${projection_url}" && "${assume_yes}" -eq 0 && "${dry_run}" -eq 0 ]]; then
-  printf 'Projection remote URL (empty = origin-only): '
+  printf 'Projection remote URL (empty = origin-only; colleague GitLab = share-export, not this prompt): '
   read -r projection_url
 fi
 if [[ -n "${projection_url}" ]]; then
@@ -109,6 +111,9 @@ methodology_sha="$(git -C "${METHODOLOGY_ROOT}" rev-parse --verify HEAD 2>/dev/n
 
 sanitize_methodology_url() {
   local u="$1"
+  # Cloud Agent / CI remotes often embed x-access-token userinfo. PIN must stay
+  # credential-free; this is not permission to pass secrets via --methodology-url.
+  u="$(printf '%s' "${u}" | sed -E 's#^(https?://)[^/]*@#\1#')"
   u="${u%.git}"
   case "${u}" in
     git@github.com:*) printf 'https://github.com/%s\n' "${u#git@github.com:}" ;;
@@ -192,8 +197,10 @@ cp -a "${METHODOLOGY_ROOT}/skills" .agent-project-ops/skills
 cp -a "${METHODOLOGY_ROOT}/templates" .agent-project-ops/templates
 cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-worktree.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
+cp "${METHODOLOGY_ROOT}/scripts/share-export.sh" .agent-project-ops/scripts/share-export.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh
+cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -206,6 +213,8 @@ cat > .agent-project-ops/remotes <<EOF
 authority=origin
 projection=${projection_name}
 projection_url=${projection_record_url}
+share_export=(none)
+share_export_url=
 EOF
 
 subst() {
@@ -288,6 +297,7 @@ gh repo edit "${github_repo}" --enable-issues=true >/dev/null 2>&1 || true
 if [[ -n "${projection_url}" ]]; then
   git remote add projection "${projection_url}"
   log "added local projection remote; committed registry remains the clone-portable classification"
+  log "NOTE: colleague-share GitLab is share-export, not this remote; use .agent-project-ops/scripts/share-export.sh"
 fi
 
 protection_level='C'
