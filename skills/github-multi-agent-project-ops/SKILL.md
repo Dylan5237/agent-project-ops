@@ -44,7 +44,7 @@ Keeping Command Center **section 1** current is **Agent work on every gate flip*
 **On every** gate flip / phase status change / Freeze / blocked / verification / Accept event, in the **same turn**:
 
 1. Update Command Center **section 1** (one-glance): current phase, status word, open gates, evidence pointers, **single Next Action**.
-2. Update the Phase issue **status label** (`status:backlog` | `in-progress` | `blocked` | `verification` | `done`). Remove the previous status label.
+2. If this event is a Phase **status transition** (dispatch → `in-progress`, blocked, verification, Accept/`done`), update the Phase issue **status label** (`status:backlog` | `in-progress` | `blocked` | `verification` | `done`) and remove the previous status label. **Freeze ACK is not a status-label change** — leave the existing label (usually `status:backlog`) in place.
 3. Chat only pings humans to **look at GitHub**. Chat ≠ state.
 
 Phase transition checklist (required checkbox):

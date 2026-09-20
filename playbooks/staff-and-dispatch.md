@@ -19,7 +19,7 @@ Make it obvious **who proposes**, **who disposes**, and **which Agent owns which
 ## Steps
 
 1. **Name the disposer** on Command Center (human GitHub handle, or a single explicit control-plane owner). This person/role Freeze-ACKs and PHASE ACCEPTs.
-2. **Name the project-ops Agent** (often the local coding Agent). It keeps Issues honest, proposes transitions, and refuses illegal shortcuts. It still **proposes**. **Mandatory duty:** on every gate flip / phase status / Freeze / blocked / verification, update Command Center **section 1** and the Phase status label in the same turn. Chat only pings humans to look at GitHub. If CC cannot be updated → `BLOCKED:` on GitHub, not chat-only. [ ] **CC §1 updated**
+2. **Name the project-ops Agent** (often the local coding Agent). It keeps Issues honest, proposes transitions, and refuses illegal shortcuts. It still **proposes**. **Mandatory duty:** on every gate flip / phase status / Freeze / blocked / verification, update Command Center **section 1** in the same turn. Update the Phase status label only when the Phase status actually changes (Freeze ACK is not a label change). Chat only pings humans to look at GitHub. If CC cannot be updated → `BLOCKED:` on GitHub, not chat-only. [ ] **CC §1 updated**
 3. **Roster table** on Command Center:
 
    | Role | Handle / Agent id | May merge? | May Accept phase? |

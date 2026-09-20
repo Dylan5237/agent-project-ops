@@ -40,7 +40,6 @@ Make Phase Accept **replayable**: a disposer who was not in the chat can follow 
 - [ ] Implementation PR contains **zero** “proof-only” dumps that belong in evidence (keep tests that *are* product code in implementation).
 - [ ] Disposer can replay without the original Agent chat.
 - [ ] **CC §1 updated** for the verification gate (or GitHub `BLOCKED:` if Command Center could not be edited).
-- [ ] **CC §1 updated** for the verification gate (or GitHub `BLOCKED:` if Command Center could not be edited).
 
 ## Anti-patterns
 
