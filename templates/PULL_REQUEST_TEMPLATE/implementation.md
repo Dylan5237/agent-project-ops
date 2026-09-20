@@ -46,3 +46,4 @@ Merging this PR does not close the Phase. Disposer still records `PHASE ACCEPT` 
 - [ ] No `evidence/`-only files mixed in
 - [ ] No push to `main`
 - [ ] Secrets not committed
+- [ ] **CC §1 updated** (or GitHub `BLOCKED:` if Command Center could not be edited)

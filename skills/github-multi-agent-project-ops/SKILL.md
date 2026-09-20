@@ -30,19 +30,42 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 1. Find Command Center. If missing → start-project playbook. Stop implementation.
 2. Confirm disposer + roster. If missing → fail closed, comment on a new Command Center draft.
 3. One Phase = one core problem. No Freeze ACK → no `feat/` / `fix/` branch.
-4. Dispatch: Issue comment with owner, worktree, branch; `status:in-progress`.
+4. Dispatch: Issue comment with owner, worktree, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
 5. Implement in one worktree / one PR. Verify with **separate** evidence.
 6. Propose PASS with evidence table. Wait for `PHASE ACCEPT`.
-7. Update Command Center index. Never treat merge as PASS.
+7. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
+
+New projects: after Command Center exists, **Register to Fleet REGISTRY** (`fleet/REGISTRY.md` upsert by `owner/repo` + box mirror confirm). See [bootstrap-project](../bootstrap-project/SKILL.md) and [ADR 0002](../../docs/adr/0002-canonical-fleet-index.md).
+
+## Command Center hygiene / CC §1（mandatory agent duty）
+
+Keeping Command Center **section 1** current is **Agent work on every gate flip**, not a user habit. Fleet morning digest (and any later fleet tooling) reads **only** CC §1 plus the current Phase status label for registered projects. Stale §1 is a false green.
+
+**On every** gate flip / phase status change / Freeze / blocked / verification / Accept event, in the **same turn**:
+
+1. Update Command Center **section 1** (one-glance): current phase, status word, open gates, evidence pointers, **single Next Action**.
+2. If this event is a Phase **status transition** (dispatch → `in-progress`, blocked, verification, Accept/`done`), update the Phase issue **status label** (`status:backlog` | `in-progress` | `blocked` | `verification` | `done`) and remove the previous status label. **Freeze ACK is not a status-label change** — leave the existing label (usually `status:backlog`) in place.
+3. Chat only pings humans to **look at GitHub**. Chat ≠ state.
+
+Phase transition checklist (required checkbox):
+
+- [ ] **CC §1 updated**
+
+If the Agent **cannot** update Command Center (auth, permissions, read-only `gh`, API failure): fail closed. Comment `BLOCKED:` with the gap on the Phase (or a new Command Center draft) and set `status:blocked`. Do **not** leave the new state only in chat.
+
+Playbook copies: [phase-lifecycle.md](../../playbooks/phase-lifecycle.md), [staff-and-dispatch.md](../../playbooks/staff-and-dispatch.md).
 
 ## Fail closed
 
 - No methodology (this repo) loaded → refuse to invent a process.
 - No business-product content belongs **in** agent-project-ops. Link out only.
 - Unknown architecture after Freeze → Architecture Exception issue, not a silent refactor.
+- Gate flipped but CC §1 not updated → incomplete; treat as blocked until GitHub reflects it.
+- Cannot edit Command Center → `BLOCKED:` on GitHub, not chat-only.
 
 ## Do not
 
 - Add Notion, bots, CI bootstrap, or deploy stacks as part of this skill.
 - Copy business SOP into the methodology repository.
 - Self-label a Phase `status:done` without disposer Accept.
+- Ask the human to “remember to update CC §1” as the primary path.

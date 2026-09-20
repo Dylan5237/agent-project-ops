@@ -10,4 +10,6 @@ Design records for this methodology repository. They are **not** product specs.
 
 An RFC may describe templates and implementation shape. Runnable enforcement/bootstrap changes are reviewed separately and do not weaken [PRINCIPLES.md](../../PRINCIPLES.md).
 
+**Accepted ADRs:** [docs/adr/](../adr/) — start with [0002 Canonical fleet index](../adr/0002-canonical-fleet-index.md) (git SoT + box mirror).
+
 **Research (findings, not design):** [docs/research/](../research/) — start with [2026-09-10 bootstrap and binding](../research/2026-09-10-bootstrap-and-binding-research.md). The independent methodology audit is already on `main` at `docs/research/2026-09-10-methodology-audit.md`.

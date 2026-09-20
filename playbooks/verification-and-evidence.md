@@ -24,13 +24,14 @@ Make Phase Accept **replayable**: a disposer who was not in the chat can follow 
    | --- | --- | --- |
    | … | command + exit | `evidence/…` or comment gist permalink |
 
-2. **Prefer in-repo evidence** when the business repo already stores fixtures/docs: open `evidence/{issue}-{slug}` and `templates/PULL_REQUEST_TEMPLATE/evidence.md`.
+2. Label the Phase `status:verification` and update Command Center **section 1**. [ ] **CC §1 updated**
+3. **Prefer in-repo evidence** when the business repo already stores fixtures/docs: open `evidence/{issue}-{slug}` and `templates/PULL_REQUEST_TEMPLATE/evidence.md`.
    - Allowed: logs **excerpts**, screenshots, test runner output, curl transcripts, seed scripts used **only** to reproduce.
    - Forbidden: feature code, refactors, dependency bumps “while we’re here.”
-3. **If evidence cannot live in git** (binary size, secrets): attach to the Issue comment or a **private** gist and paste the URL on the Phase. Still no mix with implementation commits.
-4. **Agent proposes.** Comment `EVIDENCE READY` + table. Do not comment `PHASE ACCEPT`.
-5. **Disposer verifies** by replaying at least the critical path (or records why replay was sampled). Then `PHASE ACCEPT` or `PHASE RETURN` with failing test ids.
-6. **Fail closed.** Missing proof for any frozen test → `status:blocked` or remain in `verification`, never `done`.
+4. **If evidence cannot live in git** (binary size, secrets): attach to the Issue comment or a **private** gist and paste the URL on the Phase. Still no mix with implementation commits.
+5. **Agent proposes.** Comment `EVIDENCE READY` + table. Do not comment `PHASE ACCEPT`.
+6. **Disposer verifies** by replaying at least the critical path (or records why replay was sampled). Then `PHASE ACCEPT` or `PHASE RETURN` with failing test ids.
+7. **Fail closed.** Missing proof for any frozen test → `status:blocked` or remain in `verification`, never `done`.
 
 ## Done when
 
@@ -38,6 +39,7 @@ Make Phase Accept **replayable**: a disposer who was not in the chat can follow 
 - [ ] Evidence PR (if any) contains **zero** implementation diff.
 - [ ] Implementation PR contains **zero** “proof-only” dumps that belong in evidence (keep tests that *are* product code in implementation).
 - [ ] Disposer can replay without the original Agent chat.
+- [ ] **CC §1 updated** for the verification gate (or GitHub `BLOCKED:` if Command Center could not be edited).
 
 ## Anti-patterns
 
