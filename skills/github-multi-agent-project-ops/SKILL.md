@@ -21,9 +21,9 @@ You are usually the **project-ops Agent**: you keep Issues honest and **propose*
 4. [playbooks/staff-and-dispatch.md](../../playbooks/staff-and-dispatch.md)
 5. [playbooks/blocked-and-exceptions.md](../../playbooks/blocked-and-exceptions.md)
 
-Companion skills: `git-worktree-and-branch`, `git-authority-and-projection`, `issues-prs-and-evidence`.
+Companion skills: `git-worktree-and-branch`, `git-authority-and-projection`, `share-export`, `issues-prs-and-evidence`.
 
-Git landing / remotes (worktrees, `origin`, optional projection): do **not** duplicate here — follow `git-worktree-and-branch` plus [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) when a second remote exists.
+Git landing / remotes (worktrees, `origin`, optional projection): do **not** duplicate here — follow `git-worktree-and-branch` plus [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) when a second remote exists. Colleague GitLab: [share-export](../share-export/SKILL.md).
 
 ## 工作循环 / Loop
 

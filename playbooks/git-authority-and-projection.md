@@ -2,14 +2,16 @@
 
 ## Goal
 
-When a project **optionally** has a second git remote, keep **exactly one write authority**. The second remote is a **projection** (mirror / fast-forward from authority). Local clones and Cloud Agent sandboxes are **drafts**, never a third source of truth.
+When a project **optionally** has a second git remote, keep **exactly one write authority**. The second remote is a **projection** (same-history mirror / fast-forward from authority). Local clones and Cloud Agent sandboxes are **drafts**, never a third source of truth.
+
+**Colleague GitLab is not this playbook.** Sharing product files with colleagues is a **share-export** (filtered business tree), not a full-tree projection. Follow [share-export.md](./share-export.md) and [ADR 0003](../docs/adr/0003-share-export-vs-projection.md). Do not `git push --mirror` ops bindings to colleague GitLab.
 
 Single-remote projects skip this playbook and stay on [git-branch-and-remote.md](./git-branch-and-remote.md) (`origin` only).
 
 ## When
 
 - `git remote -v` shows more than `origin`.
-- Command Center names a projection host (for example an internal GitLab) in addition to GitHub.
+- Command Center names a **projection** host (same-history FF mirror) in addition to GitHub. A colleague-share GitLab URL is **not** a projection host.
 - Before any non-`origin` push, release cut, history rewrite on a protected default branch, or branch cleanup across remotes.
 - Tips disagree: projection SHA is not an ancestor of (or identical to) the authority tip.
 
@@ -26,7 +28,8 @@ Single-remote projects skip this playbook and stay on [git-branch-and-remote.md]
 | --- | --- |
 | **Authority** | The GitHub repo/remote (usually `origin`) whose named branch tip is source of truth for history that Issues and PRs describe. |
 | **Authority tip** | The commit Command Center currently treats as the integration head: usually `origin/main`, or a **named transitional branch** until it merges to the default branch. |
-| **Projection** | A second remote used only to **mirror** authority (fetch + fast-forward, or disposer-authorized align). Never a feature-push target. |
+| **Projection** | A second remote used only to **mirror the same git history** as authority (fetch + fast-forward, or disposer-authorized align). Includes ops bindings. Never a feature-push target. Never a colleague-share GitLab. |
+| **Share-export** | Filtered business tree for colleagues ([share-export.md](./share-export.md)). Different history; denylist stripped. Not registered as `projection`. |
 | **Local / Cloud checkout** | Draft. Commits exist for the rest of the project only after they land on **authority** via PR. |
 | **Aux / skill repo** | A separate methodology or helper repository, if the business clone is not the only git surface. Read-only in reconciliation; do not treat it as product SoT. |
 
@@ -36,7 +39,7 @@ Suggested remote name for the second URL: `projection` (not `origin`, not `upstr
 
 ### A. Classify remotes / 先分类
 
-1. `git remote -v`. Label each URL as **authority**, **projection**, or **unknown**.
+1. `git remote -v`. Label each URL as **authority**, **projection**, **share-export** (must not be a push remote on this clone), or **unknown**. Colleague GitLab → share-export, then stop and use [share-export.md](./share-export.md).
 2. Unknown extra remotes → `status:blocked` on Command Center or the active Issue until the disposer names them. Do **not** push “to be safe” to every URL.
 3. Topic branches (`feat/` `fix/` `docs/` `evidence/` and Agent-private `cursor/` / `sync/` drafts) push **only** to authority `origin`:
 
@@ -69,7 +72,7 @@ If projection’s default branch contains commits **not** on the authority tip:
 2. Choose **one** disposer-written path **before** any further projection:
    - **Backfill:** recreate the unique work as a PR **on authority** (cherry-pick or equivalent onto the authority tip). Merge on GitHub. Then align projection to authority (see §E). Recreated commits have new SHAs, so projection is not an ancestor of the new authority tip and fast-forward will usually fail.
    - **Abandon:** disposer comments that the unique projection commits are discarded; then align projection to authority (see §E). Unique work that was only on projection is gone unless backfilled first.
-3. Inventing a second SoT (“GitLab is production now”) is forbidden.
+3. Inventing a second SoT (“GitLab is production now”) is forbidden. Publishing a filtered colleague copy does not make GitLab SoT.
 
 ### E. Aligning protected `main` / 对齐受保护默认分支
 
@@ -119,6 +122,7 @@ Never delete a branch solely because it exists on projection; projection should 
 ## Anti-patterns
 
 - Day-to-day `git push` of `feat/` / `fix/` / `docs/` / `evidence/` to the projection remote.
+- Treating colleague GitLab as a projection / `git push --mirror` of the bound ops tree.
 - Treating local `main` or a Cloud checkout as caught-up SoT without fetching authority.
 - Using projection because GitHub `origin` was down (second SoT / Principle 5).
 - Force-pushing protected `main` without disposer SHAs on the Issue.

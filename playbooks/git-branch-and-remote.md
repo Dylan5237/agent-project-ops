@@ -4,7 +4,9 @@
 
 Use **one remote (`origin`)** and **named topic branches** so Agents never push `main` and never invent a shadow remote. This is the **default** for single-remote projects.
 
-If a **projection** (mirror) remote exists, this playbook still governs **topic branch names and authority pushes**. Mirroring, divergence, and cleanup are [git-authority-and-projection.md](./git-authority-and-projection.md) — do not treat the extra remote as a second `origin`.
+If a **projection** (same-history mirror) remote exists, this playbook still governs **topic branch names and authority pushes**. Mirroring, divergence, and cleanup are [git-authority-and-projection.md](./git-authority-and-projection.md) — do not treat the extra remote as a second `origin`.
+
+**Colleague GitLab is not a projection remote.** Sharing a business tree with colleagues is [share-export.md](./share-export.md) ([ADR 0003](../docs/adr/0003-share-export-vs-projection.md)). Do not add that host as a push remote on the bound clone and do not full-mirror ops bindings onto it.
 
 ## When
 
@@ -21,7 +23,7 @@ If a **projection** (mirror) remote exists, this playbook still governs **topic 
 ## Steps
 
 1. **Remotes.** Default: **`origin` only.** `git remote -v` should show a single write remote for this workflow. Fork remotes: do not push workflow branches there unless Command Center says so.
-2. **Optional projection remote.** If Command Center names a second remote as **projection only**, stop using this file as the full remote policy. Follow [git-authority-and-projection.md](./git-authority-and-projection.md) **before any non-`origin` push**. Still push topic branches **only** to authority `origin`. **Never** `git push` `feat/` `fix/` `docs/` `evidence/` (or other task branches) to the projection remote.
+2. **Optional projection remote.** If Command Center names a second remote as **projection only** (same-history FF mirror, **not** colleague share), stop using this file as the full remote policy. Follow [git-authority-and-projection.md](./git-authority-and-projection.md) **before any non-`origin` push**. Still push topic branches **only** to authority `origin`. **Never** `git push` `feat/` `fix/` `docs/` `evidence/` (or other task branches) to the projection remote. If the second host is colleague GitLab, use [share-export.md](./share-export.md) instead of adding a projection remote.
 3. **Update base.**
 
    ```bash
@@ -45,7 +47,7 @@ If a **projection** (mirror) remote exists, this playbook still governs **topic 
    Never: `git push origin main`. Never: `--force` on `main`. Force-with-lease on a **topic** branch only if the Issue comments that the branch is Agent-private and not under review.
 7. **PR target:** `main` (or the default branch named on Command Center).
 8. **After merge:** delete the remote topic branch on **authority**; remove worktree; do not keep pushing the old name. After the **authority tip** merges to the default branch, **new work starts from that tip** (fetch `origin`; do not base the next branch on a superseded transitional head).
-9. **Do not** add `upstream` / `backup` / unnamed remotes to replace Issues or to dodge protected `main`. A named projection remote is not a backup workflow; it is a mirror (see the projection playbook).
+9. **Do not** add `upstream` / `backup` / unnamed remotes to replace Issues or to dodge protected `main`. A named projection remote is not a backup workflow; it is a same-history mirror (see the projection playbook). A colleague-share GitLab URL is not a backup and not a projection.
 
 ## Done when
 
@@ -61,4 +63,5 @@ If a **projection** (mirror) remote exists, this playbook still governs **topic 
 - Mixing evidence files and feature code on `feat/…`.
 - Adding `upstream`/`backup` remotes as a substitute for Issues or as a second SoT.
 - Pushing topic branches to a projection/mirror remote.
+- Adding colleague GitLab as `projection` so a full ops tree can be pushed.
 - Rewriting `main` history (except disposer-authorized align in the projection playbook).

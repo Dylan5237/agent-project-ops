@@ -4,7 +4,8 @@ description: >
   Initialize a new generic git project using Dylan5237/agent-project-ops:
   create a local folder, durable Agent binding files, a pinned methodology
   snapshot, .worktrees/, a GitHub origin as the single write authority, and an
-  optional projection remote. Use for one-shot project initialization; not for
+  optional same-history projection remote. Colleague GitLab is share-export,
+  not --projection-url. Use for one-shot project initialization; not for
   product/domain setup or creating a second source of truth.
 ---
 
@@ -18,7 +19,7 @@ Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post
 
 1. Confirm the destination is new/empty. Existing repositories are an adoption task, not this bootstrap path.
 2. Collect a real project slug and real disposer GitHub handle. Do not emit placeholder `@DISPOSER`.
-3. Ask whether a projection remote is required. If yes, accept only a credential-free Git URL; it remains projection-only.
+3. Ask whether a **projection** remote is required (same-history FF mirror). If yes, accept only a credential-free Git URL; it remains projection-only and **includes ops**. If the need is colleague GitLab / business-files-only, do **not** collect a projection URL — use [share-export](../share-export/SKILL.md) after GitHub `origin` exists.
 4. Run `scripts/bootstrap-project.sh --dry-run ...` first when environment behavior is uncertain, then the real command.
 5. After scaffold, verify `.agent-project-ops/PIN` contains a real SHA and `.agent-project-ops/remotes` classifies authority/projection.
 6. Verify `git config --get core.hooksPath` is `.githooks` in the bootstrap checkout. Remember a later clone will not inherit it; root `AGENTS.md` instructs the next Agent to run the installer.
@@ -36,6 +37,7 @@ If the local Agent and the human disposer use the **same GitHub identity**, GitH
 - GitHub creation requested but `gh` is unavailable/unauthenticated → stop.
 - Unknown remote → no push.
 - Projection candidate is not current authority tip → no projection push.
+- Colleague GitLab URL used as `--projection-url` → stop; that is share-export, not projection.
 - Server protection request cannot be enabled/verified → report capability C / BLOCKED; do not claim protection exists.
 - Fleet REGISTRY row skipped, duplicated, or left only in chat → stop; do not claim bootstrap done. Mirror unwritable → still land the git row and report `BLOCKED:` on GitHub for the mirror gap.
 - Do not use `--no-verify` as a workflow shortcut.

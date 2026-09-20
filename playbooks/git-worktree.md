@@ -12,7 +12,7 @@ Isolate each in-flight task in its own worktree so Agents do not clobber each ot
 
 ## Preconditions
 
-- Business repo clone exists; `origin` is configured (`playbooks/git-branch-and-remote.md`). If a projection remote exists, also load `playbooks/git-authority-and-projection.md`.
+- Business repo clone exists; `origin` is configured (`playbooks/git-branch-and-remote.md`). If a projection remote exists, also load `playbooks/git-authority-and-projection.md`. Colleague GitLab is `playbooks/share-export.md`, not a worktree base.
 - Target Issue exists; Phase is Freeze-ACK’d if this is implementation.
 - `.worktrees/` is gitignored in the business repo (add it if missing). Do **not** commit worktree contents as a nested repo.
 

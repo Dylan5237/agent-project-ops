@@ -1,12 +1,13 @@
 ---
 name: git-authority-and-projection
 description: >
-  Optional second git remote is projection-only (mirror / fast-forward from
-  GitHub authority). Use when remotes include more than origin, an internal
-  GitLab or other mirror exists, tips diverge, reconciling authority vs
-  projection vs an aux repo, aligning protected main, failing closed on
-  projection errors, or cleaning cursor/sync branches across remotes.
-  Never push topic branches to the projection remote.
+  Optional second git remote is projection-only (same-history mirror /
+  fast-forward from GitHub authority). Use when remotes include more than
+  origin, Command Center names a projection host, tips diverge, reconciling
+  authority vs projection vs an aux repo, aligning protected main, failing
+  closed on projection errors, or cleaning cursor/sync branches across remotes.
+  Never push topic branches to the projection remote. Colleague-share GitLab
+  is share-export, not this skill.
 ---
 
 # Git authority and projection
@@ -15,9 +16,12 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §5 (fail closed; no shadow remo
 
 If `git remote -v` shows **only** `origin`, do not apply this skill. Use [git-worktree-and-branch](../git-worktree-and-branch/SKILL.md) and origin-only [git-branch-and-remote.md](../../playbooks/git-branch-and-remote.md).
 
+If the extra host is **colleague GitLab** (business files for humans, no ops bindings), do not apply this skill. Use [share-export](../share-export/SKILL.md).
+
 ## Playbooks
 
-- [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) — **required** before any non-`origin` push
+- [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) — **required** before any non-`origin` **projection** push
+- [playbooks/share-export.md](../../playbooks/share-export.md) — colleague share; not a projection
 - [playbooks/git-branch-and-remote.md](../../playbooks/git-branch-and-remote.md) — topic names; push `origin` only
 - [playbooks/git-worktree.md](../../playbooks/git-worktree.md) — start from current **authority tip**
 - Companion: [git-worktree-and-branch](../git-worktree-and-branch/SKILL.md)
@@ -27,7 +31,8 @@ If `git remote -v` shows **only** `origin`, do not apply this skill. Use [git-wo
 | Item | Rule |
 | --- | --- |
 | Write authority | GitHub `origin` (Issues/PRs). One SoT. |
-| Projection remote | Fetch + FF (or disposer-authorized align). Not a feature host. |
+| Projection remote | Fetch + FF of the **same history** (or disposer-authorized align). Not a feature host. Not colleague GitLab. |
+| Colleague GitLab | [share-export](../share-export/SKILL.md). Filtered tree. Never `git push --mirror` from the bound clone. |
 | Topic push | `git push -u origin HEAD` only |
 | Local / Cloud | Draft. Same rules; no privilege push to `main`. |
 | Projection down | Fail closed; stop release. Do not invent a second SoT. |
@@ -36,7 +41,7 @@ If `git remote -v` shows **only** `origin`, do not apply this skill. Use [git-wo
 
 ## Agent checklist
 
-1. `git remote -v` → classify authority vs projection vs unknown. Unknown → stop.
+1. `git remote -v` → classify authority vs projection vs share-export vs unknown. Unknown → stop. Colleague GitLab → share-export skill.
 2. Fetch authority. Worktrees and branches from the **current authority tip**.
 3. Push topic branches **only** to `origin`. Open PRs on GitHub.
 4. After authority tip merges to the default branch, base new work on that tip.

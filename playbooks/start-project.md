@@ -25,7 +25,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/BLOCKED. Never call B an independent-human-review gate.
 5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill **section 1** (one-glance), disposer, PIN, default branch, protection capability, Agent roster, and Freeze/Accept policy.
 6. **Register to Fleet REGISTRY** (mandatory). Upsert `owner/repo` + Command Center `#N` into `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../fleet/REGISTRY.md) via PR; confirm box mirror `/home/box/agent-data/fleet-morning-digest/REGISTRY.md`; tell the disposer **「已纳入舰队晨报扫描」**. Fail closed if skipped. [ADR 0002](../docs/adr/0002-canonical-fleet-index.md).
-7. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a projection is required, it remains mirror/FF only and `git-authority-and-projection` applies before any non-origin push. Unknown remotes → Blocked.
+7. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a **projection** is required, it remains same-history mirror/FF only and `git-authority-and-projection` applies before any non-origin push. If colleagues need a GitLab copy, that is [share-export](./share-export.md), not a projection remote. Unknown remotes → Blocked.
 8. **Open Phase-0/Phase-1.** One core problem only. Use the Phase template with backlog status.
 9. **Do not implement yet.** Run Freeze on that Phase before any `feat/` / `fix/` branch.
 
@@ -36,7 +36,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - [ ] Status labels exist.
 - [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
 - [ ] Command Center records protection capability A/B/C; capability C is explicitly Blocked.
-- [ ] Command Center records authority/projection and matches `.agent-project-ops/remotes` when present.
+- [ ] Command Center records authority/projection/share-export and matches `.agent-project-ops/remotes` when present.
 - [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
 - [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
 
@@ -49,4 +49,5 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - Skipping Fleet REGISTRY registration after Command Center exists.
 - Pushing “just this once” to `main`.
 - Adding a second write authority or using projection as a fallback.
+- Registering colleague GitLab as projection so the bound clone can be mirrored.
 - Embedding business SOP into this methodology repository.

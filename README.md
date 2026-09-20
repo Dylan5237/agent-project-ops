@@ -42,7 +42,7 @@ The core rules are intentionally small:
 
 | Rule | Meaning |
 | --- | --- |
-| **GitHub `origin` = authority** | One write authority; other remotes may only be projections |
+| **GitHub `origin` = authority** | One write authority; optional projection is same-history FF only; colleague GitLab is share-export, not a projection |
 | **Chat ≠ state** | Project facts belong in the repo, Issues, PRs, CI, and evidence |
 | **One task = one worktree / branch / PR** | Parallel work stays isolated and traceable |
 | **Unknown remotes fail closed** | Unclassified remotes are rejected by default |
@@ -74,7 +74,7 @@ bash scripts/bootstrap-project.sh \
 
 Bootstrap creates durable repo bindings, pins the methodology SHA, installs the tracked local hook, registers authority/projection remotes, creates GitHub `origin`, and reports protection capability **A / B / C**.
 
-**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, and projection rules.
+**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague share-export**.
 
 > GitHub Free + **private repositories** cannot provide the branch protection required by this methodology, so bootstrap correctly reports **Capability C / BLOCKED**. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate.
 
@@ -92,7 +92,7 @@ your-project/
 ├── CLAUDE.md                     # adapter → AGENTS.md
 ├── .agent-project-ops/
 │   ├── PIN                       # pinned methodology repo/ref/SHA
-│   ├── remotes                   # authority / projection registry
+│   ├── remotes                   # authority / projection / share-export registry
 │   ├── PRINCIPLES.md
 │   ├── playbooks/
 │   └── scripts/
@@ -152,6 +152,7 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 | [PRINCIPLES.md](./PRINCIPLES.md) | non-negotiable design rules |
 | [playbooks/](./playbooks/) | operational procedures |
 | [skills/](./skills/) | Agent entrypoints |
+| [docs/adr/](./docs/adr/) | accepted architecture decisions |
 | [docs/rfcs/](./docs/rfcs/) | design contracts |
 | [docs/research/](./docs/research/) | research and audit history |
 | [docs/evidence/](./docs/evidence/) | replayable acceptance evidence |
@@ -166,10 +167,22 @@ This project deliberately does **not** claim:
 - universal Agent compliance with repository instructions;
 - client hooks as a security boundary;
 - GitLab or another mirror as a second source of truth;
+- colleague GitLab as a full-tree projection of ops bindings (use [share-export](./playbooks/share-export.md));
 - PR merge as project acceptance;
 - silent upgrades to the latest methodology revision.
 
 Business repositories pin a real methodology SHA. Agents propose. The named disposer accepts.
+
+## Colleague share-export
+
+Colleague GitLab is a **filtered business tree**, not a `git push --mirror` of GitHub (including `agent-project-ops` bindings). GitHub `origin` stays the only write authority and keeps the full ops tree. Contract: [ADR 0003](./docs/adr/0003-share-export-vs-projection.md).
+
+```bash
+bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --dry-run
+bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --push git@gitlab.example:group/business.git --yes
+```
+
+The helper **refuses** to publish if denylist paths would still be included. Playbook: [share-export](./playbooks/share-export.md).
 
 ## License
 

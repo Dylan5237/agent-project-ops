@@ -55,8 +55,9 @@ Canonical **control plane** for this business repository. Chat is not state. Met
 
 - Default branch: `main`
 - Authority remote: `origin`
-- Projection remote(s): `(none)` or names
-- `.agent-project-ops/remotes` matches the line above: yes / no / n/a
+- Projection remote(s): `(none)` or names — **same-history** FF mirror only
+- Colleague-share GitLab: **share-export** (not a projection; not a push remote on this clone). Use `scripts/share-export.sh`.
+- `.agent-project-ops/remotes` matches the lines above: yes / no / n/a
 - Unknown extra remotes: **BLOCKED until classified**
 - Branch names: `feat|fix|docs|evidence/{issue}-{slug}`
 - Worktrees: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
@@ -98,5 +99,6 @@ If Agent and disposer use the same GitHub identity, GitHub cannot distinguish hu
 - Binding path: root `AGENTS.md` → pinned `.agent-project-ops/PRINCIPLES.md`
 - Relevant project skills: `.agents/skills/*/SKILL.md`
 - Projection operations require `git-authority-and-projection` before non-origin push.
+- Colleague GitLab requires `share-export` (ADR 0003); never full-tree mirror of ops bindings.
 - Fleet index SoT: `Dylan5237/agent-project-ops` `fleet/REGISTRY.md` (box path is a mirror).
 - After this issue exists, **Register to Fleet REGISTRY** once: upsert `owner/repo` + this Command Center number and confirm the box mirror. Fail closed if skipped. Do not repeat on later §1 rewrites.

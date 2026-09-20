@@ -11,7 +11,7 @@ Bootstrap creates/binds the repository. It does **not** Freeze a product Phase, 
 - Run from a real git checkout of `agent-project-ops`; supported bootstrap requires a real methodology commit SHA.
 - `git` is available. GitHub creation additionally requires an authenticated `gh` CLI.
 - A real disposer GitHub handle is known; placeholder `@DISPOSER` is not accepted.
-- Optional projection URL contains no embedded credential/query token.
+- Optional projection URL contains no embedded credential/query token. Do not use a colleague-share GitLab URL as projection; that is share-export.
 
 ## Supported path
 
@@ -24,16 +24,18 @@ scripts/bootstrap-project.sh \
 
 Use `--dry-run` first when evaluating a new environment. Use `--skip-github` only for local scaffold/testing.
 
-Optional projection:
+Optional **projection** (same-history FF mirror only — **not** colleague GitLab):
 
 ```bash
 scripts/bootstrap-project.sh \
   --name example-project \
   --disposer @example \
-  --projection-url git@gitlab.example:group/example-project.git
+  --projection-url git@git.internal.example:group/example-project.git
 ```
 
-The remote is named `projection`; it is never a feature-push target.
+The remote is named `projection`; it is never a feature-push target and it **copies the full ops tree**.
+
+**Colleague GitLab** is a [share-export](./share-export.md), not `--projection-url`. Do not pass a colleague-share URL here. After the GitHub authority exists, publish a filtered business tree with `scripts/share-export.sh` ([ADR 0003](../docs/adr/0003-share-export-vs-projection.md)).
 
 ## What bootstrap writes
 
@@ -80,7 +82,7 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 
 - [ ] Generated project is a git repository with a real methodology SHA in `.agent-project-ops/PIN`.
 - [ ] Binding files and project skill wrappers exist.
-- [ ] `.agent-project-ops/remotes` names `origin` as authority and only requested projection remotes.
+- [ ] `.agent-project-ops/remotes` names `origin` as authority, only requested projection remotes, and `share_export=(none)` unless Command Center later records a share-export name (still not a push remote on this clone).
 - [ ] `core.hooksPath=.githooks` in the bootstrap checkout.
 - [ ] Fresh-clone instructions explicitly reinstall the hook configuration before first push.
 - [ ] `.worktrees/` exists locally and is ignored.
@@ -96,6 +98,7 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - Calling PR-only protection “human approval enforced.”
 - Requiring one approval on a single-identity repository without understanding the lockout/self-review semantics.
 - Adding a second write remote for convenience.
+- Using `--projection-url` for colleague GitLab (that leaks ops; use share-export).
 - Using a projection failure as permission to retarget feature pushes.
 - Treating bootstrap as done because the business repo exists while the project is absent from `fleet/REGISTRY.md`.
 - Duplicating a Fleet REGISTRY row instead of upserting by `owner/repo`.

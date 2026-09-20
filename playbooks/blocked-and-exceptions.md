@@ -58,4 +58,4 @@ Disposer may close a Phase with `SUPERSEDED BY #n` without Accept. Record it on 
 - `status:blocked` with no comment.
 - Exception issue that is actually a new product idea (that is a new Phase).
 - Agent commenting `EXCEPTION ACCEPT`.
-- Opening a second remote or a fork-only workflow to dodge protection or review (a named **projection** mirror is not a dodge; see `playbooks/git-authority-and-projection.md`).
+- Opening a second remote or a fork-only workflow to dodge protection or review (a named **projection** mirror is not a dodge; see `playbooks/git-authority-and-projection.md`). Registering colleague GitLab as that projection **is** a dodge of the share-export denylist — use `playbooks/share-export.md`.

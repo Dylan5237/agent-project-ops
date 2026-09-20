@@ -42,10 +42,12 @@ registry="${root}/.agent-project-ops/remotes"
 
 authority="$(sed -n 's/^authority=//p' "${registry}" | head -1)"
 projection_csv="$(sed -n 's/^projection=//p' "${registry}" | head -1)"
+share_export_csv="$(sed -n 's/^share_export=//p' "${registry}" | head -1)"
 [[ -n "${authority}" ]] || deny "remote registry has no authority entry"
 
 is_authority=0
 is_projection=0
+is_share_export=0
 [[ "${remote_name}" == "${authority}" ]] && is_authority=1
 
 if [[ -n "${projection_csv}" && "${projection_csv}" != "(none)" ]]; then
@@ -56,8 +58,24 @@ if [[ -n "${projection_csv}" && "${projection_csv}" != "(none)" ]]; then
   done
 fi
 
+if [[ -n "${share_export_csv}" && "${share_export_csv}" != "(none)" ]]; then
+  IFS=',' read -r -a share_export_names <<< "${share_export_csv}"
+  for s in "${share_export_names[@]}"; do
+    s="${s//[[:space:]]/}"
+    [[ -n "${s}" && "${remote_name}" == "${s}" ]] && is_share_export=1
+  done
+fi
+
+if [[ "${is_projection}" -eq 1 && "${is_share_export}" -eq 1 ]]; then
+  deny "remote '${remote_name}' cannot be both projection and share_export; colleague GitLab is share-export only"
+fi
+
+if [[ "${is_share_export}" -eq 1 ]]; then
+  deny "share-export remote '${remote_name}' must not receive git push from this bound clone (ops tree). Use scripts/share-export.sh"
+fi
+
 if [[ "${is_authority}" -eq 0 && "${is_projection}" -eq 0 ]]; then
-  deny "remote '${remote_name}' is unregistered (authority='${authority}', projection='${projection_csv:-none}'); fail closed"
+  deny "remote '${remote_name}' is unregistered (authority='${authority}', projection='${projection_csv:-none}', share_export='${share_export_csv:-none}'); fail closed"
 fi
 
 resolve_authority_tip() {
