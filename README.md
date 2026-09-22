@@ -159,6 +159,18 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 | [templates/](./templates/) | binding / Issue / PR templates |
 | [tests/](./tests/) | enforcement and bootstrap contracts |
 
+### Skills (Agent entrypoints)
+
+| Skill | Path |
+| --- | --- |
+| GitHub multi-agent project ops | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
+| Git worktree and branch | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
+| Git authority and projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
+| Repo reconciliation & cleanup | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
+| Issues, PRs, and evidence | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
+| Bootstrap project | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) |
+| Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
+
 ## Design boundaries
 
 This project deliberately does **not** claim:

@@ -37,7 +37,7 @@ If the extra host is **colleague GitLab** (business files for humans, no ops bin
 | Local / Cloud | Draft. Same rules; no privilege push to `main`. |
 | Projection down | Fail closed; stop release. Do not invent a second SoT. |
 | Projection ahead | Blocked → backfill PR on authority **or** written abandon, then project |
-| Cleanup | Reconciliation table first; never delete authority tip, `evidence/*`, merged impl |
+| Cleanup | Reconciliation table first; never delete authority tip, `evidence/*`, merged impl. Full dirty-repo hygiene (topology + edge cases): [repo-reconciliation-cleanup](../repo-reconciliation-cleanup/SKILL.md). |
 
 ## Agent checklist
 
