@@ -16,3 +16,8 @@
 | B12 | classify script | ancestor → KIND=ANCESTOR |
 | B13 | fact surfaces | every applicable surface has a status |
 | B14 | fail-stop DIVERGED delete | blocked without reclaim/abandon |
+| B15 | inverted AGENTS.md SoT | GitLab/non-GitHub Issues host as production/write SoT, or GitHub “mirror only” → **MUST-FIX** (not optional) |
+| B16 | anti-pattern docs | “禁止/never/anti-pattern” describing the inversion → do **not** flag |
+| B17 | correct template | `templates/AGENTS.md` + authority vs deploy-tip split → clean |
+| B18 | adoption PIN gate | inverted contract remaining → PIN binding incomplete; bootstrap non-empty dest fail-closes |
+| B19 | deploy tip wording | calling deploy/manifest/projection tip “write authority” → MUST-FIX |

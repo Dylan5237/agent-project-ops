@@ -76,6 +76,8 @@ Bootstrap creates durable repo bindings, pins the methodology SHA, installs the 
 
 **Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague share-export**.
 
+**Existing repositories** are [adoption](./playbooks/adopt-existing-project.md), not this greenfield command. Step 1 is a must-fix rewrite of local `AGENTS.md` to GitHub `origin` = write authority. The inverted contract (GitLab / non-GitHub Issues host as production SoT; GitHub as “mirror only”) fail-closes before PIN binding is complete.
+
 > GitHub Free + **private repositories** cannot provide the branch protection required for B/A, so bootstrap correctly reports **Capability C**. Record C on Command Center and continue. Do not treat C as init failure. Do not require Pro to finish init. Never claim B/A. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate when available.
 
 <p align="center">
@@ -148,7 +150,7 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 
 | Start here | Purpose |
 | --- | --- |
-| **[Getting Started](./docs/GETTING_STARTED.md)** | bootstrap, protection, first project, daily workflow |
+| **[Getting Started](./docs/GETTING_STARTED.md)** | bootstrap, protection, first project, daily workflow, [existing-repo adoption](./docs/GETTING_STARTED.md#11-existing-repository-adoption) |
 | [PRINCIPLES.md](./PRINCIPLES.md) | non-negotiable design rules |
 | [playbooks/](./playbooks/) | operational procedures |
 | [skills/](./skills/) | Agent entrypoints |
@@ -168,7 +170,7 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 | Git authority and projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
 | Repo reconciliation & cleanup | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
 | Issues, PRs, and evidence | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
-| Bootstrap project | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) |
+| Bootstrap project | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) — greenfield only; existing repos → [adopt-existing-project](./playbooks/adopt-existing-project.md) |
 | Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
 
 ## Design boundaries

@@ -124,6 +124,8 @@ Never delete a branch solely because it exists on projection; projection should 
 
 - Day-to-day `git push` of `feat/` / `fix/` / `docs/` / `evidence/` to the projection remote.
 - Treating colleague GitLab as a projection / `git push --mirror` of the bound ops tree.
+- **Inverted `AGENTS.md` contract:** GitLab (or any non-GitHub Issues host) as sole production/write SoT; GitHub as “mirror only”. Adoption must reverse that ([adopt-existing-project.md](./adopt-existing-project.md)) — it is must-fix, not a wording preference.
+- Calling a **deploy/manifest tip** (projection default, release SHA) the write authority. Release skills may still read that tip; `AGENTS.md` must distinguish it from the **write authority tip**.
 - Treating local `main` or a Cloud checkout as caught-up SoT without fetching authority.
 - Using projection because GitHub `origin` was down (second SoT / Principle 5).
 - Force-pushing protected `main` without disposer SHAs on the Issue.

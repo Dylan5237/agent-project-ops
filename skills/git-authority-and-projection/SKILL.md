@@ -30,7 +30,7 @@ If the extra host is **colleague GitLab** (business files for humans, no ops bin
 
 | Item | Rule |
 | --- | --- |
-| Write authority | GitHub `origin` (Issues/PRs). One SoT. |
+| Write authority | GitHub `origin` (Issues/PRs). One SoT. Inverted `AGENTS.md` (GitLab = production SoT; GitHub = mirror only) is must-fix — [adopt-existing-project](../../playbooks/adopt-existing-project.md). |
 | Projection remote | Fetch + FF of the **same history** (or disposer-authorized align). Not a feature host. Not colleague GitLab. |
 | Colleague GitLab | [share-export](../share-export/SKILL.md). Filtered tree. Never `git push --mirror` from the bound clone. |
 | Topic push | `git push -u origin HEAD` only |

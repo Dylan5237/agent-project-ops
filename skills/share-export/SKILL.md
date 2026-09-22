@@ -18,6 +18,7 @@ Colleague-share GitLab is **not** a projection. Load this skill instead of mirro
 
 - [playbooks/share-export.md](../../playbooks/share-export.md) — **required** before any colleague-share publish
 - [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) — only for a Command Center–named **same-history** projection remote
+- [playbooks/adopt-existing-project.md](../../playbooks/adopt-existing-project.md) — existing repos: rewrite inverted `AGENTS.md` (GitLab ≠ write SoT) before PIN
 - Contract: [docs/adr/0003-share-export-vs-projection.md](../../docs/adr/0003-share-export-vs-projection.md)
 - Helper: [scripts/share-export.sh](../../scripts/share-export.sh)
 

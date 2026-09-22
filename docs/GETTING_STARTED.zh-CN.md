@@ -346,17 +346,31 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 
 ## 11. 已有仓库接入
 
-一次性的聊天指令可以帮助 Agent 理解方法论：
+存量仓是 **adoption**，不是 greenfield bootstrap。按 **[adopt-existing-project](../playbooks/adopt-existing-project.md)** 执行。不要对非空目录跑 `scripts/bootstrap-project.sh` — 助手会先做反置 SoT 扫描再拒绝覆盖。
+
+**第一步**（写 PIN 之前）：核对并改写本地 `AGENTS.md`（以及 Claude / Cursor / Copilot 适配文件），使远程合同与 [templates/AGENTS.md](../templates/AGENTS.md) 同向：
+
+- GitHub `origin` = 唯一写权威；
+- 投影可选（同历史快进）；
+- 同事 GitLab = share-export，**不是** projection。
+
+**反置合同是反模式（必须修）：** 把 GitLab（或任何不是 GitHub Issues 权威的宿主）写成唯一生产 / 写权威，并把 GitHub 降为「仅镜像」。若 release 技能仍消费投影默认枝 tip，`AGENTS.md` 必须区分 **write authority tip** 与 **deploy/manifest tip**，不得把后者写成写权威 / 事实源。
+
+```bash
+python3 scripts/scan-inverted-sot.py --root /path/to/business-repo
+```
+
+退出码 `1` 则 PIN 绑定 fail closed。命中项不是可选文案问题。
+
+一次性聊天指令只能帮 Agent 找到手册：
 
 ```text
 Load https://github.com/Dylan5237/agent-project-ops,
-read PRINCIPLES.md and the relevant skills,
-and follow the playbooks.
+read PRINCIPLES.md and playbooks/adopt-existing-project.md,
+and follow adoption — do not treat this chat as the binding.
 ```
 
-但这只是 session guidance。
-
-如果准备长期使用，应明确补齐 repo-level bindings、remote registry、Command Center 和 protection capability，不要假设后续 Agent 会记得这次接入聊天。
+这只是 session guidance。持久绑定是改写后的规则文件 + PIN + Command Center。不要假设后续 Agent 会记得这次接入聊天。
 
 ---
 
@@ -385,6 +399,7 @@ and follow the playbooks.
 - [PRINCIPLES.md](../PRINCIPLES.md)：不可妥协的设计原则
 - [ADR 0004](./adr/0004-free-private-capability-c.md)：Free 私有仓 Capability C 属预期
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md)：初始化合同细节
+- [adopt-existing-project playbook](../playbooks/adopt-existing-project.md)：存量仓先改 AGENTS.md；反置 SoT fail closed
 - [share-export playbook](../playbooks/share-export.md)：同事 GitLab = 过滤后的业务树
 - [start-project playbook](../playbooks/start-project.md)：建立控制面
 - [phase-lifecycle](../playbooks/phase-lifecycle.md)：完整运行一个 Phase

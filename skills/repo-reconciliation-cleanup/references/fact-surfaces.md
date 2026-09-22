@@ -14,8 +14,9 @@ Every applicable surface must get an explicit status before claiming clean:
 
 | Surface | Question | Typical evidence |
 | --- | --- | --- |
-| Authority tip | What is Dev SoT SHA? | `origin/<default>` after fetch |
-| Projection tip(s) | Integration / release tips? | projection remotes (T2 only) |
+| Authority tip | What is **write authority** SHA (Dev SoT)? | `origin/<default>` after fetch. Never a GitLab/non-GitHub Issues host. |
+| Projection tip(s) | Integration / release tips? | projection remotes (T2 only). **Deploy/manifest tip ≠ write SoT.** |
+| Rule-file contract | Does `AGENTS.md` invert SoT? | `scan_inverted_sot.py` — MUST-FIX if GitLab (or other non-GitHub Issues host) is production/write SoT or GitHub is “mirror only” |
 | Local tip / worktrees | What is checked out where? | `git worktree list`, branch -vv |
 | Open PRs | What in-flight heads remain? | `gh pr list` |
 | PROD / deploy identity | What is actually released? | releaseId + manifest SHA, or UNKNOWN |

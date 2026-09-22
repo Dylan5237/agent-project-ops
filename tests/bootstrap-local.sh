@@ -65,9 +65,17 @@ pass 'PIN carries the real methodology SHA'
 [[ "$(sed -n 's/^projection=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'origin-only registry incorrect'
 [[ "$(sed -n 's/^share_export=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'share_export registry incorrect'
 [[ -f "${dest}/.agent-project-ops/scripts/share-export.sh" ]] || fail 'share-export helper missing from snapshot'
+[[ -f "${dest}/.agent-project-ops/scripts/scan-inverted-sot.py" ]] || fail 'inverted-SoT scanner wrapper missing from snapshot'
+[[ -f "${dest}/.agent-project-ops/skills/repo-reconciliation-cleanup/scripts/scan_inverted_sot.py" ]] || fail 'inverted-SoT scanner missing from pinned skill'
 [[ -f "${dest}/.agent-project-ops/scripts/lib/share-export-denylist.sh" ]] || fail 'share-export denylist missing from snapshot'
 pass 'remote registry is explicit and clone-portable'
 pass 'share-export helper is vendored into the snapshot'
+pass 'inverted-SoT scanner is vendored into the snapshot'
+
+if ! python3 "${dest}/.agent-project-ops/scripts/scan-inverted-sot.py" --root "${dest}"; then
+  fail 'generated binding failed inverted-SoT scan'
+fi
+pass 'generated AGENTS.md passes inverted-SoT scan'
 
 [[ "$(git -C "${dest}" config --get core.hooksPath)" == '.githooks' ]] || fail 'bootstrap checkout hook not installed'
 pass 'bootstrap checkout has core.hooksPath=.githooks'

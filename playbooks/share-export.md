@@ -71,5 +71,6 @@ This is **not** [projection](./git-authority-and-projection.md). Projection is a
 - Passing the colleague GitLab URL to `bootstrap-project.sh --projection-url`.
 - Registering GitLab as `projection=` so the hook allows a full-tree push.
 - Treating GitLab Issues as the control plane.
+- Writing GitLab as production / write SoT in `AGENTS.md` (inverted contract — [adopt-existing-project.md](./adopt-existing-project.md)).
 - Force-pushing the export branch “to make the histories match GitHub.”
 - Opening feature work on GitLab and merging it without a GitHub PR.

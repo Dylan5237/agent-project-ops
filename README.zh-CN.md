@@ -76,6 +76,8 @@ bash scripts/bootstrap-project.sh \
 
 **下一步 → [快速上手](./docs/GETTING_STARTED.zh-CN.md)**，查看保护能力选择、fresh clone 恢复、Command Center 建立、日常 Phase 流程，以及 projection 与 **同事 share-export** 的区别。
 
+**已有仓库**走 [adoption](./playbooks/adopt-existing-project.md)，不是上面这条 greenfield 命令。第一步必须改写本地 `AGENTS.md`：GitHub `origin` = 写权威。反置合同（GitLab / 非 GitHub Issues 宿主写成生产 SoT，GitHub 降为「仅镜像」）在 PIN 绑定完成前 fail closed。
+
 > GitHub Free + **私有仓库** 无法提供 B/A 所需的服务端分支保护，因此会被正确报告为 **Capability C**。把 C 写入 Command Center 后继续。不要把 C 当成初始化失败，也不要为了完成初始化去买 Pro。不得把 C 说成 B/A。客户端 hook 可被 `--no-verify` 绕过；有服务端保护时，它才是真正的硬门槛。
 
 <p align="center">
@@ -148,7 +150,7 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 
 | 从这里开始 | 用途 |
 | --- | --- |
-| **[快速上手](./docs/GETTING_STARTED.zh-CN.md)** | 初始化、保护能力、首个项目、日常流程 |
+| **[快速上手](./docs/GETTING_STARTED.zh-CN.md)** | 初始化、保护能力、首个项目、日常流程、[存量仓接入](./docs/GETTING_STARTED.zh-CN.md#11-已有仓库接入) |
 | [PRINCIPLES.md](./PRINCIPLES.md) | 不可妥协的设计原则 |
 | [playbooks/](./playbooks/) | 运行流程 |
 | [skills/](./skills/) | Agent 入口 |
