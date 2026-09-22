@@ -220,6 +220,7 @@ PR #38 contains tests that **are** methodology contract code (`tests/bootstrap-l
 - Implementation used one branch/PR (`cursor/phase-36-free-private-c-55b8` → #38). No direct `main` push observed.
 - CC #10 §1 at verification time: current phase **#36**, status **VERIFICATION**, Impl PR **#38**, Next Action = independent verification. That satisfies the impl→verification flip (updated by apo项目经理).
 - This verifier’s `gh` is **read-only for Issues** (`gh api user` → 403). It cannot edit Issue bodies or reliably comment on #36. Verdict is on this evidence PR and a comment on PR #38 when the forge tool allows. Copy-paste for #36 is below.
+- Evidence-branch push: live `.githooks/pre-push` was not executable in this checkout (installer `chmod +x` was discarded so this PR would stay evidence-only). The same topic-branch update replayed through `bash scripts/hooks/pre-push-authority.sh origin https://github.com/Dylan5237/agent-project-ops.git` **allowed** (`exit 0`). Push used a normal `git push -u` (no `--force`).
 - After this evidence lands, CC §1 Next Action should become **disposer review of evidence / `PHASE ACCEPT` or `PHASE RETURN`**. Proposed text is below; gap recorded as `BLOCKED:` for §1 rewrite **by this Agent**, not chat-only.
 
 ### Proposed CC #10 §1 after this evidence
