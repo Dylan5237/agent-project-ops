@@ -26,6 +26,7 @@ Merge of PR #38 ≠ Phase PASS.
 | Merge-base with `origin/main` at impl time | `074cb489c9e52162e35cc32e25a8e56910fb3bbe` |
 | `origin/main` at this verification | `091c302c2501d07d36166fe5dbea0624bf0cc294` |
 | Evidence branch base | `091c302c2501d07d36166fe5dbea0624bf0cc294` (`main`) |
+| Evidence commit (this file, first revision) | `a66893b63707f7cc605071dec3296159bada0bdc` |
 
 Reviewed: `gh pr view 38` JSON (head `b040e32`, 13 files, +136 / −36, label `pr:implementation`, not draft) plus checkout of the impl SHA and `git diff 074cb48...b040e32`. One commit on the impl branch. `origin/main` has since landed PR #37 (fleet PM note); that commit is **not** in the impl diff.
 
