@@ -44,12 +44,15 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
 
 Supported bootstrap requires a real methodology git SHA. It never writes
 `sha=unknown`. Client hooks are bypassable; server policy is reported as
-capability A/B/C and is never overstated. Colleague GitLab is share-export
-(scripts/share-export.sh), not --projection-url.
+capability A/B/C and is never overstated. Capability C on GitHub Free
+private is expected: warn, record on Command Center, and continue
+(do not hard-abort the scaffold; never claim B/A). Colleague GitLab is
+share-export (scripts/share-export.sh), not --projection-url.
 EOF
 }
 
 log() { printf 'bootstrap: %s\n' "$*"; }
+warn() { printf 'bootstrap: warning: %s\n' "$*" >&2; }
 err() { printf 'bootstrap: error: %s\n' "$*" >&2; }
 die() { err "$*"; exit 1; }
 
@@ -157,7 +160,7 @@ if [[ "${dry_run}" -eq 1 ]]; then
   if [[ "${skip_github}" -eq 1 ]]; then
     log "plan: skip GitHub creation"
   else
-    log "plan: gh repo create --${visibility}; push initial authority main; verify protection capability"
+    log "plan: gh repo create --${visibility}; push initial authority main; report protection capability A/B/C (C on Free private is expected; do not abort)"
   fi
   log "plan: next = playbooks/start-project.md; no product implementation"
   exit 0
@@ -301,7 +304,7 @@ if [[ -n "${projection_url}" ]]; then
 fi
 
 protection_level='C'
-protection_label='unprotected/BLOCKED'
+protection_label='unprotected/unverifiable'
 protect_payload="$(mktemp)"
 trap 'rm -f "${protect_payload}"' EXIT
 
@@ -354,12 +357,15 @@ log "GitHub protection capability: ${protection_level} — ${protection_label}"
 log "IMPORTANT: if Agent and disposer share one GitHub identity, GitHub cannot distinguish human vs Agent actions."
 
 if [[ "${protection_level}" == 'C' ]]; then
-  err "BLOCKED: requested branch protection could not be enabled/verified. Record capability C on Command Center before feature work."
-  exit 2
+  warn "capability C: requested branch protection could not be enabled/verified."
+  if [[ "${visibility}" == "private" ]]; then
+    warn "GitHub Free private repositories commonly cannot enable this protection; C is expected. Record C on Command Center and continue. Do not claim B or A. Do not treat this as bootstrap failure. GitHub Pro is not required to finish init."
+  else
+    warn "Record C on Command Center and continue. Do not claim B or A. Do not treat this as bootstrap failure."
+  fi
 fi
 if [[ "${require_codeowner_review}" -eq 1 && "${protection_level}" != 'A' ]]; then
-  err "BLOCKED: level A was requested but not verified. Record actual capability before feature work."
-  exit 2
+  warn "level A was requested but not verified (actual: ${protection_level}). Record the actual capability. Never claim A."
 fi
 
-log "done. Next: open Command Center using .agent-project-ops/playbooks/start-project.md; do not implement product work before Freeze."
+log "done. Next: open Command Center using .agent-project-ops/playbooks/start-project.md; record the reported capability; do not implement product work before Freeze."

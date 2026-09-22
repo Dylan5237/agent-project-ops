@@ -75,9 +75,11 @@ Bootstrap must report the **observed protection capability**, not a binary marke
 
 - **A — disposer/code-owner enforced:** PR required and independent/code-owner review gate is actually enabled.
 - **B — PR-only:** direct default-branch pushes are blocked, but an identity with write permission may be able to self-merge; do not claim disposer enforcement.
-- **C — unprotected/BLOCKED:** requested server policy could not be enabled or verified.
+- **C — unprotected/unverifiable:** requested server policy could not be enabled or verified.
 
 Plan/permission limitations are environment capability, not a reason to pretend Level A exists.
+
+Operational policy (Phase #36 / [ADR 0004](../adr/0004-free-private-capability-c.md)): capability C is an honest report, not a hard bootstrap stop. On GitHub Free private, C is expected: record on Command Center and continue. Never claim B/A when only C was verified.
 
 ## 8. Credential and disposer gates
 

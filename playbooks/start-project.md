@@ -22,7 +22,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 1. **Load the binding.** Prefer root `AGENTS.md` in a bootstrapped repo, then read `.agent-project-ops/PRINCIPLES.md`. For manual adoption, explicitly load this methodology. Confirm: Chat ≠ state; Agent proposes / control plane disposes; merge ≠ Phase PASS.
 2. **Fresh-clone hook check.** Run `git config --get core.hooksPath`. A clone does not inherit this local config. In a bootstrapped repo, if it is not `.githooks`, run `bash .agent-project-ops/scripts/install-hooks.sh`. Missing client hook is not permission to push `main`.
 3. **Create labels.** Apply `templates/labels.md` (or the pinned snapshot copy) without inventing overlapping status names.
-4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/BLOCKED. Never call B an independent-human-review gate.
+4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/unverifiable. Never call B an independent-human-review gate. On GitHub Free private, C is expected: record C and continue (hooks + PR discipline). Do not claim B/A. Do not treat C as a stop-all-work gate. See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill **section 1** (one-glance), disposer, PIN, default branch, protection capability, Agent roster, and Freeze/Accept policy.
 6. **Register to Fleet REGISTRY** (mandatory). Upsert `owner/repo` + Command Center `#N` into `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../fleet/REGISTRY.md) via PR; confirm box mirror `/home/box/agent-data/fleet-morning-digest/REGISTRY.md`; tell the disposer **「已纳入舰队晨报扫描」**. Fail closed if skipped. [ADR 0002](../docs/adr/0002-canonical-fleet-index.md).
 7. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a **projection** is required, it remains same-history mirror/FF only and `git-authority-and-projection` applies before any non-origin push. If colleagues need a GitLab copy, that is [share-export](./share-export.md), not a projection remote. Unknown remotes → Blocked.
@@ -35,7 +35,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - [ ] **Register to Fleet REGISTRY** completed (`owner/repo` row in `fleet/REGISTRY.md`; mirror confirmed or GitHub `BLOCKED:`; disposer told **「已纳入舰队晨报扫描」**).
 - [ ] Status labels exist.
 - [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
-- [ ] Command Center records protection capability A/B/C; capability C is explicitly Blocked.
+- [ ] Command Center records protection capability A/B/C honestly; capability C (expected on GitHub Free private) is recorded and work continues. Never claim B/A when only C was verified.
 - [ ] Command Center records authority/projection/share-export and matches `.agent-project-ops/remotes` when present.
 - [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
 - [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
@@ -45,6 +45,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - Treating the methodology repository as the product repository.
 - Treating a tracked hook file as proof `core.hooksPath` is active after clone.
 - Calling PR-only protection “human approval enforced” when Agent and disposer share an identity.
+- Treating Free-private capability C as “stop all work” or claiming B/A when only C was verified.
 - Skipping Command Center and tracking work only in chat.
 - Skipping Fleet REGISTRY registration after Command Center exists.
 - Pushing “just this once” to `main`.

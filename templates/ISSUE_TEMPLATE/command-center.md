@@ -70,7 +70,7 @@ Record what was actually verified, not what was requested:
 - Capability: **A / B / C**
   - A = PR + code-owner/independent review gate verified
   - B = PR-only; no independent-human-review guarantee
-  - C = unprotected or protection could not be verified → **BLOCKED**
+  - C = unprotected or protection could not be verified. On GitHub Free **private** this is **expected**. Record C and continue. Do not claim B/A. Do not treat C as init failure. Optional Pro/public when a real server gate is required.
 - Force push disabled: yes / no / unknown
 - Default-branch deletion disabled: yes / no / unknown
 - Notes / plan limitation:
