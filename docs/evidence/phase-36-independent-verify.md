@@ -3,6 +3,7 @@
 Command Center: [#10](https://github.com/Dylan5237/agent-project-ops/issues/10)  
 Phase: [#36](https://github.com/Dylan5237/agent-project-ops/issues/36) (`freeze:acked`, `status:verification`)  
 Implementation PR: [#38](https://github.com/Dylan5237/agent-project-ops/pull/38) (`pr:implementation`)  
+Evidence PR: [#39](https://github.com/Dylan5237/agent-project-ops/pull/39) (`pr:evidence` requested)  
 Freeze: 2026-09-22 on #36 — C is expected on GitHub Free private; record on CC and continue; not a hard bootstrap stop; never claim B/A when only C.
 
 This document is **evidence only**. It does not change product/docs under test. Merge of this evidence PR is **not** Phase PASS. The Agent does **not** issue `PHASE ACCEPT`.
@@ -219,7 +220,7 @@ PR #38 contains tests that **are** methodology contract code (`tests/bootstrap-l
 - Freeze ACK exists on Phase #36 (`freeze:acked`, body dated 2026-09-22). Implementation started after that ACK.
 - Implementation used one branch/PR (`cursor/phase-36-free-private-c-55b8` → #38). No direct `main` push observed.
 - CC #10 §1 at verification time: current phase **#36**, status **VERIFICATION**, Impl PR **#38**, Next Action = independent verification. That satisfies the impl→verification flip (updated by apo项目经理).
-- This verifier’s `gh` is **read-only for Issues** (`gh api user` → 403). It cannot edit Issue bodies or reliably comment on #36. Verdict is on this evidence PR and a comment on PR #38 when the forge tool allows. Copy-paste for #36 is below.
+- This verifier’s `gh` is **read-only for Issues** (`gh api user` / `gh issue comment 36` → 403 `addComment`). It cannot edit Issue bodies or comment on #36. `EVIDENCE READY` was posted on PR #38. Copy-paste for #36 is below.
 - Evidence-branch push: live `.githooks/pre-push` was not executable in this checkout (installer `chmod +x` was discarded so this PR would stay evidence-only). The same topic-branch update replayed through `bash scripts/hooks/pre-push-authority.sh origin https://github.com/Dylan5237/agent-project-ops.git` **allowed** (`exit 0`). Push used a normal `git push -u` (no `--force`).
 - After this evidence lands, CC §1 Next Action should become **disposer review of evidence / `PHASE ACCEPT` or `PHASE RETURN`**. Proposed text is below; gap recorded as `BLOCKED:` for §1 rewrite **by this Agent**, not chat-only.
 
