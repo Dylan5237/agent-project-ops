@@ -9,10 +9,14 @@ on:
       - 'scripts/lib/share-export-denylist.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
+      - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
       - 'playbooks/share-export.md'
       - 'skills/bootstrap-project/**'
+      - 'skills/repo-reconciliation-cleanup/**'
+      - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
+      - 'tests/inverted-sot.sh'
       - '.github/workflows/bootstrap-contract.yml'
   push:
     branches: [main]
@@ -23,10 +27,14 @@ on:
       - 'scripts/lib/share-export-denylist.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
+      - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
       - 'playbooks/share-export.md'
       - 'skills/bootstrap-project/**'
+      - 'skills/repo-reconciliation-cleanup/**'
+      - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
+      - 'tests/inverted-sot.sh'
       - '.github/workflows/bootstrap-contract.yml'
 
 permissions:
@@ -41,7 +49,10 @@ jobs:
         run: |
           bash -n scripts/bootstrap-project.sh
           bash -n tests/bootstrap-local.sh
+          bash -n tests/inverted-sot.sh
           bash -n scripts/share-export.sh
+      - name: Inverted-SoT wording contract
+        run: bash tests/inverted-sot.sh
       - name: Dry-run contract
         run: |
           bash scripts/bootstrap-project.sh --dry-run \

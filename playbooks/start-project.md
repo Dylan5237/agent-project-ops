@@ -7,7 +7,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 ## When
 
 - A repo was just created by `bootstrap-project`.
-- A business repo already exists and is adopting `agent-project-ops`.
+- A business repo already exists and **already completed** [adopt-existing-project.md](./adopt-existing-project.md) step 1 (local `AGENTS.md` remote contract rewritten; inverted SoT fail-closed). Adoption is not this playbook.
 - The repository has no Command Center yet.
 
 ## Preconditions
@@ -19,7 +19,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 
 ## Steps
 
-1. **Load the binding.** Prefer root `AGENTS.md` in a bootstrapped repo, then read `.agent-project-ops/PRINCIPLES.md`. For manual adoption, explicitly load this methodology. Confirm: Chat ≠ state; Agent proposes / control plane disposes; merge ≠ Phase PASS.
+1. **Load the binding.** Prefer root `AGENTS.md` in a bootstrapped or adopted repo, then read `.agent-project-ops/PRINCIPLES.md`. Confirm: Chat ≠ state; Agent proposes / control plane disposes; merge ≠ Phase PASS; GitHub `origin` is the only write authority. If this is an existing repo, [adopt-existing-project.md](./adopt-existing-project.md) step 1 (inverted-SoT scan + rewrite) must already be clean — do not open Command Center on an inverted contract.
 2. **Fresh-clone hook check.** Run `git config --get core.hooksPath`. A clone does not inherit this local config. In a bootstrapped repo, if it is not `.githooks`, run `bash .agent-project-ops/scripts/install-hooks.sh`. Missing client hook is not permission to push `main`.
 3. **Create labels.** Apply `templates/labels.md` (or the pinned snapshot copy) without inventing overlapping status names.
 4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/unverifiable. Never call B an independent-human-review gate. On GitHub Free private, C is expected: record C and continue (hooks + PR discipline). Do not claim B/A. Do not treat C as a stop-all-work gate. See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
@@ -52,3 +52,4 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - Adding a second write authority or using projection as a fallback.
 - Registering colleague GitLab as projection so the bound clone can be mirrored.
 - Embedding business SOP into this methodology repository.
+- Starting this playbook while `AGENTS.md` still names GitLab (or another non-GitHub Issues host) as production/write SoT.

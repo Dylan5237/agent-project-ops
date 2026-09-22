@@ -4,7 +4,9 @@
 
 Create a generic project repository that is born with durable `agent-project-ops` binding instead of relying on the bootstrap chat to be remembered later.
 
-Bootstrap creates/binds the repository. It does **not** Freeze a product Phase, implement product code, or declare Phase PASS.
+Bootstrap creates/binds a **new/empty** repository. It does **not** Freeze a product Phase, implement product code, or declare Phase PASS.
+
+**Existing repositories are not this playbook.** Use [adopt-existing-project.md](./adopt-existing-project.md). Adoption step 1 is a must-fix rewrite of local `AGENTS.md` to GitHub `origin` = write authority (projection optional; share-export ≠ projection). The inverted contract (GitLab or any non-GitHub Issues host as production/write SoT; GitHub as “mirror only”) fail-closes before PIN binding is complete. `scripts/bootstrap-project.sh` refuses a non-empty destination after running that scan.
 
 ## Preconditions
 
@@ -104,6 +106,8 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - Requiring one approval on a single-identity repository without understanding the lockout/self-review semantics.
 - Adding a second write remote for convenience.
 - Using `--projection-url` for colleague GitLab (that leaks ops; use share-export).
+- Running this greenfield script on a non-empty business tree and calling that adoption (use [adopt-existing-project.md](./adopt-existing-project.md)).
+- Writing PIN while `AGENTS.md` still inverts authority (GitLab = production SoT; GitHub = mirror only).
 - Using a projection failure as permission to retarget feature pushes.
 - Treating bootstrap as done because the business repo exists while the project is absent from `fleet/REGISTRY.md`.
 - Duplicating a Fleet REGISTRY row instead of upserting by `owner/repo`.

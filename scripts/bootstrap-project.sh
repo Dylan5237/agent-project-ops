@@ -6,6 +6,29 @@ METHODOLOGY_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # shellcheck source=/dev/null
 source "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh"
 
+INVERTED_SOT_SCANNER="${METHODOLOGY_ROOT}/skills/repo-reconciliation-cleanup/scripts/scan_inverted_sot.py"
+
+scan_inverted_sot() {
+  local target="$1"
+  [[ -f "${INVERTED_SOT_SCANNER}" ]] || die "inverted-SoT scanner missing: ${INVERTED_SOT_SCANNER}"
+  command -v python3 >/dev/null || die "python3 is required for the inverted-SoT scan"
+  python3 "${INVERTED_SOT_SCANNER}" --root "${target}"
+}
+
+refuse_existing_destination() {
+  local target="$1"
+  warn "destination exists and is not empty: ${target}"
+  warn "existing repositories are adoption, not greenfield bootstrap. Follow playbooks/adopt-existing-project.md."
+  if [[ -f "${target}/AGENTS.md" || -f "${target}/CLAUDE.md" ]]; then
+    warn "inverted-SoT scan (must-fix, not optional):"
+    if ! scan_inverted_sot "${target}"; then
+      die "PIN binding is not complete: inverted write-authority contract (GitLab/non-GitHub Issues host as production/write SoT, or GitHub demoted to mirror-only). Rewrite AGENTS.md first; do not bootstrap over it."
+    fi
+    die "destination is not empty and the rule-file scan is clean, but bootstrap still refuses to overwrite. Use playbooks/adopt-existing-project.md."
+  fi
+  die "destination exists and is not empty: ${target}. Existing repositories are adoption (playbooks/adopt-existing-project.md), not this greenfield path."
+}
+
 dry_run=0
 assume_yes=0
 skip_github=0
@@ -48,6 +71,9 @@ capability A/B/C and is never overstated. Capability C on GitHub Free
 private is expected: warn, record on Command Center, and continue
 (do not hard-abort the scaffold; never claim B/A). Colleague GitLab is
 share-export (scripts/share-export.sh), not --projection-url.
+Existing (non-empty) destinations are adoption, not this script:
+playbooks/adopt-existing-project.md. Inverted AGENTS.md SoT fail-closes
+before PIN binding is considered complete.
 EOF
 }
 
@@ -163,6 +189,9 @@ if [[ "${dry_run}" -eq 1 ]]; then
     log "plan: gh repo create --${visibility}; push initial authority main; report protection capability A/B/C (C on Free private is expected; do not abort)"
   fi
   log "plan: next = playbooks/start-project.md; no product implementation"
+  if [[ -e "${dest}" && -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+    log "plan: FAIL CLOSED — destination exists; existing repos use playbooks/adopt-existing-project.md (scan inverted SoT before PIN)"
+  fi
   exit 0
 fi
 
@@ -173,7 +202,7 @@ if [[ "${skip_github}" -eq 0 ]]; then
 fi
 
 if [[ -e "${dest}" && -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
-  die "destination exists and is not empty: ${dest}"
+  refuse_existing_destination "${dest}"
 fi
 
 mkdir -p "${dest}"
@@ -201,9 +230,10 @@ cp -a "${METHODOLOGY_ROOT}/templates" .agent-project-ops/templates
 cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-worktree.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 cp "${METHODOLOGY_ROOT}/scripts/share-export.sh" .agent-project-ops/scripts/share-export.sh
+cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts/scan-inverted-sot.py
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -234,6 +264,9 @@ subst() {
 }
 
 subst "${METHODOLOGY_ROOT}/templates/AGENTS.md" AGENTS.md
+if ! scan_inverted_sot "$(pwd)"; then
+  die "generated AGENTS.md failed the inverted-SoT scan; templates/AGENTS.md is not a valid authority contract"
+fi
 cp "${METHODOLOGY_ROOT}/templates/CLAUDE.md" CLAUDE.md
 cp "${METHODOLOGY_ROOT}/templates/cursor-rules/agent-project-ops.mdc" .cursor/rules/agent-project-ops.mdc
 cp "${METHODOLOGY_ROOT}/templates/github/copilot-instructions.md" .github/copilot-instructions.md

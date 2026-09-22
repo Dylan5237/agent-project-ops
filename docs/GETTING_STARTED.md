@@ -348,17 +348,31 @@ If that information only exists in an old chat, the project is not durably gover
 
 ## 11. Existing repository adoption
 
-A one-time chat instruction can help an Agent understand the methodology:
+Existing repos are **adoption**, not greenfield bootstrap. Follow **[adopt-existing-project](../playbooks/adopt-existing-project.md)**. Do not run `scripts/bootstrap-project.sh` on a non-empty tree — the helper refuse-closes after an inverted-SoT scan.
+
+**Step 1** (before PIN): audit and rewrite local `AGENTS.md` (and Claude / Cursor / Copilot adapters) so the remote contract matches [templates/AGENTS.md](../templates/AGENTS.md):
+
+- GitHub `origin` = sole write authority;
+- projection optional (same-history FF);
+- colleague GitLab = share-export, **not** projection.
+
+**Inverted contract is an anti-pattern (must-fix):** GitLab, or any host that is not the GitHub Issues authority, written as the sole production / write SoT, with GitHub demoted to “mirror only”. If a release skill still consumes a projection default-branch tip, `AGENTS.md` must distinguish the **write authority tip** from the **deploy/manifest tip** and must not call the latter write SoT.
+
+```bash
+python3 scripts/scan-inverted-sot.py --root /path/to/business-repo
+```
+
+Exit `1` fail-closes PIN binding. Hits are not optional nits.
+
+A one-time chat instruction can help an Agent find the playbook:
 
 ```text
 Load https://github.com/Dylan5237/agent-project-ops,
-read PRINCIPLES.md and the relevant skills,
-and follow the playbooks.
+read PRINCIPLES.md and playbooks/adopt-existing-project.md,
+and follow adoption — do not treat this chat as the binding.
 ```
 
-But this is session guidance only.
-
-For long-term use, deliberately add durable repo-level bindings, remote registry, Command Center, and protection capability. Do not assume later Agents will remember the adoption conversation.
+That is session guidance only. Durable binding is the rewritten rule files + PIN + Command Center. Do not assume later Agents will remember the adoption conversation.
 
 ---
 
@@ -387,6 +401,7 @@ The model is simple:
 - [PRINCIPLES.md](../PRINCIPLES.md) — the non-negotiable design rules
 - [ADR 0004](./adr/0004-free-private-capability-c.md) — Free-private capability C is expected
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md) — bootstrap contract in detail
+- [adopt-existing-project playbook](../playbooks/adopt-existing-project.md) — existing repos: rewrite AGENTS.md first; inverted SoT fail-closes
 - [share-export playbook](../playbooks/share-export.md) — colleague GitLab = filtered business tree
 - [start-project playbook](../playbooks/start-project.md) — establish the control plane
 - [phase-lifecycle](../playbooks/phase-lifecycle.md) — run a Phase end to end

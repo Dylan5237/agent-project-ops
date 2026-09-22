@@ -17,7 +17,7 @@ Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post
 
 ## Required path
 
-1. Confirm the destination is new/empty. Existing repositories are an adoption task, not this bootstrap path.
+1. Confirm the destination is new/empty. Existing repositories are **adoption**, not this greenfield path — follow [adopt-existing-project](../../playbooks/adopt-existing-project.md). Adoption **step 1** is a must-fix rewrite of local `AGENTS.md` (and adapters) to GitHub `origin` = write authority; inverted contract (GitLab/non-GitHub Issues host as production/write SoT, GitHub as “mirror only”) fail-closes **before PIN binding is complete**. The helper refuses a non-empty dest after running that scan.
 2. Collect a real project slug and real disposer GitHub handle. Do not emit placeholder `@DISPOSER`.
 3. Ask whether a **projection** remote is required (same-history FF mirror). If yes, accept only a credential-free Git URL; it remains projection-only and **includes ops**. If the need is colleague GitLab / business-files-only, do **not** collect a projection URL — use [share-export](../share-export/SKILL.md) after GitHub `origin` exists.
 4. Run `scripts/bootstrap-project.sh --dry-run ...` first when environment behavior is uncertain, then the real command.
@@ -44,5 +44,6 @@ If the local Agent and the human disposer use the **same GitHub identity**, GitH
 - Unknown remote → no push.
 - Projection candidate is not current authority tip → no projection push.
 - Colleague GitLab URL used as `--projection-url` → stop; that is share-export, not projection.
+- Destination exists and is not empty → stop; that is [adoption](../../playbooks/adopt-existing-project.md). Inverted `AGENTS.md` SoT → fail closed (PIN not complete).
 - Fleet REGISTRY row skipped, duplicated, or left only in chat → stop; do not claim bootstrap done. Mirror unwritable → still land the git row and report `BLOCKED:` on GitHub for the mirror gap.
 - Do not use `--no-verify` as a workflow shortcut.

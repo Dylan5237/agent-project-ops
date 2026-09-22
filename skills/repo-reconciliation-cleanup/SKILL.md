@@ -15,7 +15,7 @@ description: >
 **相邻技能：** `git-authority-and-projection`（本仓，投影合同）。可选外部/舰队技能 `neat-freak`（文档/规则/记忆知识收尾）— **仅当执行环境已安装时**才转交；本方法论仓不内置、运行不依赖它。  
 **能力：** `external_system` · `external_write` · 轻量 stateful（recon Issue）  
 **风险：** 只读=0；删枝/关 PR/拆 worktree/hard reset=**2**（须看完预览后的本次授权）  
-**确定性机制：** [`scripts/classify_ref.py`](scripts/classify_ref.py) · [`scripts/audit-inventory.sh`](scripts/audit-inventory.sh)
+**确定性机制：** [`scripts/classify_ref.py`](scripts/classify_ref.py) · [`scripts/audit-inventory.sh`](scripts/audit-inventory.sh) · [`scripts/scan_inverted_sot.py`](scripts/scan_inverted_sot.py)（只读反置 SoT 措辞；命中 = **必须修复**）
 
 ## 完成合同
 
@@ -30,14 +30,15 @@ description: >
 ## 入口流程
 
 1. **Topology** — [`references/topologies.md`](references/topologies.md)；T4 停。
-2. **Pins** — Dev SoT、PROD（可 UNKNOWN）、protect list。
-3. **Inventory** — `bash scripts/audit-inventory.sh <repo>`（或等价只读检查）；不可达标 `UNREACHABLE`。
-4. **Classify** — 每个 ref 跑 `classify_ref.py`；[`references/classification.md`](references/classification.md)。
-5. **Edge gates** — [`references/edge-cases.md`](references/edge-cases.md)；E-DIVERGE 先选 A/B/C。
-6. **Phase-A report** — [`assets/report-skeleton.md`](assets/report-skeleton.md) + [`assets/disposer-batch-template.md`](assets/disposer-batch-template.md)。**此时尚未删除。**
-7. **Post-report confirmation** — 处置人确认**名单**；开场「清干净」≠ 本步。
-8. **Execute** — 仅确认对象；删前再 classify；统计 拦截/失败/成功。
-9. **Phase-B** — 重跑 inventory；补充清场结果与残留 warning。
+2. **Pins** — Dev SoT、PROD（可 UNKNOWN）、protect list。 **Dev SoT = GitHub write-authority tip**，不是投影/发布 tip。
+3. **Inverted SoT wording (must-fix)** — 只读扫描业务仓 `AGENTS.md` / 常见规则文件：`python3 scripts/scan_inverted_sot.py --root <repo>`（方法论根也可用 `python3 scripts/scan-inverted-sot.py --root <repo>`）。GitLab（或任何非 GitHub Issues 宿主）写成生产/写权威、GitHub 降为「仅镜像」、或把 deploy/manifest tip 写成 write SoT → **必须修复**，不得标 optional。存量接入合同：[adopt-existing-project](../../playbooks/adopt-existing-project.md)。PIN 绑定在扫描 exit 0 之前不算完成。
+4. **Inventory** — `bash scripts/audit-inventory.sh <repo>`（或等价只读检查）；不可达标 `UNREACHABLE`。
+5. **Classify** — 每个 ref 跑 `classify_ref.py`；[`references/classification.md`](references/classification.md)。
+6. **Edge gates** — [`references/edge-cases.md`](references/edge-cases.md)；E-DIVERGE 先选 A/B/C。
+7. **Phase-A report** — [`assets/report-skeleton.md`](assets/report-skeleton.md) + [`assets/disposer-batch-template.md`](assets/disposer-batch-template.md)。**此时尚未删除。** 反置 SoT 命中写入报告为 must-fix，不是候选删除项。
+8. **Post-report confirmation** — 处置人确认**名单**；开场「清干净」≠ 本步。Must-fix 规则文件仍反置 → 不得宣称对账完成。
+9. **Execute** — 仅确认对象；删前再 classify；统计 拦截/失败/成功。
+10. **Phase-B** — 重跑 inventory；补充清场结果与残留 warning。
 
 T1 跳过投影。T0 无远程删除。工作区残留（`_scan*`、`*_old*`、空 worktree 目录）只进**候选**，确认后才删。
 
@@ -61,8 +62,11 @@ T1 跳过投影。T0 无远程删除。工作区残留（`_scan*`、`*_old*`、�
 ## 验证
 
 - `python3 scripts/classify_ref.py --cwd <repo> --tip <tip> --ref <ref>`
+- `python3 scripts/scan_inverted_sot.py --root <repo>`
 - `bash scripts/audit-inventory.sh <repo>`
 - `python3 tests/test_classify_kind.py`
+- `python3 tests/test_scan_inverted_sot.py`
+- `bash tests/inverted-sot.sh`（方法论根；含 bootstrap 对非空 dest 的 fail-closed）
 - 行为用例：[`tests/behavior-cases.md`](tests/behavior-cases.md)
 
 ## 已知限制
