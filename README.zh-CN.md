@@ -42,7 +42,7 @@
 
 | 规则 | 含义 |
 | --- | --- |
-| **GitHub `origin` = 写权威** | 只有一个写权威；可选 projection 只做同历史快进；同事 GitLab 是 share-export，不是 projection |
+| **GitHub `origin` = 写权威** | 只有一个写权威；可选 projection 只做同历史快进；同事 GitLab 是 export（权威 − 剥离清单）或 share-export，不是 projection |
 | **聊天 ≠ 状态** | 项目事实必须进入仓库、Issue、PR、CI 和证据 |
 | **一个任务 = 一个 worktree / branch / PR** | 并行工作彼此隔离且可追踪 |
 | **未知远端默认拒绝** | 未分类远端不能被猜测为可信 |
@@ -74,7 +74,7 @@ bash scripts/bootstrap-project.sh \
 
 初始化会写入持久化仓库绑定、固定方法论 SHA、安装本地 tracked hook、登记 authority / projection 远端、创建 GitHub `origin`，并如实报告保护能力等级 **A / B / C**。
 
-**下一步 → [快速上手](./docs/GETTING_STARTED.zh-CN.md)**，查看保护能力选择、fresh clone 恢复、Command Center 建立、日常 Phase 流程，以及 projection 与 **同事 share-export** 的区别。
+**下一步 → [快速上手](./docs/GETTING_STARTED.zh-CN.md)**，查看保护能力选择、fresh clone 恢复、Command Center 建立、日常 Phase 流程，以及 projection 与 **同事 export / share-export** 的区别。
 
 **已有仓库**走 [adoption](./playbooks/adopt-existing-project.md)，不是上面这条 greenfield 命令。第一步必须改写本地 `AGENTS.md`：GitHub `origin` = 写权威。反置合同（GitLab / 非 GitHub Issues 宿主写成生产 SoT，GitHub 降为「仅镜像」）在 PIN 绑定完成前 fail closed。
 
@@ -94,7 +94,7 @@ your-project/
 ├── CLAUDE.md                     # 适配器 → AGENTS.md
 ├── .agent-project-ops/
 │   ├── PIN                       # 固定的方法论 repo/ref/SHA
-│   ├── remotes                   # 权威 / 投射 / share-export 登记
+│   ├── remotes                   # 权威 / 投射 / export / share-export 登记
 │   ├── PRINCIPLES.md
 │   ├── playbooks/
 │   └── scripts/
@@ -169,22 +169,26 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 - 保证所有第三方 Agent 都 100% 遵守仓库 instructions；
 - 把客户端 hook 当成安全边界；
 - 把 GitLab 或其他镜像当作第二事实源；
-- 把同事 GitLab 当成含 ops 绑定的全量 projection（应使用 [share-export](./playbooks/share-export.md)）；
+- 把同事 GitLab 当成含 ops 绑定的全量 projection（应使用 [export-remote](./playbooks/export-remote.md) 或 [share-export](./playbooks/share-export.md)）；
 - 把 PR 合并直接等同于项目验收；
 - 自动漂移到方法论最新版本。
 
 业务仓库会固定到真实方法论 SHA。Agent 提议，命名的 disposer 负责验收。
 
-## 同事 share-export
+## 同事 export / share-export
 
-同事 GitLab 是**过滤后的业务树**，不是把 GitHub（含 `agent-project-ops` 绑定）`git push --mirror`。GitHub `origin` 仍是唯一写权威并保留完整 ops。合同：[ADR 0003](./docs/adr/0003-share-export-vs-projection.md)。
+同事 GitLab 是**过滤后的业务树**，不是把 GitHub（含 `agent-project-ops` 绑定）`git push --mirror`。GitHub `origin` 仍是唯一写权威并保留完整 ops。**export 不是第二写权威。**
+
+- **export 远端**（`export=` / `export_url=`）：`export 树 = 权威 main − 剥离清单`；同步 = 基于当前 export tip 合并 + 重放剥离 + 快进；默认不在自动推送白名单。合同：[ADR 0005](./docs/adr/0005-export-remote-role.md)。手册：[export-remote](./playbooks/export-remote.md)。
+- **share-export 助手**：ADR 0003 快照发布（默认保留 `.github/workflows/`）。相关工具，不是第二写权威。
 
 ```bash
-bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --dry-run
+bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --dry-run
+bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --export-url git@gitlab.example:group/business.git --authorized --yes
 bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --push git@gitlab.example:group/business.git --yes
 ```
 
-若 denylist 路径仍会出现在待发布树中，助手会**拒绝推送**。手册：[share-export](./playbooks/share-export.md)。
+若剥离/denylist 路径仍会出现在待发布树中，助手会**拒绝推送**，并且永远不 `--force`。
 
 ## 许可证
 

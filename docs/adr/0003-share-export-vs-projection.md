@@ -92,5 +92,7 @@ Share-export destinations are **not** day-to-day git remotes on the business clo
 ## See also
 
 - [playbooks/share-export.md](../../playbooks/share-export.md)
+- [playbooks/export-remote.md](../../playbooks/export-remote.md)
 - [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md)
 - [skills/share-export/SKILL.md](../../skills/share-export/SKILL.md)
+- [ADR 0005](./0005-export-remote-role.md) — first-class `export=` remote role + default strip list (related helper, not a second write authority)

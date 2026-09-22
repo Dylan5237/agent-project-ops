@@ -105,7 +105,7 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### Optional projection vs colleague share-export
+### Optional projection vs colleague export / share-export
 
 A **projection** remote is a same-history fast-forward mirror of GitHub (full tree, including ops). Only add one when Command Center names that host as projection — **not** for colleague GitLab.
 
@@ -121,9 +121,15 @@ bash scripts/bootstrap-project.sh \
 
 That second remote never becomes a second source of truth.
 
-**Colleague GitLab** is a [share-export](../playbooks/share-export.md): a filtered business tree. Do not pass its URL as `--projection-url`. After GitHub `origin` exists:
+**Colleague GitLab** is an [export remote](../playbooks/export-remote.md) (`export=`; tree = authority − strip list) or a [share-export](../playbooks/share-export.md) snapshot. Do not pass its URL as `--projection-url`. It is **not** a second write authority. After GitHub `origin` exists:
 
 ```bash
+bash scripts/export-sync.sh \
+  --dir ../my-project \
+  --ref origin/main \
+  --export-url git@gitlab.example:group/my-project.git \
+  --authorized --yes
+# snapshot alternative (ADR 0003; keeps .github/workflows/ by default):
 bash scripts/share-export.sh \
   --dir ../my-project \
   --ref origin/main \
@@ -131,7 +137,7 @@ bash scripts/share-export.sh \
   --yes
 ```
 
-Contract: [ADR 0003](./adr/0003-share-export-vs-projection.md). The helper refuses to publish if denylist paths (bindings, hooks, Agent entry files) would be included. Default **keeps** `.github/workflows/` so pure business CI can travel with the export; Issue/PR templates and CODEOWNERS are stripped.
+Contracts: [ADR 0005](./adr/0005-export-remote-role.md) (export role + default strip list, including all of `.github/`) and [ADR 0003](./adr/0003-share-export-vs-projection.md) (snapshot helper). Helpers refuse to publish if strip/denylist paths would be included. Export sync is FF only and requires disposer `--authorized`.
 
 <p align="center">
   <img src="./assets/quick-start.en.svg" alt="agent-project-ops quick start" width="100%" />
@@ -167,7 +173,7 @@ Key files:
 
 - `AGENTS.md` — canonical project instructions for Agents;
 - `.agent-project-ops/PIN` — exact methodology repo/ref/SHA used by this project;
-- `.agent-project-ops/remotes` — explicit authority/projection/share-export registry;
+- `.agent-project-ops/remotes` — explicit authority/projection/export/share-export registry;
 - `.githooks/pre-push` — local guard that fails closed on unregistered remotes and forbidden pushes;
 - repo-specific adapter files — Claude, Cursor, Copilot, Continue, Aider, etc. converge toward the same durable rules.
 
@@ -230,7 +236,7 @@ This behavior is intentional and tested. The methodology fails closed rather tha
 
 ---
 
-## 7. Authority, projection, and share-export
+## 7. Authority, projection, and export
 
 Default recommendation: **use only `origin`**.
 
@@ -252,9 +258,10 @@ When the second host is **colleague GitLab**, it is **not** that diagram:
 ```text
 GitHub origin  (SoT + ops)
    │
-   │ scripts/share-export.sh (strip denylist)
+   │ export-sync.sh (merge + replay strip + FF)
+   │ or share-export.sh (ADR 0003 snapshot)
    ▼
-colleague GitLab  (business files only; not SoT; not the same SHAs)
+colleague GitLab export  (tree = authority − strip list; not SoT)
 ```
 
 Rules:
@@ -266,9 +273,9 @@ Rules:
 5. first projection seed must match the current authority tip;
 6. non-fast-forward projection updates are rejected;
 7. projection never becomes a second control plane;
-8. colleague GitLab uses [share-export](../playbooks/share-export.md), never `git push --mirror` of the bound clone.
+8. colleague GitLab uses [export-remote](../playbooks/export-remote.md) or [share-export](../playbooks/share-export.md), never `git push --mirror` of the bound clone.
 
-See [git-authority-and-projection](../playbooks/git-authority-and-projection.md) and [share-export](../playbooks/share-export.md).
+See [git-authority-and-projection](../playbooks/git-authority-and-projection.md), [export-remote](../playbooks/export-remote.md), and [share-export](../playbooks/share-export.md).
 
 ---
 
@@ -280,7 +287,7 @@ Follow [start-project](../playbooks/start-project.md) to create:
 
 - Command Center
 - disposer record
-- authority / projection / share-export record
+- authority / projection / export record
 - protection capability record
 - project labels
 - first Phase
@@ -334,7 +341,7 @@ A fresh compatible Agent entering the repository should be able to determine, fr
 - who the disposer is;
 - which remote is the authority;
 - whether any projection exists;
-- whether colleague GitLab is share-export rather than projection;
+- whether colleague GitLab is export / share-export rather than projection;
 - where the Command Center is;
 - which Phase is active;
 - whether direct `main` pushes are forbidden;
@@ -354,7 +361,7 @@ Existing repos are **adoption**, not greenfield bootstrap. Follow **[adopt-exist
 
 - GitHub `origin` = sole write authority;
 - projection optional (same-history FF);
-- colleague GitLab = share-export, **not** projection.
+- colleague GitLab = export / share-export, **not** projection and **not** a second write authority.
 
 **Inverted contract is an anti-pattern (must-fix):** GitLab, or any host that is not the GitHub Issues authority, written as the sole production / write SoT, with GitHub demoted to “mirror only”. If a release skill still consumes a projection default-branch tip, `AGENTS.md` must distinguish the **write authority tip** from the **deploy/manifest tip** and must not call the latter write SoT.
 
@@ -402,7 +409,8 @@ The model is simple:
 - [ADR 0004](./adr/0004-free-private-capability-c.md) — Free-private capability C is expected
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md) — bootstrap contract in detail
 - [adopt-existing-project playbook](../playbooks/adopt-existing-project.md) — existing repos: rewrite AGENTS.md first; inverted SoT fail-closes
-- [share-export playbook](../playbooks/share-export.md) — colleague GitLab = filtered business tree
+- [export-remote playbook](../playbooks/export-remote.md) — colleague GitLab = `authority − strip list`
+- [share-export playbook](../playbooks/share-export.md) — ADR 0003 snapshot helper
 - [start-project playbook](../playbooks/start-project.md) — establish the control plane
 - [phase-lifecycle](../playbooks/phase-lifecycle.md) — run a Phase end to end
 - [Agent skills](../skills/) — executable entrypoints for compatible Agents

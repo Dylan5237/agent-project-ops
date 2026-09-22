@@ -105,7 +105,7 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### 可选的 projection 与同事 share-export
+### 可选的 projection 与同事 export / share-export
 
 **projection** 远端是 GitHub 的**同历史**快进镜像（含完整 ops）。只有 Command Center 把该宿主登记为 projection 时才添加 —— **不要**把同事 GitLab 填到这里。
 
@@ -121,9 +121,15 @@ bash scripts/bootstrap-project.sh \
 
 第二远端永远不能成为第二事实源。
 
-**同事 GitLab** 是 [share-export](../playbooks/share-export.md)：过滤后的业务树。不要把它的 URL 当作 `--projection-url`。GitHub `origin` 建立之后：
+**同事 GitLab** 是 [export 远端](../playbooks/export-remote.md)（`export=`；树 = 权威 − 剥离清单）或 [share-export](../playbooks/share-export.md) 快照。不要把它的 URL 当作 `--projection-url`。它**不是**第二写权威。GitHub `origin` 建立之后：
 
 ```bash
+bash scripts/export-sync.sh \
+  --dir ../my-project \
+  --ref origin/main \
+  --export-url git@gitlab.example:group/my-project.git \
+  --authorized --yes
+# 快照备选（ADR 0003；默认保留 .github/workflows/）：
 bash scripts/share-export.sh \
   --dir ../my-project \
   --ref origin/main \
@@ -131,7 +137,7 @@ bash scripts/share-export.sh \
   --yes
 ```
 
-合同：[ADR 0003](./adr/0003-share-export-vs-projection.md)。若 denylist 路径（绑定、hook、Agent 入口）仍会出现在待发布树中，助手会拒绝推送。默认**保留** `.github/workflows/`，以便纯业务 CI 随导出走；Issue/PR 模板和 CODEOWNERS 会被去掉。
+合同：[ADR 0005](./adr/0005-export-remote-role.md)（export 角色 + 默认剥离清单，含全部 `.github/`）与 [ADR 0003](./adr/0003-share-export-vs-projection.md)（快照助手）。若剥离/denylist 路径仍会出现在待发布树中，助手会拒绝推送。export 同步只允许快进，且需要 disposer 的 `--authorized`。
 
 <p align="center">
   <img src="./assets/quick-start.zh-CN.svg" alt="agent-project-ops 快速上手" width="100%" />
@@ -167,7 +173,7 @@ your-project/
 
 - `AGENTS.md`：Agent 的统一项目指引；
 - `.agent-project-ops/PIN`：项目实际绑定的方法论 repo/ref/SHA；
-- `.agent-project-ops/remotes`：显式登记 authority / projection / share-export；
+- `.agent-project-ops/remotes`：显式登记 authority / projection / export / share-export；
 - `.githooks/pre-push`：本地 guard，会对未登记远端和禁止的 push fail closed；
 - 各类 Agent 适配文件：Claude、Cursor、Copilot、Continue、Aider 等都尽量收敛到同一套持久规则。
 
@@ -230,7 +236,7 @@ git config --get core.hooksPath
 
 ---
 
-## 7. Authority、projection 与 share-export
+## 7. Authority、projection 与 export
 
 默认推荐：**只使用 `origin`**。
 
@@ -252,9 +258,10 @@ accepted main
 ```text
 GitHub origin  （SoT + ops）
    │
-   │ scripts/share-export.sh（去掉 denylist）
+   │ export-sync.sh（合并 + 重放剥离 + 快进）
+   │ 或 share-export.sh（ADR 0003 快照）
    ▼
-同事 GitLab  （仅业务文件；不是 SoT；SHA 也不同）
+同事 GitLab export  （树 = 权威 − 剥离清单；不是 SoT）
 ```
 
 规则：
@@ -266,9 +273,9 @@ GitHub origin  （SoT + ops）
 5. 第一次 projection seed 也必须等于当前 authority tip；
 6. non-fast-forward projection update 会被拒绝；
 7. projection 不能变成第二控制面；
-8. 同事 GitLab 使用 [share-export](../playbooks/share-export.md)，禁止对绑定后的 clone 做 `git push --mirror`。
+8. 同事 GitLab 使用 [export-remote](../playbooks/export-remote.md) 或 [share-export](../playbooks/share-export.md)，禁止对绑定后的 clone 做 `git push --mirror`。
 
-详见 [git-authority-and-projection](../playbooks/git-authority-and-projection.md) 与 [share-export](../playbooks/share-export.md)。
+详见 [git-authority-and-projection](../playbooks/git-authority-and-projection.md)、[export-remote](../playbooks/export-remote.md) 与 [share-export](../playbooks/share-export.md)。
 
 ---
 
@@ -280,7 +287,7 @@ Bootstrap 负责建立持久化仓库绑定。下一步是建立项目运行状�
 
 - Command Center
 - disposer 记录
-- authority / projection / share-export 记录
+- authority / projection / export 记录
 - protection capability 记录
 - 项目 labels
 - 第一个 Phase
@@ -334,7 +341,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 - disposer 是谁；
 - 哪个 remote 是 authority；
 - 是否存在 projection；
-- 同事 GitLab 是否被分类为 share-export 而不是 projection；
+- 同事 GitLab 是否被分类为 export / share-export 而不是 projection；
 - Command Center 在哪里；
 - 当前活动 Phase 是哪个；
 - 是否禁止直接 push `main`；
@@ -354,7 +361,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 
 - GitHub `origin` = 唯一写权威；
 - 投影可选（同历史快进）；
-- 同事 GitLab = share-export，**不是** projection。
+- 同事 GitLab = export / share-export，**不是** projection，也**不是**第二写权威。
 
 **反置合同是反模式（必须修）：** 把 GitLab（或任何不是 GitHub Issues 权威的宿主）写成唯一生产 / 写权威，并把 GitHub 降为「仅镜像」。若 release 技能仍消费投影默认枝 tip，`AGENTS.md` 必须区分 **write authority tip** 与 **deploy/manifest tip**，不得把后者写成写权威 / 事实源。
 
@@ -402,7 +409,8 @@ and follow adoption — do not treat this chat as the binding.
 - [ADR 0004](./adr/0004-free-private-capability-c.md)：Free 私有仓 Capability C 属预期
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md)：初始化合同细节
 - [adopt-existing-project playbook](../playbooks/adopt-existing-project.md)：存量仓先改 AGENTS.md；反置 SoT fail closed
-- [share-export playbook](../playbooks/share-export.md)：同事 GitLab = 过滤后的业务树
+- [export-remote playbook](../playbooks/export-remote.md)：同事 GitLab = 权威 − 剥离清单
+- [share-export playbook](../playbooks/share-export.md)：ADR 0003 快照助手
 - [start-project playbook](../playbooks/start-project.md)：建立控制面
 - [phase-lifecycle](../playbooks/phase-lifecycle.md)：完整运行一个 Phase
 - [Agent skills](../skills/)：兼容 Agent 的执行入口

@@ -5,18 +5,21 @@ description: >
   GitLab). Use when sharing with colleagues, excluding agent-project-ops
   bindings, denylisting AGENTS.md / .githooks / .github templates, or when
   tempted to git push --mirror / project the full ops tree to GitLab.
-  Not a same-history projection remote. GitHub origin stays write authority.
+  Not a same-history projection remote. Related to the export= remote role
+  (ADR 0005 / export-sync.sh) but this skill is the ADR 0003 snapshot helper.
+  GitHub origin stays write authority.
 ---
 
 # Share-export (colleague GitLab)
 
 Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §5 (fail closed) and **§10** (one write authority).
 
-Colleague-share GitLab is **not** a projection. Load this skill instead of mirroring.
+Colleague-share GitLab is **not** a projection and not a second write authority. Load this skill for ADR 0003 **snapshot** publish. Load [export-remote](../export-remote/SKILL.md) when Command Center classifies `export=` and the copy must stay content-current (`authority − strip list`, merge + replay strip + FF).
 
 ## Playbooks
 
-- [playbooks/share-export.md](../../playbooks/share-export.md) — **required** before any colleague-share publish
+- [playbooks/share-export.md](../../playbooks/share-export.md) — **required** before any colleague-share snapshot publish
+- [playbooks/export-remote.md](../../playbooks/export-remote.md) — first-class `export=` role + `export-sync.sh`
 - [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) — only for a Command Center–named **same-history** projection remote
 - [playbooks/adopt-existing-project.md](../../playbooks/adopt-existing-project.md) — existing repos: rewrite inverted `AGENTS.md` (GitLab ≠ write SoT) before PIN
 - Contract: [docs/adr/0003-share-export-vs-projection.md](../../docs/adr/0003-share-export-vs-projection.md)
@@ -27,7 +30,7 @@ Colleague-share GitLab is **not** a projection. Load this skill instead of mirro
 | Item | Rule |
 | --- | --- |
 | Write authority | GitHub `origin` (full ops tree) |
-| Colleague GitLab | Share-export only. Not SoT. Not `projection=` |
+| Colleague GitLab | Export or share-export. Not SoT. Not `projection=` |
 | Working clone | Do not `git push` it to the share host |
 | Helper | Strip denylist or refuse. Never `--force` |
 | Reflux | No feature branches on GitLab back into GitHub |

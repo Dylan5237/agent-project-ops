@@ -6,7 +6,7 @@ description: >
   branches, or when tempted to commit on main. Also use when a second remote,
   projection/mirror, multi-remote setup, or authority-vs-projection tip
   reconciliation appears — then load git-authority-and-projection before any
-  non-origin push. Colleague-share GitLab is share-export, not a projection.
+  non-origin push. Colleague-share GitLab is export / share-export, not a projection.
 ---
 
 # Git worktree and branch
@@ -18,8 +18,10 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 - [playbooks/git-worktree.md](../../playbooks/git-worktree.md)
 - [playbooks/git-branch-and-remote.md](../../playbooks/git-branch-and-remote.md)
 - [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) — when a projection/second remote exists
-- [playbooks/share-export.md](../../playbooks/share-export.md) — colleague GitLab / filtered business tree
+- [playbooks/export-remote.md](../../playbooks/export-remote.md) — colleague export remote (`export=`)
+- [playbooks/share-export.md](../../playbooks/share-export.md) — colleague GitLab / filtered snapshot
 - Companion skill: [git-authority-and-projection](../git-authority-and-projection/SKILL.md)
+- Companion skill: [export-remote](../export-remote/SKILL.md)
 - Companion skill: [share-export](../share-export/SKILL.md)
 - Helper: [scripts/new-worktree.sh](../../scripts/new-worktree.sh) (optional)
 
@@ -28,7 +30,7 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 | Item | Rule |
 | --- | --- |
 | Worktree path | `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}` |
-| Remote | `origin` only for topic pushes; extra remotes are projection (same-history), not a second SoT; colleague GitLab is share-export |
+| Remote | `origin` only for topic pushes; extra remotes are projection (same-history) or export (`authority − strip`), never a second SoT |
 | Branch | `feat\|fix\|docs\|evidence/{issue}-{slug}` |
 | Base | current **authority tip** (usually `origin/main`) |
 | `main` | never push; never use as a long-lived task checkout |
@@ -36,7 +38,7 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 
 ## Agent checklist
 
-1. `git remote -v` → expect `origin` for this workflow. If a **projection** (or any non-origin) remote is configured, follow [git-authority-and-projection](../git-authority-and-projection/SKILL.md) and its playbook **before any non-origin push**. If that host is colleague share, follow [share-export](../share-export/SKILL.md) instead of projecting.
+1. `git remote -v` → expect `origin` for this workflow. If a **projection** (or any non-origin) remote is configured, follow [git-authority-and-projection](../git-authority-and-projection/SKILL.md) and its playbook **before any non-origin push**. If that host is colleague share, follow [export-remote](../export-remote/SKILL.md) or [share-export](../share-export/SKILL.md) instead of projecting.
 2. Implementation requires Phase **Freeze ACK**. Else stop.
 3. Add worktree from the **current authority tip** (usually `origin/main`, or the Command Center–named transitional branch), not from a dirty unrelated branch. Keep the primary checkout clean for sync.
 4. Comment path + branch on the Issue.
