@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | B1 | should trigger | dirty tips / “清干净” → enter skill; topology first |
 | B2 | should not trigger | pure typo / “整理周报” → do not enter |
-| B3 | adjacent | docs/memory closeout only → hand off to neat-freak |
+| B3 | adjacent | docs/memory closeout only → if fleet has neat-freak (or equiv), hand off; else mark out-of-scope |
 | B4 | T1 | no projection steps |
 | B5 | E-DIVERGE | stop; both logs; ask A/B/C; no silent reset |
 | B6 | confirm gate | no post-report confirm → no deletes |

@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """Classify REF vs TIP using git rev-list --left-right --count.
 
-Exit 0 always when git works; prints one line:
-  KIND ahead=<n> behind=<n> tip=<sha> ref=<sha>
-
 KIND in {SAME, ANCESTOR, AHEAD, DIVERGED}.
 Does not decide delete/keep — that remains a disposer/AI decision.
 """
@@ -14,11 +11,34 @@ import subprocess
 import sys
 
 
+def kind_from_counts(ahead: int, behind: int) -> str:
+    """Map ahead/behind counts to KIND. Pure; unit-tested."""
+    if ahead == 0 and behind == 0:
+        return "SAME"
+    if ahead == 0 and behind > 0:
+        return "ANCESTOR"
+    if ahead > 0 and behind == 0:
+        return "AHEAD"
+    return "DIVERGED"
+
+
 def run(cmd: list[str]) -> str:
     p = subprocess.run(cmd, capture_output=True, text=True)
     if p.returncode != 0:
         raise RuntimeError(p.stderr.strip() or p.stdout.strip() or f"fail: {cmd}")
     return p.stdout.strip()
+
+
+def classify(cwd: str, tip: str, ref: str) -> str:
+    tip_sha = run(["git", "-C", cwd, "rev-parse", tip])
+    ref_sha = run(["git", "-C", cwd, "rev-parse", ref])
+    counts = run(
+        ["git", "-C", cwd, "rev-list", "--left-right", "--count", f"{tip_sha}...{ref_sha}"]
+    )
+    left_s, right_s = counts.split()
+    behind, ahead = int(left_s), int(right_s)
+    kind = kind_from_counts(ahead, behind)
+    return f"KIND={kind} ahead={ahead} behind={behind} tip={tip_sha[:12]} ref={ref_sha[:12]}"
 
 
 def main() -> int:
@@ -27,23 +47,7 @@ def main() -> int:
     ap.add_argument("--ref", required=True, help="Branch/worktree/commit to classify")
     ap.add_argument("--cwd", default=".", help="Git repo working directory")
     args = ap.parse_args()
-    tip_sha = run(["git", "-C", args.cwd, "rev-parse", args.tip])
-    ref_sha = run(["git", "-C", args.cwd, "rev-parse", args.ref])
-    counts = run(
-        ["git", "-C", args.cwd, "rev-list", "--left-right", "--count", f"{tip_sha}...{ref_sha}"]
-    )
-    # left = tip-only (= behind from ref's view), right = ref-only (= ahead)
-    left_s, right_s = counts.split()
-    behind, ahead = int(left_s), int(right_s)
-    if ahead == 0 and behind == 0:
-        kind = "SAME"
-    elif ahead == 0 and behind > 0:
-        kind = "ANCESTOR"
-    elif ahead > 0 and behind == 0:
-        kind = "AHEAD"
-    else:
-        kind = "DIVERGED"
-    print(f"KIND={kind} ahead={ahead} behind={behind} tip={tip_sha[:12]} ref={ref_sha[:12]}")
+    print(classify(args.cwd, args.tip, args.ref))
     return 0
 
 

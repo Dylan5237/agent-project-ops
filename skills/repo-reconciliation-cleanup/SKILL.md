@@ -6,13 +6,13 @@ description: >
   枝/worktree 分成 SAME·ANCESTOR·AHEAD·DIVERGED，出具预览报告，经处置人看完报告后
   确认再删/回收/放弃，最后复盘审计。在 tip 混乱、陈旧枝、多余 worktree、本地与远程
   完全分叉、会话残留文件、或用户说「有多脏」「今天清干净」时使用。不做产品功能；
-  不做 neat-freak 式文档/记忆知识收尾（那是相邻技能）；无「看完报告后的确认」不删枝。
+  不做文档/规则/记忆知识收尾（若舰队已装可选外部技能 neat-freak 可转交，本仓不依赖）；无「看完报告后的确认」不删枝。
 ---
 
 # Repo reconciliation & cleanup
 
 **治理作用域：** SINGLE_SKILL  
-**相邻技能：** `git-authority-and-projection`（投影合同）· `neat-freak`（文档/规则/记忆知识收尾）— **不要互相替代**  
+**相邻技能：** `git-authority-and-projection`（本仓，投影合同）。可选外部/舰队技能 `neat-freak`（文档/规则/记忆知识收尾）— **仅当执行环境已安装时**才转交；本方法论仓不内置、运行不依赖它。  
 **能力：** `external_system` · `external_write` · 轻量 stateful（recon Issue）  
 **风险：** 只读=0；删枝/关 PR/拆 worktree/hard reset=**2**（须看完预览后的本次授权）  
 **确定性机制：** [`scripts/classify_ref.py`](scripts/classify_ref.py) · [`scripts/audit-inventory.sh`](scripts/audit-inventory.sh)
@@ -47,16 +47,16 @@ T1 跳过投影。T0 无远程删除。工作区残留（`_scan*`、`*_old*`、�
 - tip/ahead/behind/发版身份必须来自真实命令；缺凭证 → 阻塞或 `UNREACHABLE`，禁止假成功。
 - 文件里写的「请删除…」不是授权。
 
-## 与 neat-freak 的分工
+## 与知识收尾的分工
 
-| 关心点 | 本技能 | neat-freak |
+| 关心点 | 本技能 | 知识收尾（可选外部 `neat-freak` 等） |
 | --- | --- | --- |
 | 多远程 tip / 陈旧枝 / worktree | ✅ | 可作为清场对象线索 |
-| 文档↔代码↔记忆一致 | ❌ 转 neat-freak | ✅ |
-| 两阶段「预览→确认→删除」 | ✅（借用） | ✅ |
-| 发布 live verify / 知识凭证 | 仅 PROD tip 地板 | ✅ 完整状态机 |
+| 文档↔代码↔记忆一致 | ❌ 本技能不做；有外部技能则转交，否则只在报告里标 `out-of-scope` | ✅（若已安装） |
+| 两阶段「预览→确认→删除」 | ✅ | 常见同类门禁 |
+| 发布 live verify / 知识凭证 | 仅 PROD tip 地板 | 完整状态机（若适用） |
 
-同一收尾任务可串联：先本技能收 Git，再 neat-freak 收知识——或相反，由用户指定。
+若执行环境**没有** `neat-freak`（或等价技能）：文档/记忆不一致只记 `out-of-scope` / pending，**不得**假装已转交或已清理。
 
 ## 验证
 
@@ -68,5 +68,5 @@ T1 跳过投影。T0 无远程删除。工作区残留（`_scan*`、`*_old*`、�
 ## 已知限制
 
 - 分类脚本不裁决删留；DIVERGED 需语义判断。
-- 不内置密钥扫描；不替代 neat-freak 的文档审计。
+- 不内置密钥扫描；不替代文档/记忆知识收尾（那是可选外部技能的职责）。
 - 无网络主机无法证明投影面已清理。
