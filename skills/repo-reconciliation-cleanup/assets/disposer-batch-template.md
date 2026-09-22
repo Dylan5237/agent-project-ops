@@ -1,22 +1,27 @@
-# Disposer batch (fill before any delete)
+# Disposer batch (fill; Phase-A report first)
 
 - Topology ID:
+- Path: light / full
 - Authority tip:
 - PROD floor (or UNKNOWN):
 - Protect list:
+- Phase-A report posted: yes/no
+- Post-report confirmation quote (required before deletes):
 
-## Low-risk (ANCESTOR) — delete after auth
-- 
+## Low-risk ANCESTOR — delete after confirmation
+-
 
-## Reclaim (DIVERGED useful) — PR then delete
-- 
+## Reclaim DIVERGED — PR then delete
+-
 
-## Abandon (DIVERGED noise) — salvage note + delete
-- 
+## Abandon DIVERGED — salvage + delete
+-
 
-## Hold
-- 
+## Workspace residue candidates (files) — delete after confirmation
+-
 
-## E-DIVERGE path (if any): A / B / C
-- Evidence logs attached: yes/no
-- Explicit auth quote:
+## Hold / out-of-scope
+-
+
+## E-DIVERGE path: A / B / C / none
+- Both-side logs attached: yes/no

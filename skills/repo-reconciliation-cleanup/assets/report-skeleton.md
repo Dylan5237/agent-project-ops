@@ -1,30 +1,39 @@
-# Reconciliation report skeleton
+# Report skeleton (two-phase)
 
-## Topology + pins
-## Now (diagram)
-## Before → after
-## Disposition table (reclaimed / deleted / held / blocked / unreachable)
-## Backlog Issues still open
-## Residual debt
+## Phase A — before destructive cleanup
 
-T1:
+```text
+## 对账清理预览（未删）
 
-```mermaid
-flowchart LR
-  GH[authority main]
-  LOC[local main]
-  GH --- LOC
+**拓扑 / SoT**：T? · authority=`…` · PROD=`…|UNKNOWN`
+
+**事实面状态**
+- authority tip: …
+- projection: … | not-applicable
+- local/worktrees: …
+- open PRs: …
+- backlog Issues: …
+- residue: …
+
+**分类摘要**：ANCESTOR n · AHEAD n · DIVERGED n · SAME n
+
+**待你确认后才删**
+- … (name + KIND + reason)
+
+**无法裁决 / Hold**
+- …
+
+**遗留**：pending / UNREACHABLE / dual-tip debt；没有写「无」
 ```
 
-T2:
+## Phase B — after confirmed cleanup
 
-```mermaid
-flowchart LR
-  GH[authority main]
-  LOC[local main]
-  GLD[projection develop]
-  GLM[projection main merge tip]
-  GH --- LOC
-  GH --- GLD
-  GH -.-> GLM
+```text
+## 清场结果
+
+**成功删除**：…
+**拦截**（护栏/非 ANCESTOR）：…
+**失败**：…
+**复盘审计**：inventory 重跑结论
+**残留 warning**：…
 ```

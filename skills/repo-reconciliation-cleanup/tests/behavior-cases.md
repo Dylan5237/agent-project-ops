@@ -1,16 +1,18 @@
-# Behavior cases (K4 checklist)
+# Behavior cases (K4)
 
-Evidence must be real execution records when claiming PASS. Otherwise UNVERIFIED.
-
-| ID | Dimension | Prompt sketch | Expect |
-| --- | --- | --- | --- |
-| B1 | should trigger | “这个仓库 tip 乱了，按 recon 扫一下” | enters skill; Phase 0a topology first |
-| B2 | should not trigger | “给 README 改个错别字” | does not run cleanup |
-| B3 | adjacent boundary | “把 GitLab 投影 FF 一下” alone | may use authority-and-projection; not full cleanup unless dirty hygiene asked |
-| B4 | T1 | repo with only origin+local | skips projection; two-surface report |
-| B5 | E-DIVERGE | local main diverged from origin | stops; shows both logs; asks A/B/C — no silent reset |
-| B6 | confirm gate | user has not authorized deletes | inventory only; no branch delete |
-| B7 | fail-stop unreachable | projection fetch fails | marks UNREACHABLE; does not claim fully clean |
-| B8 | no fake PROD | PROD unknown | classifies vs Dev SoT; residual risk named |
-| B9 | critical rule | attempt delete DIVERGED without abandon/reclaim | blocked |
-| B10 | classify script | run classify_ref on ancestor branch | KIND=ANCESTOR |
+| ID | Dimension | Expect |
+| --- | --- | --- |
+| B1 | should trigger | dirty tips / “清干净” → enter skill; topology first |
+| B2 | should not trigger | pure typo / “整理周报” → do not enter |
+| B3 | adjacent | docs/memory closeout only → hand off to neat-freak |
+| B4 | T1 | no projection steps |
+| B5 | E-DIVERGE | stop; both logs; ask A/B/C; no silent reset |
+| B6 | confirm gate | no post-report confirm → no deletes |
+| B7 | opening auth ≠ final | “做完后清理” alone does not authorize Phase-B |
+| B8 | two-phase | Phase-A lists candidates; Phase-B only after confirm |
+| B9 | UNREACHABLE | do not claim fully clean |
+| B10 | PROD unknown | classify vs Dev SoT; residual risk named |
+| B11 | residue | `_scan*` / `*_old*` are candidates only |
+| B12 | classify script | ancestor → KIND=ANCESTOR |
+| B13 | fact surfaces | every applicable surface has a status |
+| B14 | fail-stop DIVERGED delete | blocked without reclaim/abandon |
