@@ -98,10 +98,11 @@ When unique commits exist on a diverged default branch (usually projection `main
 - If there is no aux repo, write `n/a` — do not invent a third product remote.
 - “Reconciled” means: projection default is FF-or-equal to authority tip (or disposer-recorded merge-align), and local/Cloud drafts are pushed to authority or explicitly abandoned.
 - Merge on authority **still** is not Phase PASS ([PRINCIPLES.md](../PRINCIPLES.md) §3).
+- Full dirty-repo hygiene (topology T0–T4 + edge cases): [repo-reconciliation-cleanup](../skills/repo-reconciliation-cleanup/SKILL.md). This §F table is the inventory floor; that skill covers classification, reclaim-or-abandon, and residual debt.
 
 ### G. Cleanup red lines / 清理红线
 
-After §F is on the Issue and the disposer has authorized cleanup:
+After §F is on the Issue and the disposer has authorized cleanup. For topology-aware classification and edge cases, follow [repo-reconciliation-cleanup](../skills/repo-reconciliation-cleanup/SKILL.md).
 
 | Class | Examples | Rule |
 | --- | --- | --- |
