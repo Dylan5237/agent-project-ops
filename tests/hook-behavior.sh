@@ -90,6 +90,20 @@ git add .agent-project-ops/remotes
 git commit -qam 'classify gitlab as share_export'
 expect_deny 'topic -> share_export remote' git push gitlab HEAD:refs/heads/feat/share-export-test
 expect_deny 'main -> share_export remote' git push gitlab "${base_tip}":refs/heads/main
+
+# 5c. A remote classified as export= is never on the auto-push whitelist.
+git checkout -q -b feat/export-test "${base_tip}"
+printf 'export-topic\n' >> tracked.txt
+git commit -qam export-topic
+cat > .agent-project-ops/remotes <<'EOF'
+authority=origin
+projection=projection,projection-bad
+export=gitlab
+EOF
+git add .agent-project-ops/remotes
+git commit -qam 'classify gitlab as export'
+expect_deny 'topic -> export remote' git push gitlab HEAD:refs/heads/feat/export-test
+expect_deny 'main -> export remote' git push gitlab "${base_tip}":refs/heads/main
 git checkout -q main
 git reset -q --hard "${base_tip}"
 

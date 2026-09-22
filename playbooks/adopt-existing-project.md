@@ -11,10 +11,10 @@ Greenfield creation is [bootstrap-project.md](./bootstrap-project.md). This play
 | Role | Correct | **Anti-pattern (inverted contract)** |
 | --- | --- | --- |
 | Write authority | **GitHub `origin`** (Issues / PRs / landing) | GitLab, Gitee, Bitbucket, or any host that is **not** the GitHub Issues authority, written as the sole production / write SoT |
-| Second remote | Optional **projection** (same-history FF, includes ops) **or** **share-export** (colleague filtered tree) | GitHub demoted to “mirror only”; colleague GitLab registered as `projection` or used as a second write target |
+| Second remote | Optional **projection** (same-history FF, includes ops) **or** **export** (`authority − strip list`) / **share-export** snapshot | GitHub demoted to “mirror only”; colleague GitLab registered as `projection` or used as a second write target |
 | Local / Cloud | Draft | Third SoT |
 
-Share-export ≠ projection. Colleague GitLab is [share-export.md](./share-export.md) / [ADR 0003](../docs/adr/0003-share-export-vs-projection.md). Do **not** register a colleague share-export GitLab as projection during adoption.
+Export / share-export ≠ projection. Colleague GitLab is [export-remote.md](./export-remote.md) (`export=`) or [share-export.md](./share-export.md) / [ADR 0003](../docs/adr/0003-share-export-vs-projection.md). Do **not** register a colleague GitLab as projection during adoption. It is not a second write authority.
 
 ## When
 
@@ -54,7 +54,7 @@ Share-export ≠ projection. Colleague GitLab is [share-export.md](./share-expor
 
    - `origin` (GitHub) is the only write authority.
    - Projection is optional, same-history FF only, and is **not** colleague GitLab.
-   - Colleague GitLab is share-export, never `git push --mirror` from the bound clone.
+   - Colleague GitLab is export / share-export, never `git push --mirror` from the bound clone.
 3. If a release skill still consumes a projection (or other non-authority) default-branch tip, the same `AGENTS.md` **must** distinguish:
 
    | Tip | Use | Forbidden wording |
@@ -72,7 +72,7 @@ Share-export ≠ projection. Colleague GitLab is [share-export.md](./share-expor
 Only after step 1 is clean:
 
 1. Vendor or copy the methodology snapshot the same way bootstrap does (`.agent-project-ops/` with a **real** SHA in `PIN`, playbooks, skills, hook installer, remotes registry). Do not write `sha=unknown`.
-2. `.agent-project-ops/remotes` names `authority=origin`. Projection is `(none)` unless Command Center will classify a same-history host. `share_export=(none)` unless Command Center later names a colleague export (still not a push remote on this clone).
+2. `.agent-project-ops/remotes` names `authority=origin`. Projection is `(none)` unless Command Center will classify a same-history host. `export=(none)` / `share_export=(none)` unless Command Center later names a colleague export (bound-clone push still denied; sync needs disposer authorization).
 3. Install tracked hooks: `bash .agent-project-ops/scripts/install-hooks.sh`. A clone does not inherit `core.hooksPath`.
 4. Run the inverted-SoT scan again on the business root. Pinned `.agent-project-ops/` docs are skipped (they may describe the anti-pattern). Root rule files must stay clean.
 
@@ -85,7 +85,7 @@ Do not claim adoption complete because the PIN file exists while `AGENTS.md` sti
 ## Done when
 
 - [ ] Step 1 scanner exits `0` on the business repo rule files.
-- [ ] Root `AGENTS.md` matches the template contract: GitHub `origin` = write authority; projection optional; share-export ≠ projection.
+- [ ] Root `AGENTS.md` matches the template contract: GitHub `origin` = write authority; projection optional; export / share-export ≠ projection and ≠ a second SoT.
 - [ ] Inverted contract is absent (no “GitLab = production SoT / GitHub = mirror only”).
 - [ ] If deploys still read a projection tip, `AGENTS.md` names **write authority tip** vs **deploy/manifest tip** and does not call the latter write SoT.
 - [ ] Colleague share-export GitLab is **not** registered as projection.

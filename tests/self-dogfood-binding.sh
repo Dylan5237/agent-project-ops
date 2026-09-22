@@ -43,6 +43,7 @@ pass 'supported adapters converge on one binding'
 
 [[ "$(sed -n 's/^authority=//p' "${root}/.agent-project-ops/remotes")" == 'origin' ]] || fail 'self remote authority is not origin'
 [[ "$(sed -n 's/^projection=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self projection is not none'
+[[ "$(sed -n 's/^export=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self export is not none'
 [[ "$(sed -n 's/^share_export=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self share_export is not none'
 pass 'self remote registry is explicit'
 

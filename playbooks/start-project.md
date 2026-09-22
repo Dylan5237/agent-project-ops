@@ -14,7 +14,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 
 - You can create Issues and labels on the business repo.
 - GitHub is the write authority (`origin`).
-- `PRINCIPLES.md` v0.1.1 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
+- `PRINCIPLES.md` v0.1.2 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
 - If the repo was bootstrapped, `.agent-project-ops/PIN` contains a real methodology SHA and `.agent-project-ops/remotes` is the remote registry.
 
 ## Steps
@@ -25,7 +25,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/unverifiable. Never call B an independent-human-review gate. On GitHub Free private, C is expected: record C and continue (hooks + PR discipline). Do not claim B/A. Do not treat C as a stop-all-work gate. See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill **section 1** (one-glance), disposer, PIN, default branch, protection capability, Agent roster, and Freeze/Accept policy.
 6. **Register to Fleet REGISTRY** (mandatory). Upsert `owner/repo` + Command Center `#N` into `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../fleet/REGISTRY.md) via PR; confirm box mirror `/home/box/agent-data/fleet-morning-digest/REGISTRY.md`; tell the disposer **「已纳入舰队晨报扫描」**. Fail closed if skipped. [ADR 0002](../docs/adr/0002-canonical-fleet-index.md).
-7. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a **projection** is required, it remains same-history mirror/FF only and `git-authority-and-projection` applies before any non-origin push. If colleagues need a GitLab copy, that is [share-export](./share-export.md), not a projection remote. Unknown remotes → Blocked.
+7. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a **projection** is required, it remains same-history mirror/FF only and `git-authority-and-projection` applies before any non-origin push. If colleagues need a GitLab copy, that is [export-remote](./export-remote.md) (`export=`) or [share-export](./share-export.md), not a projection and not a second write authority. Unknown remotes → Blocked.
 8. **Open Phase-0/Phase-1.** One core problem only. Use the Phase template with backlog status.
 9. **Do not implement yet.** Run Freeze on that Phase before any `feat/` / `fix/` branch.
 
@@ -36,7 +36,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - [ ] Status labels exist.
 - [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
 - [ ] Command Center records protection capability A/B/C honestly; capability C (expected on GitHub Free private) is recorded and work continues. Never claim B/A when only C was verified.
-- [ ] Command Center records authority/projection/share-export and matches `.agent-project-ops/remotes` when present.
+- [ ] Command Center records authority/projection/export (and share-export alias) and matches `.agent-project-ops/remotes` when present.
 - [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
 - [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
 
@@ -51,5 +51,6 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - Pushing “just this once” to `main`.
 - Adding a second write authority or using projection as a fallback.
 - Registering colleague GitLab as projection so the bound clone can be mirrored.
+- Treating an `export=` remote as a second write authority, or syncing it without disposer authorization.
 - Embedding business SOP into this methodology repository.
 - Starting this playbook while `AGENTS.md` still names GitLab (or another non-GitHub Issues host) as production/write SoT.

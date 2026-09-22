@@ -21,7 +21,7 @@ Updated: YYYY-MM-DD. Chat ≠ State.
 
 ## 目的 / Purpose
 
-Canonical **control plane** for this business repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.1).
+Canonical **control plane** for this business repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.2).
 
 ## Methodology binding
 
@@ -56,7 +56,8 @@ Canonical **control plane** for this business repository. Chat is not state. Met
 - Default branch: `main`
 - Authority remote: `origin`
 - Projection remote(s): `(none)` or names — **same-history** FF mirror only
-- Colleague-share GitLab: **share-export** (not a projection; not a push remote on this clone). Use `scripts/share-export.sh`.
+- Export remote(s): `(none)` or names — **export** = `authority − strip list`; not a second write authority; not on the auto-push whitelist
+- Colleague-share GitLab: **export** (`scripts/export-sync.sh`) or **share-export** snapshot (`scripts/share-export.sh`). Not a projection; bound-clone push denied.
 - `.agent-project-ops/remotes` matches the lines above: yes / no / n/a
 - Unknown extra remotes: **BLOCKED until classified**
 - Branch names: `feat|fix|docs|evidence/{issue}-{slug}`
@@ -99,6 +100,6 @@ If Agent and disposer use the same GitHub identity, GitHub cannot distinguish hu
 - Binding path: root `AGENTS.md` → pinned `.agent-project-ops/PRINCIPLES.md`
 - Relevant project skills: `.agents/skills/*/SKILL.md`
 - Projection operations require `git-authority-and-projection` before non-origin push.
-- Colleague GitLab requires `share-export` (ADR 0003); never full-tree mirror of ops bindings.
+- Colleague GitLab requires `export-remote` (ADR 0005) or `share-export` (ADR 0003); never full-tree mirror of ops bindings; never a second write authority.
 - Fleet index SoT: `Dylan5237/agent-project-ops` `fleet/REGISTRY.md` (box path is a mirror).
 - After this issue exists, **Register to Fleet REGISTRY** once: upsert `owner/repo` + this Command Center number and confirm the box mirror. Fail closed if skipped. Do not repeat on later §1 rewrites.

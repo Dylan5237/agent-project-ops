@@ -7,7 +7,7 @@ This repository is governed by the pinned `agent-project-ops` snapshot under `.a
 - Disposer: `{{DISPOSER}}`
 - Write authority remote: `origin`
 - Projection remote: `{{PROJECTION_REMOTE}}` (same-history FF only; not colleague GitLab)
-- Colleague GitLab: share-export via `.agent-project-ops/scripts/share-export.sh` — never `git push --mirror` from this clone
+- Colleague GitLab: `export=` remote or share-export snapshot via `.agent-project-ops/scripts/export-sync.sh` / `share-export.sh` — never `git push --mirror` from this clone; not a second write authority
 
 ## Always load first
 
@@ -17,9 +17,9 @@ Core rules:
 
 1. Chat is not project state. Durable decisions/status belong on GitHub Issues/PRs/git objects.
 2. Agent proposes; the named disposer freezes/Accepts/exceptions. PR merge is not Phase PASS.
-3. `origin` (GitHub) is the only write authority. Projection remotes are same-history mirror/FF only. Colleague GitLab is share-export (filtered business tree), not a projection.
+3. `origin` (GitHub) is the only write authority. Projection remotes are same-history mirror/FF only. Colleague GitLab is export (`authority − strip list`) or share-export, not a projection and not a second SoT.
 4. Unknown remotes fail closed. `.agent-project-ops/remotes` is the clone-portable registry.
-5. Topic branches push to `origin` only. Never use a projection as a fallback when `origin` is unavailable. Never push this bound clone to colleague GitLab.
+5. Topic branches push to `origin` only. Never use a projection as a fallback when `origin` is unavailable. Never push this bound clone to colleague GitLab (export remotes are not on the auto-push whitelist).
 6. One task, one worktree under `.worktrees/`; keep the primary checkout clean for sync/control work.
 7. Do not copy business/domain SOP back into the methodology snapshot or upstream methodology repository.
 
@@ -48,5 +48,5 @@ A missing client hook is **not** permission to push `main`. The hook is bypassab
 - No Command Center / first project setup: `.agent-project-ops/playbooks/start-project.md`
 - New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook.
 - Multiple remotes / same-history mirror / divergence: load `git-authority-and-projection` before any non-`origin` push.
-- Colleague GitLab / business-files-only share: load `share-export`; do not register that host as projection.
+- Colleague GitLab / business-files-only share: load `export-remote` or `share-export`; do not register that host as projection.
 - Cannot verify an invariant or remote state: fail closed and record `BLOCKED:` on the active Issue.

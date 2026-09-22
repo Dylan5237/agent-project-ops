@@ -86,7 +86,7 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 
 - [ ] Generated project is a git repository with a real methodology SHA in `.agent-project-ops/PIN`.
 - [ ] Binding files and project skill wrappers exist.
-- [ ] `.agent-project-ops/remotes` names `origin` as authority, only requested projection remotes, and `share_export=(none)` unless Command Center later records a share-export name (still not a push remote on this clone).
+- [ ] `.agent-project-ops/remotes` names `origin` as authority, only requested projection remotes, and `export=(none)` / `share_export=(none)` unless Command Center later records an export name (bound-clone push still denied).
 - [ ] `core.hooksPath=.githooks` in the bootstrap checkout.
 - [ ] Fresh-clone instructions explicitly reinstall the hook configuration before first push.
 - [ ] `.worktrees/` exists locally and is ignored.

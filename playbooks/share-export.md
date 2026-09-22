@@ -4,7 +4,9 @@
 
 Publish a **filtered business tree** for colleagues (typically GitLab) without copying `agent-project-ops` bindings. GitHub `origin` stays the only write authority and keeps the full ops tree.
 
-This is **not** [projection](./git-authority-and-projection.md). Projection is an optional **same-history** fast-forward mirror. Colleague GitLab uses this playbook.
+This is **not** [projection](./git-authority-and-projection.md). Projection is an optional **same-history** fast-forward mirror.
+
+A first-class **export** remote that must stay content-current with authority uses [export-remote.md](./export-remote.md) / `export=` / [`scripts/export-sync.sh`](../scripts/export-sync.sh) ([ADR 0005](../docs/adr/0005-export-remote-role.md)). This playbook is the ADR 0003 **snapshot** helper: new filtered history, default denylist **keeps** `.github/workflows/`. Both helpers refuse to invent a second write authority.
 
 ## When
 
@@ -25,11 +27,12 @@ This is **not** [projection](./git-authority-and-projection.md). Projection is a
 | --- | --- |
 | **Authority** | GitHub `origin`. Full history + full ops binding. Issues/PRs live here. |
 | **Projection** | Optional second remote: **same commits**, FF from authority. Includes ops. Not colleague share. |
-| **Share-export** | New/updated **filtered** tree: denylist stripped. History on GitLab is export snapshots, not GitHub SHAs. |
+| **Export remote** | `export=` role ([export-remote.md](./export-remote.md)): tree = authority − #46 strip list (includes all of `.github/`). Related-history merge + replay strip + FF. |
+| **Share-export** | This helper: new/updated **filtered** snapshot. Denylist stripped. History on GitLab is export snapshots, not GitHub SHAs. |
 
 ## Steps
 
-1. **Classify.** If the host is colleague share → share-export. If Command Center names a same-history mirror → projection playbook. Unknown extra remotes → `status:blocked` ([git-authority-and-projection.md](./git-authority-and-projection.md) §A). Do **not** register colleague GitLab as `projection=`.
+1. **Classify.** If the host must stay content-current with `authority − strip list` → [export-remote.md](./export-remote.md) (`export=`). If the host is a snapshot publish → this playbook. If Command Center names a same-history mirror → projection playbook. Unknown extra remotes → `status:blocked`. Do **not** register colleague GitLab as `projection=`.
 2. **Do not add** the share URL as a push remote on the bound working clone. The client hook denies unregistered remotes; a registered `share_export=` name is denied for every push from that clone.
 3. **Plan:**
 

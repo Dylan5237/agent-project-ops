@@ -42,7 +42,7 @@ The core rules are intentionally small:
 
 | Rule | Meaning |
 | --- | --- |
-| **GitHub `origin` = authority** | One write authority; optional projection is same-history FF only; colleague GitLab is share-export, not a projection |
+| **GitHub `origin` = authority** | One write authority; optional projection is same-history FF only; colleague GitLab is export (`authority − strip`) or share-export, not a projection |
 | **Chat ≠ state** | Project facts belong in the repo, Issues, PRs, CI, and evidence |
 | **One task = one worktree / branch / PR** | Parallel work stays isolated and traceable |
 | **Unknown remotes fail closed** | Unclassified remotes are rejected by default |
@@ -74,7 +74,7 @@ bash scripts/bootstrap-project.sh \
 
 Bootstrap creates durable repo bindings, pins the methodology SHA, installs the tracked local hook, registers authority/projection remotes, creates GitHub `origin`, and reports protection capability **A / B / C**.
 
-**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague share-export**.
+**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague export / share-export**.
 
 **Existing repositories** are [adoption](./playbooks/adopt-existing-project.md), not this greenfield command. Step 1 is a must-fix rewrite of local `AGENTS.md` to GitHub `origin` = write authority. The inverted contract (GitLab / non-GitHub Issues host as production SoT; GitHub as “mirror only”) fail-closes before PIN binding is complete.
 
@@ -94,7 +94,7 @@ your-project/
 ├── CLAUDE.md                     # adapter → AGENTS.md
 ├── .agent-project-ops/
 │   ├── PIN                       # pinned methodology repo/ref/SHA
-│   ├── remotes                   # authority / projection / share-export registry
+│   ├── remotes                   # authority / projection / export / share-export registry
 │   ├── PRINCIPLES.md
 │   ├── playbooks/
 │   └── scripts/
@@ -171,6 +171,7 @@ Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/ph
 | Repo reconciliation & cleanup | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
 | Issues, PRs, and evidence | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
 | Bootstrap project | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) — greenfield only; existing repos → [adopt-existing-project](./playbooks/adopt-existing-project.md) |
+| Export remote | [skills/export-remote/SKILL.md](./skills/export-remote/SKILL.md) |
 | Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
 
 ## Design boundaries
@@ -181,22 +182,26 @@ This project deliberately does **not** claim:
 - universal Agent compliance with repository instructions;
 - client hooks as a security boundary;
 - GitLab or another mirror as a second source of truth;
-- colleague GitLab as a full-tree projection of ops bindings (use [share-export](./playbooks/share-export.md));
+- colleague GitLab as a full-tree projection of ops bindings (use [export-remote](./playbooks/export-remote.md) or [share-export](./playbooks/share-export.md));
 - PR merge as project acceptance;
 - silent upgrades to the latest methodology revision.
 
 Business repositories pin a real methodology SHA. Agents propose. The named disposer accepts.
 
-## Colleague share-export
+## Colleague export / share-export
 
-Colleague GitLab is a **filtered business tree**, not a `git push --mirror` of GitHub (including `agent-project-ops` bindings). GitHub `origin` stays the only write authority and keeps the full ops tree. Contract: [ADR 0003](./docs/adr/0003-share-export-vs-projection.md).
+Colleague GitLab is a **filtered business tree**, not a `git push --mirror` of GitHub (including `agent-project-ops` bindings). GitHub `origin` stays the only write authority and keeps the full ops tree.
+
+- **Export remote** (`export=` / `export_url=`): tree = `authority main − strip list`; sync = merge + replay strip + FF; not on the auto-push whitelist. Contract: [ADR 0005](./docs/adr/0005-export-remote-role.md). Playbook: [export-remote](./playbooks/export-remote.md).
+- **Share-export helper**: ADR 0003 snapshot publish (keeps `.github/workflows/` by default). Related tooling — not a second write authority.
 
 ```bash
-bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --dry-run
+bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --dry-run
+bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --export-url git@gitlab.example:group/business.git --authorized --yes
 bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --push git@gitlab.example:group/business.git --yes
 ```
 
-The helper **refuses** to publish if denylist paths would still be included. Playbook: [share-export](./playbooks/share-export.md).
+Helpers **refuse** to publish if strip/denylist paths would still be included, and they never `--force`.
 
 ## License
 

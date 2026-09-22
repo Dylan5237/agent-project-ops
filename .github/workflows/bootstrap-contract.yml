@@ -6,12 +6,15 @@ on:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
       - 'scripts/share-export.sh'
+      - 'scripts/export-sync.sh'
       - 'scripts/lib/share-export-denylist.sh'
+      - 'scripts/lib/export-strip-list.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
       - 'playbooks/share-export.md'
+      - 'playbooks/export-remote.md'
       - 'skills/bootstrap-project/**'
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
@@ -24,12 +27,15 @@ on:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
       - 'scripts/share-export.sh'
+      - 'scripts/export-sync.sh'
       - 'scripts/lib/share-export-denylist.sh'
+      - 'scripts/lib/export-strip-list.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
       - 'playbooks/share-export.md'
+      - 'playbooks/export-remote.md'
       - 'skills/bootstrap-project/**'
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
@@ -51,6 +57,7 @@ jobs:
           bash -n tests/bootstrap-local.sh
           bash -n tests/inverted-sot.sh
           bash -n scripts/share-export.sh
+          bash -n scripts/export-sync.sh
       - name: Inverted-SoT wording contract
         run: bash tests/inverted-sot.sh
       - name: Dry-run contract

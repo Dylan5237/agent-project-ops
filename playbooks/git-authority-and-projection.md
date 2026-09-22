@@ -4,14 +4,14 @@
 
 When a project **optionally** has a second git remote, keep **exactly one write authority**. The second remote is a **projection** (same-history mirror / fast-forward from authority). Local clones and Cloud Agent sandboxes are **drafts**, never a third source of truth.
 
-**Colleague GitLab is not this playbook.** Sharing product files with colleagues is a **share-export** (filtered business tree), not a full-tree projection. Follow [share-export.md](./share-export.md) and [ADR 0003](../docs/adr/0003-share-export-vs-projection.md). Do not `git push --mirror` ops bindings to colleague GitLab.
+**Colleague GitLab is not this playbook.** A content-current stripped copy is an **export** remote ([export-remote.md](./export-remote.md), [ADR 0005](../docs/adr/0005-export-remote-role.md)). A snapshot republish is **share-export** ([share-export.md](./share-export.md), [ADR 0003](../docs/adr/0003-share-export-vs-projection.md)). Neither is a full-tree projection. Do not `git push --mirror` ops bindings to colleague GitLab.
 
 Single-remote projects skip this playbook and stay on [git-branch-and-remote.md](./git-branch-and-remote.md) (`origin` only).
 
 ## When
 
 - `git remote -v` shows more than `origin`.
-- Command Center names a **projection** host (same-history FF mirror) in addition to GitHub. A colleague-share GitLab URL is **not** a projection host.
+- Command Center names a **projection** host (same-history FF mirror) in addition to GitHub. A colleague-share GitLab URL is **not** a projection host (classify `export=` or use share-export).
 - Before any non-`origin` push, release cut, history rewrite on a protected default branch, or branch cleanup across remotes.
 - Tips disagree: projection SHA is not an ancestor of (or identical to) the authority tip.
 
@@ -29,7 +29,8 @@ Single-remote projects skip this playbook and stay on [git-branch-and-remote.md]
 | **Authority** | The GitHub repo/remote (usually `origin`) whose named branch tip is source of truth for history that Issues and PRs describe. |
 | **Authority tip** | The commit Command Center currently treats as the integration head: usually `origin/main`, or a **named transitional branch** until it merges to the default branch. |
 | **Projection** | A second remote used only to **mirror the same git history** as authority (fetch + fast-forward, or disposer-authorized align). Includes ops bindings. Never a feature-push target. Never a colleague-share GitLab. |
-| **Share-export** | Filtered business tree for colleagues ([share-export.md](./share-export.md)). Different history; denylist stripped. Not registered as `projection`. |
+| **Export** | Colleague copy whose tree is `authority − strip list` ([export-remote.md](./export-remote.md)). Not a second write authority. Not registered as `projection`. |
+| **Share-export** | ADR 0003 snapshot helper ([share-export.md](./share-export.md)). Different history; denylist stripped. Related to export; not a second SoT. |
 | **Local / Cloud checkout** | Draft. Commits exist for the rest of the project only after they land on **authority** via PR. |
 | **Aux / skill repo** | A separate methodology or helper repository, if the business clone is not the only git surface. Read-only in reconciliation; do not treat it as product SoT. |
 
@@ -39,7 +40,7 @@ Suggested remote name for the second URL: `projection` (not `origin`, not `upstr
 
 ### A. Classify remotes / 先分类
 
-1. `git remote -v`. Label each URL as **authority**, **projection**, **share-export** (must not be a push remote on this clone), or **unknown**. Colleague GitLab → share-export, then stop and use [share-export.md](./share-export.md).
+1. `git remote -v`. Label each URL as **authority**, **projection**, **export** (bound-clone push denied; sync via [export-remote.md](./export-remote.md)), **share-export** snapshot destination, or **unknown**. Colleague GitLab → export or share-export, not this playbook.
 2. Unknown extra remotes → `status:blocked` on Command Center or the active Issue until the disposer names them. Do **not** push “to be safe” to every URL.
 3. Topic branches (`feat/` `fix/` `docs/` `evidence/` and Agent-private `cursor/` / `sync/` drafts) push **only** to authority `origin`:
 
@@ -123,7 +124,7 @@ Never delete a branch solely because it exists on projection; projection should 
 ## Anti-patterns
 
 - Day-to-day `git push` of `feat/` / `fix/` / `docs/` / `evidence/` to the projection remote.
-- Treating colleague GitLab as a projection / `git push --mirror` of the bound ops tree.
+- Treating colleague GitLab as a projection / `git push --mirror` of the bound ops tree (use [export-remote.md](./export-remote.md) or [share-export.md](./share-export.md)).
 - **Inverted `AGENTS.md` contract:** GitLab (or any non-GitHub Issues host) as sole production/write SoT; GitHub as “mirror only”. Adoption must reverse that ([adopt-existing-project.md](./adopt-existing-project.md)) — it is must-fix, not a wording preference.
 - Calling a **deploy/manifest tip** (projection default, release SHA) the write authority. Release skills may still read that tip; `AGENTS.md` must distinguish it from the **write authority tip**.
 - Treating local `main` or a Cloud checkout as caught-up SoT without fetching authority.

@@ -9,7 +9,7 @@ description: >
 
 # GitHub multi-agent project ops
 
-Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.1.1** first. Invariants beat this skill.
+Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.1.2** first. Invariants beat this skill.
 
 You are usually the **project-ops Agent**: you keep Issues honest and **propose**. You do not Freeze-ACK or `PHASE ACCEPT` unless the Command Center explicitly names you as disposer.
 
@@ -21,9 +21,9 @@ You are usually the **project-ops Agent**: you keep Issues honest and **propose*
 4. [playbooks/staff-and-dispatch.md](../../playbooks/staff-and-dispatch.md)
 5. [playbooks/blocked-and-exceptions.md](../../playbooks/blocked-and-exceptions.md)
 
-Companion skills: `git-worktree-and-branch`, `git-authority-and-projection`, `share-export`, `issues-prs-and-evidence`.
+Companion skills: `git-worktree-and-branch`, `git-authority-and-projection`, `export-remote`, `share-export`, `issues-prs-and-evidence`.
 
-Git landing / remotes (worktrees, `origin`, optional projection): do **not** duplicate here — follow `git-worktree-and-branch` plus [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) when a second remote exists. Colleague GitLab: [share-export](../share-export/SKILL.md).
+Git landing / remotes (worktrees, `origin`, optional projection): do **not** duplicate here — follow `git-worktree-and-branch` plus [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) when a second remote exists. Colleague GitLab: [export-remote](../export-remote/SKILL.md) (`export=`) or [share-export](../share-export/SKILL.md).
 
 ## 工作循环 / Loop
 

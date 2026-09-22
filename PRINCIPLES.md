@@ -1,8 +1,8 @@
-# PRINCIPLES — v0.1.1
+# PRINCIPLES — v0.1.2
 
 These invariants are **binding**. A local Agent that owns a project must load this file with the skills in `skills/` before proposing work. If a playbook step conflicts with an invariant, the invariant wins.
 
-Version: **v0.1.1**  
+Version: **v0.1.2**  
 Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 ---
@@ -83,9 +83,10 @@ Git **写入权威**只有一个：承载 Issues/PR 的 GitHub 仓库（通常 `
 
 - Inventing a second source of truth (pushing day-to-day features to the projection, or treating a sandbox `main` as landed history) is forbidden.
 - Projection outage or reject → fail closed (stop release); do not retarget workflow to the mirror.
+- **Export** is a third remote **role**, not a second write authority. `export tree = authority main − strip list`. Content must not lag authority; strip commits may make the export tip legitimately ahead. Sync is merge + replay strip + fast-forward only; reject → stop; **no force**. Export remotes are not on the auto-push whitelist: each sync needs disposer explicit authorization. The methodology strip list may be extended by a business repo and must not be shrunk at business discretion.
 - **PR merge ≠ Phase PASS** remains Principle 3: landing on the authority default branch is not Accept.
 
-Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional same-history second remote), `playbooks/share-export.md` (colleague GitLab = filtered business tree, not a projection).
+Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional same-history second remote), `playbooks/export-remote.md` (colleague export remote = authority − strip list), `playbooks/share-export.md` (ADR 0003 snapshot helper; related, not a second SoT).
 
 ---
 
@@ -96,4 +97,5 @@ Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbook
 
 ### Changelog
 
+- **v0.1.2** — Principle 10: export is a third remote role (authority − strip list), not a second write authority.
 - **v0.1.1** — Principle 10: at most one write authority; projection remotes are read-or-FF-from-authority.

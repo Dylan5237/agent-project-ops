@@ -55,7 +55,7 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
   --github-repo OWNER/NAME    Override GitHub repository name
   --private | --public        Visibility (default: private)
   --projection-url URL        Optional credential-free same-history projection git URL
-                              (not colleague-share GitLab; that is share-export)
+                              (not colleague-share GitLab; that is export / share-export)
   --no-projection             Explicitly create origin-only configuration
   --require-codeowner-review  Request protection level A (independent review)
   --skip-github               Local scaffold only; do not create GitHub repo
@@ -70,7 +70,8 @@ Supported bootstrap requires a real methodology git SHA. It never writes
 capability A/B/C and is never overstated. Capability C on GitHub Free
 private is expected: warn, record on Command Center, and continue
 (do not hard-abort the scaffold; never claim B/A). Colleague GitLab is
-share-export (scripts/share-export.sh), not --projection-url.
+export / share-export (scripts/export-sync.sh, scripts/share-export.sh),
+not --projection-url.
 Existing (non-empty) destinations are adoption, not this script:
 playbooks/adopt-existing-project.md. Inverted AGENTS.md SoT fail-closes
 before PIN binding is considered complete.
@@ -127,7 +128,7 @@ fi
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
 
 if [[ "${no_projection}" -eq 0 && -z "${projection_url}" && "${assume_yes}" -eq 0 && "${dry_run}" -eq 0 ]]; then
-  printf 'Projection remote URL (empty = origin-only; colleague GitLab = share-export, not this prompt): '
+  printf 'Projection remote URL (empty = origin-only; colleague GitLab = export / share-export, not this prompt): '
   read -r projection_url
 fi
 if [[ -n "${projection_url}" ]]; then
@@ -230,10 +231,12 @@ cp -a "${METHODOLOGY_ROOT}/templates" .agent-project-ops/templates
 cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-worktree.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 cp "${METHODOLOGY_ROOT}/scripts/share-export.sh" .agent-project-ops/scripts/share-export.sh
+cp "${METHODOLOGY_ROOT}/scripts/export-sync.sh" .agent-project-ops/scripts/export-sync.sh
 cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts/scan-inverted-sot.py
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/scan-inverted-sot.py
+cp "${METHODOLOGY_ROOT}/scripts/lib/export-strip-list.sh" .agent-project-ops/scripts/lib/export-strip-list.sh
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -246,6 +249,8 @@ cat > .agent-project-ops/remotes <<EOF
 authority=origin
 projection=${projection_name}
 projection_url=${projection_record_url}
+export=(none)
+export_url=
 share_export=(none)
 share_export_url=
 EOF
@@ -333,7 +338,7 @@ gh repo edit "${github_repo}" --enable-issues=true >/dev/null 2>&1 || true
 if [[ -n "${projection_url}" ]]; then
   git remote add projection "${projection_url}"
   log "added local projection remote; committed registry remains the clone-portable classification"
-  log "NOTE: colleague-share GitLab is share-export, not this remote; use .agent-project-ops/scripts/share-export.sh"
+  log "NOTE: colleague-share GitLab is export / share-export, not this remote; use export-sync.sh or share-export.sh"
 fi
 
 protection_level='C'
