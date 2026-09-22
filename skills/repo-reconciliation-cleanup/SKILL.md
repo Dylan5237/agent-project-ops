@@ -12,7 +12,7 @@ description: >
 # Repo reconciliation & cleanup
 
 **治理作用域：** SINGLE_SKILL  
-**相邻技能：** [`git-authority-and-projection`](../git-authority-and-projection/SKILL.md)（投影合同；playbook [`git-authority-and-projection.md`](../../playbooks/git-authority-and-projection.md) §F/§G）· `neat-freak`（文档/规则/记忆知识收尾）— **不要互相替代**  
+**相邻技能：** `git-authority-and-projection`（投影合同）· `neat-freak`（文档/规则/记忆知识收尾）— **不要互相替代**  
 **能力：** `external_system` · `external_write` · 轻量 stateful（recon Issue）  
 **风险：** 只读=0；删枝/关 PR/拆 worktree/hard reset=**2**（须看完预览后的本次授权）  
 **确定性机制：** [`scripts/classify_ref.py`](scripts/classify_ref.py) · [`scripts/audit-inventory.sh`](scripts/audit-inventory.sh)
