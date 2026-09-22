@@ -40,10 +40,11 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 3. Link `Closes` / `Refs` the Phase or child task issue.
 4. Do not “improve” frozen fields in the same PR. That is an Architecture Exception.
 5. Update CC §1 when the implementation PR opens or the Phase label moves. [ ] **CC §1 updated**
+6. Before asking the disposer to merge / review-for-merge: follow `playbooks/issues-and-prs.md` step 8 — PR comment whose body is exactly `bugbot run`, then tell the disposer to wait for Bugbot results. Do not nudge merge while Bugbot is pending. Bugbot pass ≠ `PHASE ACCEPT`.
 
 ### 3. Verify / 验证
 
-1. After implementation PR is reviewable (merged or merge-ready per Command Center policy), open or update **evidence** work — separate PR if artifacts live in-repo (`playbooks/verification-and-evidence.md`).
+1. After implementation PR is reviewable (merged or merge-ready per Command Center policy — and only after the Bugbot-before-merge-ask gate in `playbooks/issues-and-prs.md` when asking for merge), open or update **evidence** work — separate PR if artifacts live in-repo (`playbooks/verification-and-evidence.md`).
 2. Label Phase `status:verification`.
 3. Evidence must be replayable by the disposer without the original chat.
 4. Update CC §1. [ ] **CC §1 updated**
@@ -52,7 +53,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 1. Agent **proposes** PASS: comment on the Phase with evidence links and a mapping “acceptance test → proof.”
 2. Disposer comments `PHASE ACCEPT` or `PHASE RETURN` with gaps.
-3. `PHASE ACCEPT` is the only PASS. PR merge never substitutes.
+3. `PHASE ACCEPT` is the only PASS. PR merge never substitutes. Bugbot pass never substitutes.
 4. After Accept or Return, update CC §1 (do not treat merge as PASS). [ ] **CC §1 updated**
 
 ### 5. CLOSED
@@ -76,6 +77,7 @@ If blocked at any step: `playbooks/blocked-and-exceptions.md`. Do not skip Freez
 
 - Coding on `main` or before Freeze ACK.
 - “We merged, so the phase passed.”
+- Asking the disposer to merge before posting `bugbot run` on the PR, or treating Bugbot pass as Accept.
 - Flipping a Phase label or Freeze/blocked/verification event without updating Command Center §1 (leaving the new state in chat).
 - Quietly editing the frozen contract in a later commit message.
 - One Phase with two unrelated acceptance suites.
