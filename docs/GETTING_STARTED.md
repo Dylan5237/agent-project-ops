@@ -39,15 +39,15 @@ The methodology reports what GitHub can actually enforce.
 | --- | --- | --- |
 | **A** | PR + independently enforceable reviewer / code-owner gate | Yes — strongest |
 | **B** | PR required + admins enforced, but no independently guaranteed human identity | Yes — controlled use |
-| **C** | required server protection is unavailable or cannot be verified | **No — BLOCKED** |
+| **C** | required server protection is unavailable or cannot be verified | **Yes — record C and continue** (expected on GitHub Free private; never claim B/A) |
 
 Important:
 
 - client hooks can be bypassed with `--no-verify`;
 - client hooks are therefore an early local guard, **not** the final security boundary;
-- server-side GitHub protection is the real gate for protected branches;
-- GitHub Free private repositories do not provide the required protection here, so they correctly fall to **Capability C**;
-- GitHub Free public repositories can provide the PR-only protection used for Capability B.
+- server-side GitHub protection is the real gate when it is available;
+- GitHub Free private repositories do not provide the required protection here, so they correctly fall to **Capability C**. That is expected. Record C on Command Center and continue. Do not require GitHub Pro to finish init;
+- GitHub Free public repositories can provide the PR-only protection used for Capability B. Use public (or Pro) when a real server-side gate is required — not as a condition of finishing init.
 
 If the same GitHub account is used by both the human disposer and Agent automation, do **not** describe that setup as an independently enforced human-review boundary.
 
@@ -80,7 +80,7 @@ bash scripts/bootstrap-project.sh \
   --yes
 ```
 
-For a GitHub Free account where protected private repositories are unavailable, use a public smoke/project only when public visibility is acceptable:
+On GitHub Free, `--private` is valid and typically reports **Capability C**. That is expected: record C and continue. Use `--public` (or a paid plan) only when you need a real server-side B gate and public visibility is acceptable:
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -198,7 +198,7 @@ Expected local hook configuration:
 
 Also confirm that bootstrap reports protection capability **A**, **B**, or **C** explicitly.
 
-If protection is **C**, stop. Do not reinterpret it as “good enough.”
+If protection is **C**, record **C** on Command Center and continue. Do not reinterpret it as B or A. On GitHub Free private, C is expected.
 
 ---
 
@@ -383,6 +383,7 @@ The model is simple:
 ## Next reads
 
 - [PRINCIPLES.md](../PRINCIPLES.md) — the non-negotiable design rules
+- [ADR 0004](./adr/0004-free-private-capability-c.md) — Free-private capability C is expected
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md) — bootstrap contract in detail
 - [share-export playbook](../playbooks/share-export.md) — colleague GitLab = filtered business tree
 - [start-project playbook](../playbooks/start-project.md) — establish the control plane

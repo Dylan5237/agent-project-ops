@@ -61,17 +61,19 @@ Server policy is reported as observed capability, not marketing language:
 
 - **A — code-owner review enforced:** PR required and code-owner/approval gate verified.
 - **B — PR-only:** direct default-branch updates are blocked, but a writer may still be able to self-merge. This is the safe default when the Agent uses the same GitHub identity as the human owner.
-- **C — unprotected/BLOCKED:** requested branch protection could not be enabled or verified.
+- **C — unprotected/unverifiable:** requested branch protection could not be enabled or verified.
 
 Default bootstrap requests **B**. `--require-codeowner-review` requests **A**, but use it only when repository identity/ownership actually supports an independent reviewer; otherwise a single-user repository can be locked into an unusable review gate.
 
-If protection cannot be enabled, bootstrap returns a blocked result after repository creation. Do not start feature work; record the capability gap on Command Center.
+If protection cannot be enabled after repository creation (typical on GitHub Free **private** repos), bootstrap **warns**, reports **C**, and **completes**. Record C on Command Center and continue with hooks + PR discipline. Do **not** treat C as init failure or “do not start feature work.” Do **not** require GitHub Pro to finish init. Never claim B or A when only C was verified. Use public or Pro only when a real server-side gate is required.
+
+See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 
 ## After bootstrap
 
 1. Run [start-project.md](./start-project.md).
 2. Create labels and Command Center.
-3. Record the PIN, registered remotes, and protection capability.
+3. Record the PIN, registered remotes, and protection capability (C is a valid recorded result; continue).
 4. Open one Phase issue.
 5. **Register to Fleet REGISTRY** (mandatory). Upsert one `owner/repo` row in `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../fleet/REGISTRY.md) via PR; confirm the box mirror `/home/box/agent-data/fleet-morning-digest/REGISTRY.md` matches; tell the disposer **「已纳入舰队晨报扫描」**. See [ADR 0002](../docs/adr/0002-canonical-fleet-index.md) and [fleet/README.md](../fleet/README.md).
 6. Freeze before creating implementation work.
@@ -87,7 +89,7 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - [ ] Fresh-clone instructions explicitly reinstall the hook configuration before first push.
 - [ ] `.worktrees/` exists locally and is ignored.
 - [ ] No generated file contains credential-bearing remote URLs.
-- [ ] If GitHub was created, `origin` is the GitHub authority and protection is reported as A, B, or C.
+- [ ] If GitHub was created, `origin` is the GitHub authority and protection is reported as A, B, or C (C is expected on Free private and is not a failed init).
 - [ ] **Register to Fleet REGISTRY:** `fleet/REGISTRY.md` has an idempotent `owner/repo` row (PR open or merged); box mirror confirmed or `BLOCKED:` recorded on GitHub; disposer told **「已纳入舰队晨报扫描」**.
 - [ ] No product Phase has been self-Accepted by bootstrap.
 
@@ -96,6 +98,9 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - Downloading the methodology as ZIP and accepting `sha=unknown`.
 - Treating the presence of `.githooks/pre-push` as proof the hook is installed after clone.
 - Calling PR-only protection “human approval enforced.”
+- Claiming B or A when only C was verified.
+- Treating Free-private C as bootstrap failure or “do not start feature work.”
+- Requiring GitHub Pro to finish init.
 - Requiring one approval on a single-identity repository without understanding the lockout/self-review semantics.
 - Adding a second write remote for convenience.
 - Using `--projection-url` for colleague GitLab (that leaks ops; use share-export).

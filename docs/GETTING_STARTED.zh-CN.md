@@ -39,15 +39,15 @@ Agent 可以准备材料并提出建议，但不能自己完成验收。
 | --- | --- | --- |
 | **A** | PR + 可独立强制执行的 reviewer / code-owner 门禁 | 可以，最强 |
 | **B** | 必须 PR + 管理员也受保护，但无法独立保证“人类身份” | 可以，用于受控场景 |
-| **C** | 所需服务端保护不可用或无法验证 | **不可以，BLOCKED** |
+| **C** | 所需服务端保护不可用或无法验证 | **可以 — 记录 C 并继续**（GitHub Free 私有仓上属预期；不得把 C 说成 B/A） |
 
 需要特别注意：
 
 - 客户端 hook 可以被 `--no-verify` 绕过；
 - 因此客户端 hook 只是本地早期拦截，**不是最终安全边界**；
-- 受保护分支真正的硬门槛是 GitHub server-side protection；
-- GitHub Free 私有仓库无法提供这里要求的保护，因此会正确落到 **Capability C**；
-- GitHub Free 公共仓库可以提供 Capability B 所需的 PR-only 保护。
+- 受保护分支真正的硬门槛是 GitHub server-side protection（有则用，没有不得假装有）；
+- GitHub Free 私有仓库无法提供这里要求的保护，因此会正确落到 **Capability C**。这是预期结果。把 C 写入 Command Center 后继续。不要为了完成初始化去买 Pro；
+- GitHub Free 公共仓库可以提供 Capability B 所需的 PR-only 保护。需要真实服务端门禁时再用 public（或 Pro），那不是完成初始化的前提。
 
 如果人类 disposer 与 Agent 自动化使用同一个 GitHub 账号，不要把这套配置描述成“独立的人类审批硬门槛”。
 
@@ -80,7 +80,7 @@ bash scripts/bootstrap-project.sh \
   --yes
 ```
 
-如果你使用 GitHub Free，并且无法为私有仓库提供受保护分支，那么只有在“公开可接受”时，才应使用 public 项目或 smoke 仓库：
+在 GitHub Free 上，`--private` 是合法路径，通常会报告 **Capability C**。这是预期结果：记录 C 并继续。只有在你需要真实的服务端 B 门禁、且可以公开时，才使用 `--public`（或付费方案）：
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -198,7 +198,7 @@ git config --get core.hooksPath
 
 同时确认 bootstrap 明确报告了保护能力 **A / B / C**。
 
-如果结果是 **C**，就应该停止。不要把它解释成“应该也能用”。
+如果结果是 **C**，把 **C** 写入 Command Center 后继续。不要把它解释成 B 或 A。在 GitHub Free 私有仓上，C 是预期结果。
 
 ---
 
@@ -383,6 +383,7 @@ and follow the playbooks.
 ## 接下来阅读
 
 - [PRINCIPLES.md](../PRINCIPLES.md)：不可妥协的设计原则
+- [ADR 0004](./adr/0004-free-private-capability-c.md)：Free 私有仓 Capability C 属预期
 - [bootstrap-project playbook](../playbooks/bootstrap-project.md)：初始化合同细节
 - [share-export playbook](../playbooks/share-export.md)：同事 GitLab = 过滤后的业务树
 - [start-project playbook](../playbooks/start-project.md)：建立控制面

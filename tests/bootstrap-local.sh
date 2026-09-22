@@ -118,4 +118,39 @@ if bash "${tmp}/nongit/scripts/bootstrap-project.sh" --name nongit --dir "${tmp}
 fi
 pass 'non-git methodology source fails closed instead of sha=unknown'
 
+# Phase #36: capability C is reported honestly and is not a hard bootstrap stop.
+if grep -Fq 'bootstrap returns a blocked result after repository creation' "${root}/playbooks/bootstrap-project.md"; then
+  fail 'bootstrap playbook still treats protection C as a blocked/hard-stop result'
+fi
+if grep -Fq 'report capability C / BLOCKED' "${root}/skills/bootstrap-project/SKILL.md"; then
+  fail 'bootstrap skill still fail-closes protection C as BLOCKED stop-all-work'
+fi
+if grep -Fq 'Record capability C on Command Center before feature work' "${root}/scripts/bootstrap-project.sh"; then
+  fail 'bootstrap script still hard-aborts C as before-feature-work'
+fi
+if grep -Fq 'capability C is explicitly Blocked' "${root}/playbooks/start-project.md"; then
+  fail 'start-project still treats capability C as an explicit stop'
+fi
+if grep -Fq 'No — BLOCKED' "${root}/docs/GETTING_STARTED.md"; then
+  fail 'Getting Started still says capability C cannot proceed'
+fi
+if grep -Fq 'If protection is **C**, stop.' "${root}/docs/GETTING_STARTED.md"; then
+  fail 'Getting Started still tells Agents to stop on capability C'
+fi
+grep -Fq 'Free **private**' "${root}/skills/bootstrap-project/SKILL.md" || fail 'bootstrap skill missing Free-private C policy'
+grep -Fq 'record C on Command Center and continue' "${root}/skills/bootstrap-project/SKILL.md" || fail 'bootstrap skill missing record+continue for C'
+grep -Fq 'Record C on Command Center and continue' "${root}/scripts/bootstrap-project.sh" || fail 'bootstrap script missing record+continue warning for C'
+grep -Fq 'Do not claim B or A' "${root}/scripts/bootstrap-project.sh" || fail 'bootstrap script missing honesty warning (never claim B/A)'
+if grep -n "protection_level}\" == 'C'" "${root}/scripts/bootstrap-project.sh" | grep -q .; then
+  c_line="$(grep -n "protection_level}\" == 'C'" "${root}/scripts/bootstrap-project.sh" | head -n1 | cut -d: -f1)"
+  if awk -v start="${c_line}" 'NR>=start && NR<=start+12 && /exit 2/ { found=1 } END { exit found ? 1 : 0 }' "${root}/scripts/bootstrap-project.sh"; then
+    :
+  else
+    fail 'bootstrap script still hard-aborts on capability C'
+  fi
+else
+  fail 'bootstrap script missing capability C handling'
+fi
+pass 'capability C is expected on Free private: record + continue, never claim B/A'
+
 echo 'bootstrap-local: all contract checks passed'

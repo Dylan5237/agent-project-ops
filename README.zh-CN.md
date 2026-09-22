@@ -76,7 +76,7 @@ bash scripts/bootstrap-project.sh \
 
 **下一步 → [快速上手](./docs/GETTING_STARTED.zh-CN.md)**，查看保护能力选择、fresh clone 恢复、Command Center 建立、日常 Phase 流程，以及 projection 与 **同事 share-export** 的区别。
 
-> GitHub Free + **私有仓库** 无法提供本方法论要求的服务端分支保护，因此会被正确报告为 **Capability C / BLOCKED**。客户端 hook 可被 `--no-verify` 绕过，真正的硬门槛是服务端保护。
+> GitHub Free + **私有仓库** 无法提供 B/A 所需的服务端分支保护，因此会被正确报告为 **Capability C**。把 C 写入 Command Center 后继续。不要把 C 当成初始化失败，也不要为了完成初始化去买 Pro。不得把 C 说成 B/A。客户端 hook 可被 `--no-verify` 绕过；有服务端保护时，它才是真正的硬门槛。
 
 <p align="center">
   <img src="./docs/assets/how-it-works.zh-CN.svg" alt="agent-project-ops 运行原理" width="100%" />
@@ -128,7 +128,7 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 | --- | --- | --- |
 | **A** | PR + 可独立强制执行的 reviewer / code-owner 门禁 | 最强 |
 | **B** | 必须 PR + 管理员也受保护；但无法独立保证“人类身份” | 可用于受控场景 |
-| **C** | 保护不可用或无法验证 | **BLOCKED / 默认阻塞** |
+| **C** | 保护不可用或无法验证 | **记录并继续**（GitHub Free 私有仓上属预期；不得把 C 说成 B/A） |
 
 `agent-project-ops` 不会靠措辞把 Capability C 说成“够用了”。能力等级必须来自真实环境。
 

@@ -76,7 +76,7 @@ Bootstrap creates durable repo bindings, pins the methodology SHA, installs the 
 
 **Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague share-export**.
 
-> GitHub Free + **private repositories** cannot provide the branch protection required by this methodology, so bootstrap correctly reports **Capability C / BLOCKED**. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate.
+> GitHub Free + **private repositories** cannot provide the branch protection required for B/A, so bootstrap correctly reports **Capability C**. Record C on Command Center and continue. Do not treat C as init failure. Do not require Pro to finish init. Never claim B/A. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate when available.
 
 <p align="center">
   <img src="./docs/assets/how-it-works.en.svg" alt="How agent-project-ops works" width="100%" />
@@ -128,7 +128,7 @@ Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verifi
 | --- | --- | --- |
 | **A** | PR + independently enforceable reviewer / code-owner gate | strongest |
 | **B** | PR required + admins enforced; no independent-human guarantee | accepted for controlled use |
-| **C** | protection unavailable or unverifiable | **BLOCKED / fail closed** |
+| **C** | protection unavailable or unverifiable | **record + continue** (expected on GitHub Free private; never claim B/A) |
 
 `agent-project-ops` never upgrades a Capability C environment by wording alone. Capability is reported from the environment that actually exists.
 
