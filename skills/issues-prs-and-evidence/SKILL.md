@@ -40,5 +40,6 @@ PR merge ≠ Phase PASS. Propose `EVIDENCE READY`; disposer writes `PHASE ACCEPT
 5. Frozen field wrong → new Architecture Exception issue; do not edit-and-continue.
 6. Redact secrets from logs.
 7. On every status/gate flip: update Command Center **section 1** and the Phase status label. [ ] **CC §1 updated**. Cannot edit CC → `BLOCKED:` on GitHub, not chat-only.
+8. Before asking the disposer to merge / review-for-merge: post a PR comment whose body is exactly `bugbot run` (default one wake per PR; another allowed after substantial new commits once Bugbot finished). Then tell the disposer to wait for Bugbot results. Chat is not a substitute. Do not nudge merge while Bugbot is pending. Bugbot pass ≠ `PHASE ACCEPT`.
 
 Do not add a second control plane (chat logs, unofficial boards) as a substitute.
