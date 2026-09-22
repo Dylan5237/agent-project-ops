@@ -300,7 +300,7 @@ The normal lifecycle is:
 4. Create one worktree / branch for the task
 5. Implement + test
 6. Open PR + run CI
-7. Before asking merge: comment exactly `bugbot run` on the PR; disposer waits for Bugbot
+7. Before asking merge: comment exactly `bugbot run` on the PR; disposer waits for Bugbot (`Dylan5237/agent-project-ops` self-dogfood may skip)
 8. Produce replayable evidence
 9. Agent: EVIDENCE READY
 10. Disposer: PHASE ACCEPT or PHASE RETURN
@@ -315,7 +315,7 @@ Rules that matter most:
 - Agent may autonomously implement, test, inspect CI, and prepare evidence;
 - Agent pauses when a real product/architecture/disposer decision is required;
 - PR merge does **not** equal `PHASE ACCEPT`;
-- before asking the disposer to merge, comment exactly `bugbot run` on the PR and wait for Bugbot results; Bugbot pass ≠ `PHASE ACCEPT`;
+- before asking the disposer to merge, comment exactly `bugbot run` on the PR and wait for Bugbot results; Bugbot pass ≠ `PHASE ACCEPT` (`Dylan5237/agent-project-ops` self-dogfood may skip the wake/wait; other repos follow the full gate);
 - acceptance evidence must be replayable without the original chat.
 
 See:

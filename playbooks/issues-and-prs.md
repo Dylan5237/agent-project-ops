@@ -42,6 +42,7 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    2. Default: **one** such wake per PR. If substantial new commits land after Bugbot finished, another `bugbot run` is allowed.
    3. After commenting, tell the disposer to **wait for Bugbot review results before deciding whether to merge**. Do not nudge merge as the default while Bugbot is pending.
    4. Bugbot pass ≠ `PHASE ACCEPT`. Merge still needs disposer ACK (Principle 3). This is comment discipline, not a Capability A requirement, and does not change Bugbot product/automation config.
+   **Exception — `Dylan5237/agent-project-ops` self-dogfood** may skip `bugbot run` and need not wait for Bugbot before merge-ask. Business / other fleet repos still follow the full gate above.
 9. **Close rules.** Close tasks when their PR is merged **and** the Phase still owns Accept. Close Phase only after `PHASE ACCEPT` or documented supersede. Closing a PR ≠ closing a Phase.
 
 ## Done when
