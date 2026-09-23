@@ -21,6 +21,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | zentao-mcp | Dylan5237/zentao-mcp | #1 | 禅道 21.1 MCP（client lib + stdio + CLI）；CC #1；Phase #2 in progress |
 | architecture-expert | Dylan5237/architecture-expert | #29 | 真 Command Center；#12 是 STAGE 5 不是 CC；晨报扫描 #29 §1 |
 | 跨宿主 Agent Skills 治理 | Dylan5237/skills-governance | #1 | 外围治理+SM原版；Grok Bot: Skills治理项目经理 |
+| AI+公众号创作工厂 / article-review | Dylan5237/article-review | #1 | adoption 完成；Phase #2 待 Freeze；Capability C（Free private）；业务仓 push 待确认 |
 
 ## 晨报读法（强制）
 
