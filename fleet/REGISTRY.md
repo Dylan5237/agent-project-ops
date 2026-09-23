@@ -12,7 +12,8 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | 项目 | Repo | Command Center | 备注 |
 |---|---|---|---|
 | 天宫组件协同 | Dylan5237/tiangong-component-collab | #2 | Phase 看 #3 |
-| 伏羲平台 | Dylan5237/prototype-manager | #11 | label status:done 但 issue 仍 open（卫生债）；apo adoption in progress: adoption #64 (AGENTS+PIN/remotes) |
+| 伏羲平台 | Dylan5237/prototype-manager | #11 | label status:done 但 issue 仍 open（卫生债）；apo adoption in progress: adoption #64 (AGENTS+PIN/remotes)；Skill sibling now on GitHub: Dylan5237/fuxi-prototype-skills |
+| 伏羲原型技能 | Dylan5237/fuxi-prototype-skills | #3 | 真 Command Center；share-export=`zoesoftgitlab`（非 projection）；迭代分支 develop；Capability C；本地 D:\_projects\skills\fuxi-prototype-skills |
 | Arckeep / kcc | Dylan5237/kcc-workbench | #2 | |
 | safe-delete-cli | Dylan5237/safe-delete-cli | #1 | 负责人：safe-delete-cli主管（Grok Bot） |
 | agent-project-ops | Dylan5237/agent-project-ops | #10 | 负责人：apo项目经理（Grok Bot） |
