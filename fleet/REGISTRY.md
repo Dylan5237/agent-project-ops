@@ -19,7 +19,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | agent-team-workbench | Dylan5237/agent-team-workbench | #15 | |
 | req-to-page | Dylan5237/req-to-page | #6 | |
 | zentao-mcp | Dylan5237/zentao-mcp | #1 | 禅道 21.1 MCP（client lib + stdio + CLI）；CC #1；Phase #2 in progress |
-| architecture-expert | Dylan5237/architecture-expert | （待确认 CC；门禁常看 #12） | 若无 CC，晨报标「未知+缺 Command Center」 |
+| architecture-expert | Dylan5237/architecture-expert | #29 | 真 Command Center；#12 是 STAGE 5 不是 CC；晨报扫描 #29 §1 |
 | 跨宿主 Agent Skills 治理 | Dylan5237/skills-governance | #1 | 外围治理+SM原版；Grok Bot: Skills治理项目经理 |
 
 ## 晨报读法（强制）
