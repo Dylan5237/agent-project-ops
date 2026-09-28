@@ -14,10 +14,10 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | 天宫组件协同 | Dylan5237/tiangong-component-collab | #2 | Phase 看 #3 |
 | 伏羲平台 | Dylan5237/prototype-manager | #11 | label status:done 但 issue 仍 open（卫生债）；apo adoption in progress: adoption #64 (AGENTS+PIN/remotes)；Skill sibling now on GitHub: Dylan5237/fuxi-prototype-skills |
 | 伏羲原型技能 | Dylan5237/fuxi-prototype-skills | #3 | 真 Command Center；share-export=`zoesoftgitlab`（非 projection）；迭代分支 develop；Capability C；本地 D:\_projects\skills\fuxi-prototype-skills |
-| Arckeep / kcc | Dylan5237/kcc-workbench | #2 | |
+| Arckeep | Dylan5237/arckeep | — | active；PM：Arckeep产品经理（Grok Bot）；轻流程 Issue+PR+CI，无 Command Center（跟踪看 MVP 追踪 Issue）；旧仓 kcc-workbench 已停，待归档 |
 | safe-delete-cli | Dylan5237/safe-delete-cli | #1 | 负责人：safe-delete-cli主管（Grok Bot） |
 | agent-project-ops | Dylan5237/agent-project-ops | #10 | 负责人：apo项目经理（Grok Bot） |
-| agent-team-workbench | Dylan5237/agent-team-workbench | #15 | |
+| agent-team-workbench | Dylan5237/agent-team-workbench | #15 | PARKED（2026-09-28，Dylan 决定停放，暂不推进、不归档） |
 | req-to-page | Dylan5237/req-to-page | #6 | |
 | zentao-mcp | Dylan5237/zentao-mcp | #1 | 禅道 21.1 MCP（client lib + stdio + CLI）；CC #1；Phase #2 in progress |
 | architecture-expert | Dylan5237/architecture-expert | #29 | 真 Command Center；#12 是 STAGE 5 不是 CC；晨报扫描 #29 §1 |
