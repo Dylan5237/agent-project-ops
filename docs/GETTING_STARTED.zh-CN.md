@@ -73,7 +73,7 @@ Run the bootstrap-project skill from agent-project-ops and initialize this proje
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --private \
@@ -86,7 +86,7 @@ bash scripts/bootstrap-project.sh \
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --public \
@@ -99,7 +99,7 @@ bash scripts/bootstrap-project.sh \
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --dry-run
@@ -113,7 +113,7 @@ bash scripts/bootstrap-project.sh \
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --projection-url git@git.internal.example:group/my-project.git \
   --yes
@@ -139,9 +139,7 @@ bash scripts/share-export.sh \
 
 合同：[ADR 0005](./adr/0005-export-remote-role.md)（export 角色 + 默认剥离清单，含全部 `.github/`）与 [ADR 0003](./adr/0003-share-export-vs-projection.md)（快照助手）。若剥离/denylist 路径仍会出现在待发布树中，助手会拒绝推送。export 同步只允许快进，且需要 disposer 的 `--authorized`。
 
-<p align="center">
-  <img src="./assets/quick-start.zh-CN.svg" alt="agent-project-ops 快速上手" width="100%" />
-</p>
+上面的 bootstrap 每个项目只做一次；之后每个任务重复[第 9 节](#9-日常-phase-工作流)的日常路径（Issue 或 Phase、Freeze、worktree、PR 与 CI、证据、disposer 决定）。
 
 ---
 
@@ -178,10 +176,6 @@ your-project/
 - 各类 Agent 适配文件：Claude、Cursor、Copilot、Continue、Aider 等都尽量收敛到同一套持久规则。
 
 项目会固定到真实的方法论 SHA，不会静默跟随 methodology `main` 漂移。
-
-<p align="center">
-  <img src="./assets/repository-structure.zh-CN.svg" alt="仓库结构与控制面" width="100%" />
-</p>
 
 ---
 
