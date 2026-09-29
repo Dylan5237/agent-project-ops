@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="./LICENSE"><img alt="许可证" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
-  <img alt="版本" src="https://img.shields.io/badge/version-v0.1-10b981.svg">
+  <img alt="版本" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
   <img alt="GitHub 控制面" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
   <img alt="Skill first" src="https://img.shields.io/badge/architecture-skill--first-6366f1.svg">
   <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml"><img alt="bootstrap contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml/badge.svg"></a>
@@ -145,6 +145,8 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 | 完整 self-dogfood：Command Center → Phase → 实现 → 证据 → disposer Accept | ✅ 通过 |
 
 可复验证据：[docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
+
+当前发布：**[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)**（优先用它，不要停在 v0.1.1 tag）。相对上面的 v0.1 门禁，之后已落地：Fleet REGISTRY 作为舰队索引 SoT；同事 GitLab 是 share-export 而不是 projection；GitHub Free 私有仓报告 Capability **C** 并继续；`AGENTS.md` 写反 SoT 时 fail closed；业务仓合入前走 Bugbot（本方法论仓 self-dogfood 豁免）；**export** 远端 = `权威 main − 剥离清单`（ADR 0005），与 projection、share-export 分开。
 
 ## 文档导航
 

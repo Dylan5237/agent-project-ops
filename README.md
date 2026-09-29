@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
-  <img alt="version" src="https://img.shields.io/badge/version-v0.1-10b981.svg">
+  <img alt="version" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
   <img alt="GitHub native" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
   <img alt="skill first" src="https://img.shields.io/badge/architecture-skill--first-6366f1.svg">
   <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml"><img alt="bootstrap contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml/badge.svg"></a>
@@ -145,6 +145,8 @@ Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verifi
 | Full self-dogfood: Command Center → Phase → implementation → evidence → disposer Accept | ✅ PASS |
 
 Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
+
+Current release: **[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)** (prefer this over the v0.1.1 tag). Since the v0.1 gates above: Fleet REGISTRY as fleet index SoT; colleague GitLab is share-export, not a projection; GitHub Free private reports Capability **C** and continues; inverted SoT in `AGENTS.md` fail-closes; Bugbot-before-merge on business repos (this methodology repo is self-dogfood exempt); **export** remote is `authority main − strip list` (ADR 0005), distinct from projection and from share-export.
 
 ## Documentation
 
