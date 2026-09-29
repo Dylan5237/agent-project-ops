@@ -11,7 +11,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 
 | 项目 | Repo | Command Center | 备注 |
 |---|---|---|---|
-| 天宫组件协同 | Dylan5237/tiangong-component-collab | #2 | Phase 看 #3 |
+| 天宫组件协同 | Dylan5237/tiangong-component-collab | #2 | **CLOSED** 2026-09-22：已迁禅道 / `Dylan5237/zentao-mcp`（见 zentao-mcp 行）；晨报不扫 |
 | 伏羲平台 | Dylan5237/prototype-manager | #11 | label status:done 但 issue 仍 open（卫生债）；apo adoption in progress: adoption #64 (AGENTS+PIN/remotes)；Skill sibling now on GitHub: Dylan5237/fuxi-prototype-skills |
 | 伏羲原型技能 | Dylan5237/fuxi-prototype-skills | #3 | 真 Command Center；share-export=`zoesoftgitlab`（非 projection）；迭代分支 develop；Capability C；本地 D:\_projects\skills\fuxi-prototype-skills |
 | Arckeep | Dylan5237/arckeep | — | active；PM：Arckeep产品经理（Grok Bot）；轻流程 Issue+PR+CI，无 Command Center（跟踪看 MVP 追踪 Issue）；旧仓 kcc-workbench 已停，待归档 |
@@ -32,6 +32,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 2. 跟进第一节里点名的 **当前 Phase Issue**（状态 label：backlog/in-progress/blocked/verification/done）
 3. 只把「需 Dylan 拍板 / blocked / HUMAN_REQUIRED / 未 Freeze 却想开工」抬进晨报
 4. 不在登记表外的仓：默认不扫；例外需 Dylan 显式加入本表
+5. 备注以 **CLOSED** 开头的行：保留作历史索引，晨报跳过不扫
 
 ## 保证边界
 
