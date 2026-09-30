@@ -73,7 +73,7 @@ From a real checkout of this methodology:
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --private \
@@ -86,7 +86,7 @@ On GitHub Free, `--private` is valid and typically reports **Capability C**. Tha
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --public \
@@ -99,7 +99,7 @@ Before creating anything, you can inspect the intended plan:
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --dry-run
@@ -113,7 +113,7 @@ A **projection** remote is a same-history fast-forward mirror of GitHub (full tr
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --projection-url git@git.internal.example:group/my-project.git \
   --yes
@@ -139,9 +139,7 @@ bash scripts/share-export.sh \
 
 Contracts: [ADR 0005](./adr/0005-export-remote-role.md) (export role + default strip list, including all of `.github/`) and [ADR 0003](./adr/0003-share-export-vs-projection.md) (snapshot helper). Helpers refuse to publish if strip/denylist paths would be included. Export sync is FF only and requires disposer `--authorized`.
 
-<p align="center">
-  <img src="./assets/quick-start.en.svg" alt="agent-project-ops quick start" width="100%" />
-</p>
+That bootstrap is once per project; each later task repeats the daily path in [§9](#9-daily-phase-workflow) (Issue or Phase, Freeze, worktree, PR and CI, evidence, disposer decision).
 
 ---
 
@@ -178,10 +176,6 @@ Key files:
 - repo-specific adapter files — Claude, Cursor, Copilot, Continue, Aider, etc. converge toward the same durable rules.
 
 The project pins a real methodology SHA. It does not silently float with methodology `main`.
-
-<p align="center">
-  <img src="./assets/repository-structure.en.svg" alt="Repository structure and control plane" width="100%" />
-</p>
 
 ---
 

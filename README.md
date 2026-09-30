@@ -3,10 +3,6 @@
 </p>
 
 <p align="center">
-  <img src="./docs/assets/readme-hero.en.svg" alt="agent-project-ops overview" width="100%" />
-</p>
-
-<p align="center">
   <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
   <img alt="version" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
   <img alt="GitHub native" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
@@ -65,7 +61,7 @@ Run the bootstrap-project skill from agent-project-ops and initialize this proje
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --private \
@@ -79,10 +75,6 @@ Bootstrap creates durable repo bindings, pins the methodology SHA, installs the 
 **Existing repositories** are [adoption](./playbooks/adopt-existing-project.md), not this greenfield command. Step 1 is a must-fix rewrite of local `AGENTS.md` to GitHub `origin` = write authority. The inverted contract (GitLab / non-GitHub Issues host as production SoT; GitHub as “mirror only”) fail-closes before PIN binding is complete.
 
 > GitHub Free + **private repositories** cannot provide the branch protection required for B/A, so bootstrap correctly reports **Capability C**. Record C on Command Center and continue. Do not treat C as init failure. Do not require Pro to finish init. Never claim B/A. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate when available.
-
-<p align="center">
-  <img src="./docs/assets/how-it-works.en.svg" alt="How agent-project-ops works" width="100%" />
-</p>
 
 ## What changes after bootstrap?
 
@@ -108,7 +100,7 @@ your-project/
 
 A fresh compatible Agent should be able to recover authority, rules, control-plane pointers, and the handoff path from durable state rather than the original bootstrap chat.
 
-See [Getting Started](./docs/GETTING_STARTED.md#what-bootstrap-writes) for the full structure and takeover procedure.
+See [Getting Started](./docs/GETTING_STARTED.md#4-what-bootstrap-writes) for the full structure and takeover procedure.
 
 ## Daily operating model
 
@@ -140,13 +132,13 @@ Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verifi
 | --- | --- |
 | Bootstrap contract | ✅ PASS |
 | Real private/public bootstrap smoke | ✅ PASS |
-| `git push --no-verify origin main` rejected server-side | ✅ PASS |
+| `git push --no-verify origin main` rejected server-side on the public/protected smoke (G3); GitHub Free private is Capability C and has no server default-branch gate ([ADR 0004](./docs/adr/0004-free-private-capability-c.md)) | ✅ PASS |
 | Fresh-clone hook recovery | ✅ PASS |
 | Full self-dogfood: Command Center → Phase → implementation → evidence → disposer Accept | ✅ PASS |
 
 Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
 
-Current release: **[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)** (prefer this over the v0.1.1 tag). Since the v0.1 gates above: Fleet REGISTRY as fleet index SoT; colleague GitLab is share-export, not a projection; GitHub Free private reports Capability **C** and continues; inverted SoT in `AGENTS.md` fail-closes; Bugbot-before-merge on business repos (this methodology repo is self-dogfood exempt); **export** remote is `authority main − strip list` (ADR 0005), distinct from projection and from share-export.
+Current release: **[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)** (prefer this over the v0.1.1 tag). Since the v0.1 gates above: Fleet REGISTRY as fleet index SoT; three remote roles stay distinct — **projection** is full-tree fast-forward only, **export** is `authority main − strip list` ([ADR 0005](./docs/adr/0005-export-remote-role.md)), and **share-export** is a snapshot (colleague GitLab is export or share-export, not a projection); GitHub Free private reports Capability **C** and continues; inverted SoT in `AGENTS.md` fail-closes; Bugbot-before-merge on business repos (this methodology repo is self-dogfood exempt).
 
 ## Documentation
 

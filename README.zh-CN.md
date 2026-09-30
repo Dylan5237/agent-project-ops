@@ -3,10 +3,6 @@
 </p>
 
 <p align="center">
-  <img src="./docs/assets/readme-hero.zh-CN.svg" alt="agent-project-ops 全景" width="100%" />
-</p>
-
-<p align="center">
   <a href="./LICENSE"><img alt="许可证" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
   <img alt="版本" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
   <img alt="GitHub 控制面" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
@@ -65,7 +61,7 @@ Run the bootstrap-project skill from agent-project-ops and initialize this proje
 bash scripts/bootstrap-project.sh \
   --name my-project \
   --dir ../my-project \
-  --github OWNER/my-project \
+  --github-repo OWNER/my-project \
   --disposer @OWNER \
   --no-projection \
   --private \
@@ -79,10 +75,6 @@ bash scripts/bootstrap-project.sh \
 **已有仓库**走 [adoption](./playbooks/adopt-existing-project.md)，不是上面这条 greenfield 命令。第一步必须改写本地 `AGENTS.md`：GitHub `origin` = 写权威。反置合同（GitLab / 非 GitHub Issues 宿主写成生产 SoT，GitHub 降为「仅镜像」）在 PIN 绑定完成前 fail closed。
 
 > GitHub Free + **私有仓库** 无法提供 B/A 所需的服务端分支保护，因此会被正确报告为 **Capability C**。把 C 写入 Command Center 后继续。不要把 C 当成初始化失败，也不要为了完成初始化去买 Pro。不得把 C 说成 B/A。客户端 hook 可被 `--no-verify` 绕过；有服务端保护时，它才是真正的硬门槛。
-
-<p align="center">
-  <img src="./docs/assets/how-it-works.zh-CN.svg" alt="agent-project-ops 运行原理" width="100%" />
-</p>
 
 ## 初始化后项目发生什么变化？
 
@@ -140,13 +132,13 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 | --- | --- |
 | Bootstrap contract | ✅ 通过 |
 | 真实 private / public 仓库初始化 smoke | ✅ 通过 |
-| `git push --no-verify origin main` 被服务端拒绝 | ✅ 通过 |
+| `git push --no-verify origin main` 在公开且受保护的 smoke（G3）上被服务端拒绝；GitHub Free 私有仓是 Capability C，没有服务端默认分支门禁（[ADR 0004](./docs/adr/0004-free-private-capability-c.md)） | ✅ 通过 |
 | Fresh clone hook 恢复 | ✅ 通过 |
 | 完整 self-dogfood：Command Center → Phase → 实现 → 证据 → disposer Accept | ✅ 通过 |
 
 可复验证据：[docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
 
-当前发布：**[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)**（优先用它，不要停在 v0.1.1 tag）。相对上面的 v0.1 门禁，之后已落地：Fleet REGISTRY 作为舰队索引 SoT；同事 GitLab 是 share-export 而不是 projection；GitHub Free 私有仓报告 Capability **C** 并继续；`AGENTS.md` 写反 SoT 时 fail closed；业务仓合入前走 Bugbot（本方法论仓 self-dogfood 豁免）；**export** 远端 = `权威 main − 剥离清单`（ADR 0005），与 projection、share-export 分开。
+当前发布：**[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)**（优先用它，不要停在 v0.1.1 tag）。相对上面的 v0.1 门禁，之后已落地：Fleet REGISTRY 作为舰队索引 SoT；三种远端角色保持分开——**projection** 只做全树快进，**export** 是 `权威 main − 剥离清单`（[ADR 0005](./docs/adr/0005-export-remote-role.md)），**share-export** 是快照（同事 GitLab 是 export 或 share-export，不是 projection）；GitHub Free 私有仓报告 Capability **C** 并继续；`AGENTS.md` 写反 SoT 时 fail closed；业务仓合入前走 Bugbot（本方法论仓 self-dogfood 豁免）。
 
 ## 文档导航
 
@@ -162,6 +154,19 @@ Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到�
 | [docs/evidence/](./docs/evidence/) | 可复验验收证据 |
 | [templates/](./templates/) | 绑定 / Issue / PR 模板 |
 | [tests/](./tests/) | 约束与 bootstrap contract |
+
+### 技能（Agent 入口）
+
+| 技能 | 路径 |
+| --- | --- |
+| GitHub 多 Agent 项目治理 | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
+| Git worktree 与分支 | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
+| Git 写权威与 projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
+| 仓库对账与清理 | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
+| Issue、PR 与证据 | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
+| Bootstrap 项目 | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) — 仅 greenfield；已有仓库 → [adopt-existing-project](./playbooks/adopt-existing-project.md) |
+| Export 远端 | [skills/export-remote/SKILL.md](./skills/export-remote/SKILL.md) |
+| Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
 
 ## 设计边界
 
