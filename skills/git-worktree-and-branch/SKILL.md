@@ -40,7 +40,8 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 
 1. `git remote -v` → expect `origin` for this workflow. If a **projection** (or any non-origin) remote is configured, follow [git-authority-and-projection](../git-authority-and-projection/SKILL.md) and its playbook **before any non-origin push**. If that host is colleague share, follow [export-remote](../export-remote/SKILL.md) or [share-export](../share-export/SKILL.md) instead of projecting.
 2. Implementation requires Phase **Freeze ACK**. Else stop.
-3. Add worktree from the **current authority tip** (usually `origin/main`, or the Command Center–named transitional branch), not from a dirty unrelated branch. Keep the primary checkout clean for sync.
+3. Resolve the task base from a frozen task decision or recorded project rule. If none is recorded, inspect the verified GitHub `origin` default branch; if multiple valid choices remain, request a user decision with the host's native choice tool, or ask in plain language. In headless mode pass `--base-ref origin/BRANCH` explicitly. Never guess a branch or use another remote. Use `scripts/new-worktree.sh ISSUE OWNER SLUG KIND --base-ref origin/BRANCH` for an explicit choice. Record any task override on its Issue.
+   Keep the primary checkout clean for sync.
 4. Comment path + branch on the Issue.
 5. `git push -u origin HEAD`. Open PR to default branch. Never push topic branches to projection.
 6. After merge/abandon: `git worktree remove …` and delete remote topic branch on authority. Next task bases on the new authority tip.
