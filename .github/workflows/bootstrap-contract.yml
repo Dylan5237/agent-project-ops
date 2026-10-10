@@ -19,6 +19,8 @@ on:
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
+      - 'tests/new-worktree-base.sh'
+      - 'scripts/new-worktree.sh'
       - 'tests/inverted-sot.sh'
       - '.github/workflows/bootstrap-contract.yml'
   push:
@@ -40,6 +42,8 @@ on:
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
+      - 'tests/new-worktree-base.sh'
+      - 'scripts/new-worktree.sh'
       - 'tests/inverted-sot.sh'
       - '.github/workflows/bootstrap-contract.yml'
 
@@ -55,6 +59,8 @@ jobs:
         run: |
           bash -n scripts/bootstrap-project.sh
           bash -n tests/bootstrap-local.sh
+          bash -n tests/new-worktree-base.sh
+          bash -n scripts/new-worktree.sh
           bash -n tests/inverted-sot.sh
           bash -n scripts/share-export.sh
           bash -n scripts/export-sync.sh
@@ -71,3 +77,5 @@ jobs:
             --yes
       - name: Local scaffold and fresh-clone contract
         run: bash tests/bootstrap-local.sh
+      - name: Worktree base selection contract
+        run: bash tests/new-worktree-base.sh
