@@ -101,5 +101,3 @@ If Agent and disposer use the same GitHub identity, GitHub cannot distinguish hu
 - Relevant project skills: `.agents/skills/*/SKILL.md`
 - Projection operations require `git-authority-and-projection` before non-origin push.
 - Colleague GitLab requires `export-remote` (ADR 0005) or `share-export` (ADR 0003); never full-tree mirror of ops bindings; never a second write authority.
-- Fleet index SoT: `Dylan5237/agent-project-ops` `fleet/REGISTRY.md` (box path is a mirror).
-- After this issue exists, **Register to Fleet REGISTRY** once: upsert `owner/repo` + this Command Center number and confirm the box mirror. Fail closed if skipped. Do not repeat on later §1 rewrites.
