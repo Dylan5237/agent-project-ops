@@ -46,7 +46,7 @@ A missing client hook is **not** permission to push `main`. The hook is bypassab
 ## Starting work
 
 - No Command Center / first project setup: `.agent-project-ops/playbooks/start-project.md`
-- New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook.
+- New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook. Resolve the base from project config or verified origin default; if ambiguous, ask with the Agent host's native choice tool, use plain conversation as fallback, and require `--base` in headless mode. Persist a project default only after explicit user choice and a normal PR.
 - Multiple remotes / same-history mirror / divergence: load `git-authority-and-projection` before any non-`origin` push.
 - Colleague GitLab / business-files-only share: load `export-remote` or `share-export`; do not register that host as projection.
 - Cannot verify an invariant or remote state: fail closed and record `BLOCKED:` on the active Issue.

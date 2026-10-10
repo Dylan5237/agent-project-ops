@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "$0")/.." && pwd)"
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+fail() { echo "FAIL: $*" >&2; exit 1; }
+
+git init --bare -q --initial-branch=main "$tmp/origin.git"
+git clone -q "$tmp/origin.git" "$tmp/seed" 2>/dev/null
+git -C "$tmp/seed" config user.name tester
+git -C "$tmp/seed" config user.email tester@local.invalid
+git -C "$tmp/seed" commit -q --allow-empty -m seed
+git -C "$tmp/seed" push -q origin main
+git -C "$tmp/seed" checkout -qb develop
+git -C "$tmp/seed" commit -q --allow-empty -m develop
+git -C "$tmp/seed" push -q origin develop
+git clone -q "$tmp/origin.git" "$tmp/project"
+
+(
+  cd "$tmp/project"
+  bash "$root/scripts/new-worktree.sh" 101 agent first feat > "$tmp/default"
+  main_sha="$(git rev-parse refs/remotes/origin/main)"
+  [[ "$(git -C .worktrees/101-agent-first rev-parse HEAD)" == "$main_sha" ]] || fail "default origin HEAD base"
+
+  bash "$root/scripts/new-worktree.sh" 102 agent second fix --base origin/develop --save-base > "$tmp/explicit"
+  develop_sha="$(git rev-parse refs/remotes/origin/develop)"
+  [[ "$(git -C .worktrees/102-agent-second rev-parse HEAD)" == "$develop_sha" ]] || fail "explicit origin/develop base"
+  grep -Fxq 'task_base=origin/develop' .worktrees/102-agent-second/.agent-project-ops/project-config || fail "missing saved config"
+  [[ ! -e .agent-project-ops/project-config ]] || fail "primary checkout changed"
+
+  if bash "$root/scripts/new-worktree.sh" 103 agent third feat --base origin/missing > "$tmp/missing" 2>&1; then fail "missing ref accepted"; fi
+  [[ ! -e .worktrees/103-agent-third ]] || fail "created from missing ref"
+
+  mkdir -p .agent-project-ops
+  printf 'task_base=origin/develop\n' > .agent-project-ops/project-config
+  bash "$root/scripts/new-worktree.sh" 104 agent fourth docs > "$tmp/configured"
+  [[ "$(git -C .worktrees/104-agent-fourth rev-parse HEAD)" == "$develop_sha" ]] || fail "project default not honored"
+
+  if bash "$root/scripts/new-worktree.sh" 105 ../evil fifth feat > "$tmp/traversal" 2>&1; then fail "unsafe slot accepted"; fi
+  if bash "$root/scripts/new-worktree.sh" 106 agent sixth feat --base projection/main > "$tmp/foreign" 2>&1; then fail "non-origin base accepted"; fi
+
+  rm .agent-project-ops/project-config
+  git remote set-head origin develop
+  if bash "$root/scripts/new-worktree.sh" 107 agent seventh feat > "$tmp/stale" 2>&1; then fail "stale origin/HEAD accepted"; fi
+  [[ ! -e .worktrees/107-agent-seventh ]] || fail "created despite HEAD conflict"
+)
+echo 'PASS: remote default, explicit/project base, missing refs, unsafe input and stale HEAD'
