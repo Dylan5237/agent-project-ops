@@ -1,0 +1,37 @@
+name: bootstrap-config-contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'skills/bootstrap-project/**'
+      - 'templates/ISSUE_TEMPLATE/command-center.md'
+      - 'templates/AGENTS.md'
+      - 'templates/github/copilot-instructions.md'
+      - 'templates/cursor-rules/agent-project-ops.mdc'
+      - 'tests/bootstrap-default-config.sh'
+      - '.github/workflows/bootstrap-config-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'templates/**'
+      - 'tests/bootstrap-default-config.sh'
+      - '.github/workflows/bootstrap-config-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bash syntax
+        run: |
+          bash -n scripts/bootstrap-project.sh
+          bash -n tests/bootstrap-default-config.sh
+      - name: Bootstrap configuration and real provenance
+        run: bash tests/bootstrap-default-config.sh

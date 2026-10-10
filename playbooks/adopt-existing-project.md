@@ -18,7 +18,7 @@ Export / share-export ≠ projection. Colleague GitLab is [export-remote.md](./e
 
 ## When
 
-- A business repo already exists and should become fleet-governed.
+- A business repo already exists and should adopt repository-local APO governance.
 - Local `AGENTS.md` (or Claude / Cursor / Copilot adapters) still says GitLab (or another non-GitHub Issues host) is production / write SoT and GitHub is “mirror only”.
 - Tempted to run `scripts/bootstrap-project.sh` on a non-empty directory (that script **refuses**; it is greenfield-only).
 
@@ -78,7 +78,7 @@ Only after step 1 is clean:
 
 ### 3. Control plane / 控制面
 
-Follow [start-project.md](./start-project.md): labels, Command Center, honest A/B/C protection, Fleet `REGISTRY.md` upsert, first Phase. No product implementation before that Phase has `FREEZE ACK`.
+Follow [start-project.md](./start-project.md): labels, Command Center, honest A/B/C protection, and the first Phase. No product implementation before that Phase has `FREEZE ACK`.
 
 Do not claim adoption complete because the PIN file exists while `AGENTS.md` still inverts authority.
 
@@ -90,7 +90,7 @@ Do not claim adoption complete because the PIN file exists while `AGENTS.md` sti
 - [ ] If deploys still read a projection tip, `AGENTS.md` names **write authority tip** vs **deploy/manifest tip** and does not call the latter write SoT.
 - [ ] Colleague share-export GitLab is **not** registered as projection.
 - [ ] `.agent-project-ops/PIN` has a real SHA written **after** the contract rewrite.
-- [ ] Command Center + Fleet REGISTRY path in [start-project.md](./start-project.md) is in progress or done.
+- [ ] Command Center and first Phase in [start-project.md](./start-project.md) are in progress or done.
 - [ ] No Phase has been self-Accepted by the adopting Agent.
 
 ## Anti-patterns

@@ -28,10 +28,11 @@ If a **projection** (same-history mirror) remote exists, this playbook still gov
 
    ```bash
    git fetch origin
-   git merge --ff-only origin/main   # only on a throwaway sync; topic branches rebase/merge per Command Center
+   # Resolve the project's actual GitHub default / approved task base first.
+   # Only fast-forward a disposable sync checkout to that verified origin ref.
    ```
 
-   Prefer: create branches from the **current authority tip** (usually `origin/main`, or the Command Center–named transitional branch until it merges), not from a dirty local `main`.
+   Prefer: create task worktrees from their **approved origin base** (remote default or explicitly configured development branch), not from an unrelated dirty checkout or projection. See `git-worktree.md`.
 4. **Name the branch:** `{type}/{issue}-{slug}` where `type` is one of:
    - `feat` — new behavior
    - `fix` — defect

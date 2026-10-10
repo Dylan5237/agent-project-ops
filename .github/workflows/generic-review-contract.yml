@@ -1,0 +1,35 @@
+name: generic-review-contract
+
+on:
+  pull_request:
+    paths:
+      - 'skills/github-multi-agent-project-ops/**'
+      - 'skills/issues-prs-and-evidence/**'
+      - 'playbooks/issues-and-prs.md'
+      - 'playbooks/phase-lifecycle.md'
+      - 'templates/PULL_REQUEST_TEMPLATE/**'
+      - 'docs/GETTING_STARTED*.md'
+      - 'tests/no-bugbot-contract.sh'
+      - '.github/workflows/generic-review-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/github-multi-agent-project-ops/**'
+      - 'skills/issues-prs-and-evidence/**'
+      - 'playbooks/issues-and-prs.md'
+      - 'playbooks/phase-lifecycle.md'
+      - 'templates/PULL_REQUEST_TEMPLATE/**'
+      - 'docs/GETTING_STARTED*.md'
+      - 'tests/no-bugbot-contract.sh'
+      - '.github/workflows/generic-review-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No mandatory vendor-specific review tool
+        run: bash tests/no-bugbot-contract.sh

@@ -20,6 +20,8 @@ on:
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
       - 'tests/inverted-sot.sh'
+      - 'tests/no-fleet-contract.sh'
+      - 'skills/github-multi-agent-project-ops/**'
       - '.github/workflows/bootstrap-contract.yml'
   push:
     branches: [main]
@@ -41,6 +43,8 @@ on:
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
       - 'tests/inverted-sot.sh'
+      - 'tests/no-fleet-contract.sh'
+      - 'skills/github-multi-agent-project-ops/**'
       - '.github/workflows/bootstrap-contract.yml'
 
 permissions:
@@ -56,6 +60,7 @@ jobs:
           bash -n scripts/bootstrap-project.sh
           bash -n tests/bootstrap-local.sh
           bash -n tests/inverted-sot.sh
+          bash -n tests/no-fleet-contract.sh
           bash -n scripts/share-export.sh
           bash -n scripts/export-sync.sh
       - name: Inverted-SoT wording contract
@@ -69,5 +74,7 @@ jobs:
             --no-projection \
             --skip-github \
             --yes
+      - name: Generic bootstrap without personal Fleet
+        run: bash tests/no-fleet-contract.sh
       - name: Local scaffold and fresh-clone contract
         run: bash tests/bootstrap-local.sh
