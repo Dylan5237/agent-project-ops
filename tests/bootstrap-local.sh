@@ -48,6 +48,25 @@ pass 'wrapper rendering does not execute Markdown/backticks'
 [[ -d "${dest}/.worktrees" ]] || fail '.worktrees local directory missing'
 pass 'binding/scaffold files exist'
 
+# Generated external projects must not inherit methodology-repo self-dogfood Fleet rules.
+generic_files=(
+  AGENTS.md
+  .agent-project-ops/skills/bootstrap-project/SKILL.md
+  .agent-project-ops/skills/github-multi-agent-project-ops/SKILL.md
+  .agent-project-ops/playbooks/bootstrap-project.md
+  .agent-project-ops/playbooks/start-project.md
+  .agent-project-ops/playbooks/adopt-existing-project.md
+  .github/ISSUE_TEMPLATE/command-center.md
+)
+generic_fleet_bad='Register to Fleet REGISTRY|Fleet morning digest|fleet-morning-digest|Dylan5237/agent-project-ops.*fleet/REGISTRY|已纳入舰队晨报扫描|Fleet REGISTRY'
+for rel in "${generic_files[@]}"; do
+  [[ -f "${dest}/${rel}" ]] || fail "missing external project contract: ${rel}"
+  if grep -Ein "${generic_fleet_bad}" "${dest}/${rel}"; then
+    fail "external project unexpectedly requires author's Fleet: ${rel}"
+  fi
+done
+pass 'generated external project has no personal Fleet registration prerequisite'
+
 hook_eol="$(git -C "${dest}" check-attr eol -- .githooks/pre-push)"
 install_eol="$(git -C "${dest}" check-attr eol -- .agent-project-ops/scripts/install-hooks.sh)"
 [[ "${hook_eol}" == *'eol: lf' ]] || fail "generated hook is not pinned to LF: ${hook_eol}"
