@@ -24,15 +24,15 @@ Isolate each in-flight task in its own worktree so Agents do not clobber each ot
    - `slug`: kebab-case, ≤ 40 chars, from the issue title.
 2. **Path:** `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`  
    Example: `~/src/app/.worktrees/42-agent-add-healthcheck`
-3. **Base = current authority tip.** Fetch `origin`. Create the worktree from the tip Command Center treats as SoT — usually `origin/main`, or a **named transitional branch** until that branch merges to the default branch. Do not start from a stale local `main` or from projection.
+3. **Choose a verified task base.** Prefer the task's explicitly approved base ref, then a persisted project choice, then the verified `origin/HEAD` default. If sources conflict, show the valid options in the host's native choice UI (fall back to conversation); in headless/CI mode require `--base-ref origin/BRANCH`. Persist project defaults in the authorized project control-plane record and task exceptions on that task's Issue. Never use another remote, guess from a local `main`, or silently update a frozen contract.
 4. **Create** (helper): from the **primary clone** (keep that checkout on the default branch and **clean**, for fetch/sync only — no long-lived feature work there),
 
    ```bash
    # optional
-   scripts/new-worktree.sh 42 agent add-healthcheck feat
+   scripts/new-worktree.sh 42 agent add-healthcheck feat --base-ref origin/develop
    # or:
    git fetch origin
-   git worktree add -b feat/42-add-healthcheck .worktrees/42-agent-add-healthcheck origin/main
+   git worktree add -b feat/42-add-healthcheck .worktrees/42-agent-add-healthcheck origin/<verified-base-branch>
    # if Command Center names a transitional tip instead of main:
    # git worktree add -b feat/42-add-healthcheck .worktrees/42-agent-add-healthcheck origin/<authority-tip-branch>
    ```
