@@ -12,7 +12,7 @@ scan_inverted_sot() {
   local target="$1"
   [[ -f "${INVERTED_SOT_SCANNER}" ]] || die "inverted-SoT scanner missing: ${INVERTED_SOT_SCANNER}"
   command -v python3 >/dev/null || die "python3 is required for the inverted-SoT scan"
-  python3 "${INVERTED_SOT_SCANNER}" --root "${target}"
+  PYTHONDONTWRITEBYTECODE=1 python3 "${INVERTED_SOT_SCANNER}" --root "${target}"
 }
 
 refuse_existing_destination() {
@@ -197,10 +197,6 @@ if [[ "${dry_run}" -eq 1 ]]; then
 fi
 
 command -v git >/dev/null || die "git is required"
-# The PIN records HEAD, while the snapshot below copies working-tree bytes.
-# Fail before creating a target when those bytes may not match the pinned SHA.
-methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all)"
-[[ -z "${methodology_dirty}" ]] || die "methodology checkout has uncommitted or untracked files: snapshot would not match PIN SHA. Commit or clean the source checkout first."
 if [[ "${skip_github}" -eq 0 ]]; then
   command -v gh >/dev/null || die "gh is required unless --skip-github"
   gh auth status >/dev/null 2>&1 || die "gh is not authenticated"
@@ -209,6 +205,11 @@ fi
 if [[ -e "${dest}" && -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
   refuse_existing_destination "${dest}"
 fi
+
+# PIN identifies committed HEAD, but the snapshot copies working-tree files.
+# Ignore interpreter bytecode caches (never ship them); reject real source drift.
+methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all -- PRINCIPLES.md LICENSE playbooks skills templates scripts | grep -Ev '(/__pycache__/|\.pyc$)' || true)"
+[[ -z "${methodology_dirty}" ]] || die "methodology checkout has uncommitted or untracked source files: snapshot would not match PIN SHA. Commit or clean the source checkout first."
 
 mkdir -p "${dest}"
 cd "${dest}"
@@ -240,6 +241,10 @@ cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/export-strip-list.sh" .agent-project-ops/scripts/lib/export-strip-list.sh
+# Remove transient Python bytecode that may have been produced by prior tests.
+# Only touch the new snapshot; never delete files from the method checkout.
+find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
+find .agent-project-ops -type f -name '*.pyc' -delete
 chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
