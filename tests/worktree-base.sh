@@ -73,9 +73,9 @@ git --git-dir="$tmp/origin.git" symbolic-ref HEAD refs/heads/default-not-present
   [[ -z "$(git ls-remote --symref origin HEAD)" ]] || fail "fixture unexpectedly advertises a valid remote HEAD"
   git fetch -q origin || fail "fixture origin cannot fetch available branches"
   candidates="$(git for-each-ref --format='%(refname:short)' refs/remotes/origin)"
-  [[ "$(printf '%s\\n' "$candidates" | grep -c '^origin/' || true)" -ge 2 ]] || fail "fixture needs at least two origin branch candidates"
-  printf '%s\\n' "$candidates" | grep -Fxq 'origin/main' || fail "fixture missing origin/main"
-  printf '%s\\n' "$candidates" | grep -Fxq 'origin/develop' || fail "fixture missing origin/develop"
+  [[ "$(printf '%s\n' "$candidates" | grep -c '^origin/' || true)" -ge 2 ]] || fail "fixture needs at least two origin branch candidates"
+  printf '%s\n' "$candidates" | grep -Fxq 'origin/main' || fail "fixture missing origin/main"
+  printf '%s\n' "$candidates" | grep -Fxq 'origin/develop' || fail "fixture missing origin/develop"
 
   if bash "$root/scripts/new-worktree.sh" 301 agent unresolved feat > "$tmp/ambiguous.log" 2>&1; then
     fail "unverifiable remote HEAD with multiple branches was accepted"
