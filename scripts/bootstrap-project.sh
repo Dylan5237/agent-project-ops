@@ -197,6 +197,10 @@ if [[ "${dry_run}" -eq 1 ]]; then
 fi
 
 command -v git >/dev/null || die "git is required"
+# The PIN records HEAD, while the snapshot below copies working-tree bytes.
+# Fail before creating a target when those bytes may not match the pinned SHA.
+methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all)"
+[[ -z "${methodology_dirty}" ]] || die "methodology checkout has uncommitted or untracked files: snapshot would not match PIN SHA. Commit or clean the source checkout first."
 if [[ "${skip_github}" -eq 0 ]]; then
   command -v gh >/dev/null || die "gh is required unless --skip-github"
   gh auth status >/dev/null 2>&1 || die "gh is not authenticated"
