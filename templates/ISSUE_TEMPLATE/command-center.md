@@ -21,7 +21,7 @@ Updated: YYYY-MM-DD. Chat ≠ State.
 
 ## 目的 / Purpose
 
-Canonical **control plane** for this business repository. Chat is not state. Methodology: https://github.com/Dylan5237/agent-project-ops (`PRINCIPLES.md` v0.1.2).
+Canonical **control plane** for this business repository. Chat is not state. Methodology: {{METHODOLOGY_URL}} (PIN {{METHODOLOGY_SHA}}, ref {{METHODOLOGY_REF}}).
 
 ## Methodology binding
 
@@ -53,7 +53,7 @@ Canonical **control plane** for this business repository. Chat is not state. Met
 
 ## Git authority / remotes
 
-- Default branch: `main`
+- Default branch: (read from the real GitHub repository; do not assume `main` for adopted projects)
 - Authority remote: `origin`
 - Projection remote(s): `(none)` or names — **same-history** FF mirror only
 - Export remote(s): `(none)` or names — **export** = `authority − strip list`; not a second write authority; not on the auto-push whitelist

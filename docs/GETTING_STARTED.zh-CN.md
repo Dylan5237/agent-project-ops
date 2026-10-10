@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### 可选的 projection 与同事 export / share-export
+### 高级用法：显式配置的 projection 或过滤导出
 
-**projection** 远端是 GitHub 的**同历史**快进镜像（含完整 ops）。只有 Command Center 把该宿主登记为 projection 时才添加 —— **不要**把同事 GitLab 填到这里。
+Bootstrap 默认只配置 **origin**，不会在每次初始化时询问第二远端。**projection** 是 GitHub 的**同历史**快进镜像（含完整 ops），仅在用户明确提出、且 Command Center 登记其身份后添加；不要把同事 GitLab 当作 projection。
 
 ```bash
 bash scripts/bootstrap-project.sh \
