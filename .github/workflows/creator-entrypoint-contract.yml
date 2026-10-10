@@ -1,0 +1,36 @@
+name: creator-entrypoint-contract
+
+on:
+  pull_request:
+    paths:
+      - 'skills/apo-project-assistant/**'
+      - 'docs/USER_JOURNEYS*'
+      - 'README.md'
+      - 'README.zh-CN.md'
+      - 'tests/creator-entrypoint.sh'
+      - '.github/workflows/creator-entrypoint-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/apo-project-assistant/**'
+      - 'docs/USER_JOURNEYS*'
+      - 'README.md'
+      - 'README.zh-CN.md'
+      - 'tests/creator-entrypoint.sh'
+      - '.github/workflows/creator-entrypoint-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: bash -n tests/creator-entrypoint.sh
+      - name: Creator entrypoint structure
+        run: bash tests/creator-entrypoint.sh
+      - name: Bootstrap generates a discoverable wrapper
+        run: |
+          bash tests/bootstrap-local.sh

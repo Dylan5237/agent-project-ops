@@ -18,6 +18,7 @@
 
 <p align="center">
   <a href="./docs/GETTING_STARTED.zh-CN.md"><strong>快速上手</strong></a> ·
+  <a href="./docs/USER_JOURNEYS.zh-CN.md">自然语言使用 APO</a> ·
   <a href="./PRINCIPLES.md">核心原则</a> ·
   <a href="./playbooks/">运行手册</a> ·
   <a href="./skills/">技能入口</a> ·
@@ -52,7 +53,7 @@
 ### 推荐方式：直接告诉兼容 Agent 你的目标
 
 ```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+用 APO 管理这个项目。（让 Agent 使用 apo-project-assistant Skill）
 ```
 
 ### 或直接执行初始化脚本

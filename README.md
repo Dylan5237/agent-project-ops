@@ -18,6 +18,7 @@
 
 <p align="center">
   <a href="./docs/GETTING_STARTED.md"><strong>Getting Started</strong></a> ·
+  <a href="./docs/USER_JOURNEYS.md">Use APO in natural language</a> ·
   <a href="./PRINCIPLES.md">Principles</a> ·
   <a href="./playbooks/">Playbooks</a> ·
   <a href="./skills/">Skills</a> ·
@@ -52,7 +53,7 @@ The core rules are intentionally small:
 ### Recommended: tell a compatible Agent what you want
 
 ```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+Run the apo-project-assistant skill and use APO to manage this project.
 ```
 
 ### Or run the bootstrap directly
