@@ -32,7 +32,7 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 3. One Phase = one core problem. No Freeze ACK → no `feat/` / `fix/` branch.
 4. Dispatch: Issue comment with owner, worktree, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
 5. Implement in one worktree / one PR. Verify with **separate** evidence.
-6. Before asking the disposer to merge / review-for-merge: PR comment whose body is exactly `bugbot run` (default one wake per PR; another allowed after substantial new commits once Bugbot finished). Tell the disposer to wait for Bugbot. Chat is not a substitute. Do not nudge merge while Bugbot is pending. Bugbot pass ≠ `PHASE ACCEPT`. Exception: `Dylan5237/agent-project-ops` self-dogfood may skip `bugbot run` and need not wait for Bugbot before merge-ask; business / other fleet repos still follow the full gate.
+6. Before requesting merge/review, confirm applicable CI and project review requirements have been checked. Tool-specific reviews are not a mandatory APO dependency. Do not treat passing checks as `PHASE ACCEPT`.
 7. Propose PASS with evidence table. Wait for `PHASE ACCEPT`.
 8. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
 
@@ -70,4 +70,4 @@ Playbook copies: [phase-lifecycle.md](../../playbooks/phase-lifecycle.md), [staf
 - Copy business SOP into the methodology repository.
 - Self-label a Phase `status:done` without disposer Accept.
 - Ask the human to “remember to update CC §1” as the primary path.
-- Ask the disposer to merge before the `bugbot run` PR comment, or treat Bugbot pass as Accept.
+- Treating any reviewer/bot success as `PHASE ACCEPT`.
