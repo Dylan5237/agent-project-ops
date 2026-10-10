@@ -23,6 +23,7 @@ Canonical **source of truth** for the fleet index. Morning digest **only** scans
 | architecture-expert | Dylan5237/architecture-expert | #29 | 真 Command Center；#12 是 STAGE 5 不是 CC；晨报扫描 #29 §1 |
 | 业务域知识库 | Dylan5237/domain-knowledge | #1 | Phase #2 backlog，待 Freeze；私有仓库 Capability C |
 | 跨宿主 Agent Skills 治理 | Dylan5237/skills-governance | #1 | 外围治理+SM原版；Grok Bot: Skills治理项目经理 |
+| AI应用广场 | Dylan5237/ai-app-plaza | #1 | 桌面交互原型；Phase #2 backlog，待 Freeze；私有仓库 Capability C；Fleet 镜像待核验 |
 
 ## 晨报读法（强制）
 
