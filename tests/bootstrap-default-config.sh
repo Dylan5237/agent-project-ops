@@ -27,6 +27,6 @@ grep -Fxq 'projection=projection' "$tmp/mirror/.agent-project-ops/remotes" || fa
 grep -Fxq 'projection_url=git@internal.example:team/repo.git' "$tmp/mirror/.agent-project-ops/remotes" || fail 'projection URL missing'
 
 if grep -Fq 'Methodology: https://github.com/Dylan5237/agent-project-ops' "$tmp/custom/.github/ISSUE_TEMPLATE/command-center.md"; then
-  fail 'CC still hardcodes author's methodology'
+  fail "CC still hardcodes the author\x27s methodology"
 fi
 echo 'PASS: origin-only default, optional projection and PIN-derived CC provenance'
