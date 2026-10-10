@@ -36,6 +36,9 @@ git clone -q "$tmp/origin.git" "$tmp/project"
   bash "$root/scripts/new-worktree.sh" 104 agent fourth docs > "$tmp/configured"
   [[ "$(git -C .worktrees/104-agent-fourth rev-parse HEAD)" == "$develop_sha" ]] || fail "project default not honored"
 
+  bash "$root/scripts/new-worktree.sh" 108 agent override feat --base origin/main > "$tmp/override"
+  [[ "$(git -C .worktrees/108-agent-override rev-parse HEAD)" == "$main_sha" ]] || fail "explicit override did not outrank project base"
+
   if bash "$root/scripts/new-worktree.sh" 105 ../evil fifth feat > "$tmp/traversal" 2>&1; then fail "unsafe slot accepted"; fi
   if bash "$root/scripts/new-worktree.sh" 106 agent sixth feat --base projection/main > "$tmp/foreign" 2>&1; then fail "non-origin base accepted"; fi
 
@@ -44,4 +47,18 @@ git clone -q "$tmp/origin.git" "$tmp/project"
   if bash "$root/scripts/new-worktree.sh" 107 agent seventh feat > "$tmp/stale" 2>&1; then fail "stale origin/HEAD accepted"; fi
   [[ ! -e .worktrees/107-agent-seventh ]] || fail "created despite HEAD conflict"
 )
-echo 'PASS: remote default, explicit/project base, missing refs, unsafe input and stale HEAD'
+
+# A non-main default branch must work without a hard-coded origin/main.
+git init --bare -q --initial-branch=master "$tmp/master-origin.git"
+git clone -q "$tmp/master-origin.git" "$tmp/master-seed" 2>/dev/null
+git -C "$tmp/master-seed" config user.name tester
+git -C "$tmp/master-seed" config user.email tester@local.invalid
+git -C "$tmp/master-seed" commit -q --allow-empty -m masterseed
+git -C "$tmp/master-seed" push -q origin master
+git clone -q "$tmp/master-origin.git" "$tmp/master-project"
+(
+  cd "$tmp/master-project"
+  bash "$root/scripts/new-worktree.sh" 201 agent master-task fix > "$tmp/master.log"
+  [[ "$(git -C .worktrees/201-agent-master-task rev-parse HEAD)" == "$(git rev-parse refs/remotes/origin/master)" ]] || fail "master default ignored"
+)
+echo 'PASS: main/master defaults, develop/explicit choices, invalid refs and unsafe paths'
