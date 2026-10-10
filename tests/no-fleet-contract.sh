@@ -16,6 +16,15 @@ for file in "${files[@]}"; do
     exit 1
   fi
 done
+# Self-dogfood's historical Fleet pointer is intentionally retained in this
+# methodology repository; it must not leak into generic generated bindings.
+grep -Fq 'Self-dogfood Fleet index **for this methodology repository only**' "${root}/AGENTS.md"
+grep -Fq '[`fleet/REGISTRY.md`](./fleet/REGISTRY.md)' "${root}/AGENTS.md"
+grep -Fq 'not an external APO bootstrap/adoption requirement' "${root}/AGENTS.md"
+if grep -Ein "${bad}" "${root}/templates/AGENTS.md"; then
+  printf 'FAIL: personal Fleet requirement leaked into external AGENTS template\n' >&2
+  exit 1
+fi
 grep -Fq '.agent-project-ops/remotes' "${root}/playbooks/start-project.md"
 grep -Fq 'Command Center **section 1**' "${root}/skills/github-multi-agent-project-ops/SKILL.md"
 echo 'PASS: generic bootstrap contracts no longer require a personal Fleet'
