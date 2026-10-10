@@ -61,4 +61,31 @@ git clone -q "$tmp/master-origin.git" "$tmp/master-project"
   bash "$root/scripts/new-worktree.sh" 201 agent master-task fix > "$tmp/master.log"
   [[ "$(git -C .worktrees/201-agent-master-task rev-parse HEAD)" == "$(git rev-parse refs/remotes/origin/master)" ]] || fail "master default ignored"
 )
-echo 'PASS: main/master defaults, develop/explicit choices, invalid refs and unsafe paths'
+# Separate negative fixture: remote HEAD is UNVERIFIABLE although origin has
+# multiple fetchable branches. This is not the local-vs-remote HEAD conflict
+# exercised above; both local and remote default pointers are unavailable.
+git clone -q "$tmp/origin.git" "$tmp/ambiguous-project"
+git -C "$tmp/ambiguous-project" symbolic-ref --delete refs/remotes/origin/HEAD
+git --git-dir="$tmp/origin.git" symbolic-ref HEAD refs/heads/default-not-present
+(
+  cd "$tmp/ambiguous-project"
+  [[ -z "$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)" ]] || fail "fixture unexpectedly retained local origin/HEAD"
+  [[ -z "$(git ls-remote --symref origin HEAD)" ]] || fail "fixture unexpectedly advertises a valid remote HEAD"
+  git fetch -q origin || fail "fixture origin cannot fetch available branches"
+  candidates="$(git for-each-ref --format='%(refname:short)' refs/remotes/origin)"
+  [[ "$(printf '%s\\n' "$candidates" | grep -c '^origin/' || true)" -ge 2 ]] || fail "fixture needs at least two origin branch candidates"
+  printf '%s\\n' "$candidates" | grep -Fxq 'origin/main' || fail "fixture missing origin/main"
+  printf '%s\\n' "$candidates" | grep -Fxq 'origin/develop' || fail "fixture missing origin/develop"
+
+  if bash "$root/scripts/new-worktree.sh" 301 agent unresolved feat > "$tmp/ambiguous.log" 2>&1; then
+    fail "unverifiable remote HEAD with multiple branches was accepted"
+  fi
+  grep -Fq 'new-worktree: available origin refs:' "$tmp/ambiguous.log" || fail "available refs were not reported"
+  grep -Fq 'origin/main' "$tmp/ambiguous.log" || fail "output omitted main candidate"
+  grep -Fq 'origin/develop' "$tmp/ambiguous.log" || fail "output omitted develop candidate"
+  grep -Fq 'pass --base origin/BRANCH' "$tmp/ambiguous.log" || fail "output omitted explicit selection instruction"
+  [[ ! -e .worktrees/301-agent-unresolved ]] || fail "worktree created with unverifiable remote HEAD"
+  if git show-ref --verify --quiet refs/heads/feat/301-unresolved; then fail "branch created with unverifiable remote HEAD"; fi
+)
+
+echo 'PASS: main/master defaults, develop/explicit choices, invalid refs and unsafe paths; missing remote HEAD with multiple candidates fails closed'
