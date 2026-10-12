@@ -230,7 +230,8 @@ class UpgradeTests(unittest.TestCase):
         cmd(self.proj, 'config', 'core.autocrlf', 'false')
         for p in self.proj.rglob('*'):
             if p.is_file() and '.git' not in p.relative_to(self.proj).parts:
-                p.write_bytes(p.read_bytes().replace(b'\n', b'\r\n'))
+                raw = p.read_bytes().replace(b'\r\n', b'\n')
+                p.write_bytes(raw.replace(b'\n', b'\r\n'))
         self.pcommit()
         self.apply()
         self.assertIn(self.new.sha, (self.proj / '.agent-project-ops/PIN').read_text(encoding='utf-8'))
