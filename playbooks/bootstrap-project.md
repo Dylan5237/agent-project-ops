@@ -77,10 +77,8 @@ See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 2. Create labels and Command Center.
 3. Record the PIN, registered remotes, and protection capability (C is a valid recorded result; continue).
 4. Open one Phase issue.
-5. **Register to Fleet REGISTRY** (mandatory). Upsert one `owner/repo` row in `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../fleet/REGISTRY.md) via PR; confirm the box mirror `/home/box/agent-data/fleet-morning-digest/REGISTRY.md` matches; tell the disposer **「已纳入舰队晨报扫描」**. See [ADR 0002](../docs/adr/0002-canonical-fleet-index.md) and [fleet/README.md](../fleet/README.md).
-6. Freeze before creating implementation work.
+5. Freeze before creating implementation work.
 
-Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done without the Fleet REGISTRY row (git SoT) and an explicit mirror confirm or GitHub `BLOCKED:` for the mirror gap.
 
 ## Done when
 
@@ -92,7 +90,6 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - [ ] `.worktrees/` exists locally and is ignored.
 - [ ] No generated file contains credential-bearing remote URLs.
 - [ ] If GitHub was created, `origin` is the GitHub authority and protection is reported as A, B, or C (C is expected on Free private and is not a failed init).
-- [ ] **Register to Fleet REGISTRY:** `fleet/REGISTRY.md` has an idempotent `owner/repo` row (PR open or merged); box mirror confirmed or `BLOCKED:` recorded on GitHub; disposer told **「已纳入舰队晨报扫描」**.
 - [ ] No product Phase has been self-Accepted by bootstrap.
 
 ## Anti-patterns
@@ -109,6 +106,3 @@ Skipping step 5 is fail closed. The bootstrap checklist cannot be marked done wi
 - Running this greenfield script on a non-empty business tree and calling that adoption (use [adopt-existing-project.md](./adopt-existing-project.md)).
 - Writing PIN while `AGENTS.md` still inverts authority (GitLab = production SoT; GitHub = mirror only).
 - Using a projection failure as permission to retarget feature pushes.
-- Treating bootstrap as done because the business repo exists while the project is absent from `fleet/REGISTRY.md`.
-- Duplicating a Fleet REGISTRY row instead of upserting by `owner/repo`.
-- Updating only the box mirror (or only chat) and leaving git SoT stale.

@@ -24,20 +24,19 @@ Isolate each in-flight task in its own worktree so Agents do not clobber each ot
    - `slug`: kebab-case, ≤ 40 chars, from the issue title.
 2. **Path:** `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`  
    Example: `~/src/app/.worktrees/42-agent-add-healthcheck`
-3. **Base = current authority tip.** Fetch `origin`. Create the worktree from the tip Command Center treats as SoT — usually `origin/main`, or a **named transitional branch** until that branch merges to the default branch. Do not start from a stale local `main` or from projection.
+3. **Base = approved task origin ref.** Fetch `origin`. Resolve an explicit `--base`, otherwise the reviewed `.agent-project-ops/project-config` (`task_base=origin/BRANCH`), otherwise GitHub origin's verified remote default. A task may use `origin/develop` without changing the repository's default branch or write authority. If ambiguous, stop and ask rather than guessing `origin/main`.
 4. **Create** (helper): from the **primary clone** (keep that checkout on the default branch and **clean**, for fetch/sync only — no long-lived feature work there),
 
    ```bash
-   # optional
+   # Auto-detect reviewed project base or verified remote default:
    scripts/new-worktree.sh 42 agent add-healthcheck feat
-   # or:
-   git fetch origin
-   git worktree add -b feat/42-add-healthcheck .worktrees/42-agent-add-healthcheck origin/main
-   # if Command Center names a transitional tip instead of main:
-   # git worktree add -b feat/42-add-healthcheck .worktrees/42-agent-add-healthcheck origin/<authority-tip-branch>
+   # For an explicitly chosen development base:
+   scripts/new-worktree.sh 43 agent another-task feat --base origin/develop
+   # Record that choice as this project's new default on the *task branch*:
+   scripts/new-worktree.sh 44 agent third-task feat --base origin/develop --save-base
    ```
 
-5. **Bind.** Comment on the Issue: worktree absolute/relative path, branch name, HEAD sha after create.
+5. **Bind.** Comment on the Issue: worktree path, branch, selected origin base, its source, and HEAD SHA. With `--save-base`, review/commit the generated `.agent-project-ops/project-config` through the task PR. The primary checkout must remain unchanged.
 6. **Work only in that directory.** `cd` into the worktree for commits and `git push -u origin <branch>` (never to a projection remote).
 7. **End of task:** after PR merge or abandon:
 
@@ -51,7 +50,7 @@ Isolate each in-flight task in its own worktree so Agents do not clobber each ot
 ## Done when
 
 - [ ] Path matches `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`.
-- [ ] Branch in that worktree is the PR branch (not `main`); it was created from the current authority tip.
+- [ ] Branch in that worktree is the PR branch, created from the verified origin base approved for this task.
 - [ ] Primary clone is not the long-lived feature checkout.
 - [ ] Issue comment records the path.
 - [ ] Removed or parked when the PR is done.
@@ -64,3 +63,4 @@ Isolate each in-flight task in its own worktree so Agents do not clobber each ot
 - Two issues, one worktree.
 - Committing `.worktrees/` into git.
 - Creating a worktree before Freeze on an implementation task.
+- Assuming `origin/main` despite contrary project state, or silently saving a task override as a project default.

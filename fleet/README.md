@@ -1,4 +1,7 @@
-# Fleet index
+# Fleet index (legacy personal integration)
+
+> This is an existing personal fleet/digest registry, retained for historical consumers. It is **not** a requirement or feature of generic APO bootstrap/adoption. New projects must not automatically register here. See [Phase #64](https://github.com/Dylan5237/agent-project-ops/issues/64).
+
 
 Canonical fleet index for repositories that run `agent-project-ops`.
 

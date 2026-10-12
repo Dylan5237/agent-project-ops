@@ -32,7 +32,7 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 | Worktree path | `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}` |
 | Remote | `origin` only for topic pushes; extra remotes are projection (same-history) or export (`authority − strip`), never a second SoT |
 | Branch | `feat\|fix\|docs\|evidence/{issue}-{slug}` |
-| Base | current **authority tip** (usually `origin/main`) |
+| Base | approved origin task base: explicit selection, reviewed project config, or verified remote default |
 | `main` | never push; never use as a long-lived task checkout |
 | Evidence vs impl | `evidence/` branches contain no feature diff |
 
@@ -40,7 +40,7 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one worktree ≈ one task �
 
 1. `git remote -v` → expect `origin` for this workflow. If a **projection** (or any non-origin) remote is configured, follow [git-authority-and-projection](../git-authority-and-projection/SKILL.md) and its playbook **before any non-origin push**. If that host is colleague share, follow [export-remote](../export-remote/SKILL.md) or [share-export](../share-export/SKILL.md) instead of projecting.
 2. Implementation requires Phase **Freeze ACK**. Else stop.
-3. Add worktree from the **current authority tip** (usually `origin/main`, or the Command Center–named transitional branch), not from a dirty unrelated branch. Keep the primary checkout clean for sync.
+3. Determine the task base from the approved Issue/Phase, reviewed `.agent-project-ops/project-config`, or the real GitHub origin default. If ambiguous, offer *verified* `origin/*` candidates via the host's native choice tool (or ordinary conversation); in headless mode require explicit `--base origin/BRANCH`. Use `scripts/new-worktree.sh <issue> <owner> <slug> [kind] [--base origin/BRANCH] [--save-base]`. Keep the primary checkout clean.
 4. Comment path + branch on the Issue.
 5. `git push -u origin HEAD`. Open PR to default branch. Never push topic branches to projection.
 6. After merge/abandon: `git worktree remove …` and delete remote topic branch on authority. Next task bases on the new authority tip.

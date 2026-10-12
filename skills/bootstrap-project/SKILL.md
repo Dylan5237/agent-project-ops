@@ -24,7 +24,6 @@ Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post
 6. Verify `git config --get core.hooksPath` is `.githooks` in the bootstrap checkout. Remember a later clone will not inherit it; root `AGENTS.md` instructs the next Agent to run the installer.
 7. If GitHub creation is enabled, read the reported protection capability: A (code-owner review enforced), B (PR-only), or C (unprotected/unverifiable). Never upgrade the wording beyond what was verified. On GitHub Free **private** repos, C is **expected**: record C on Command Center and continue. Do not treat C as init failure or “do not start feature work.” Do not require Pro to finish init.
 8. Run `playbooks/start-project.md` next (labels, Command Center, first Phase). No `feat/` / `fix/` implementation before Freeze.
-9. **Register to Fleet REGISTRY** (mandatory; fail closed if skipped). After Command Center exists, upsert one row in `Dylan5237/agent-project-ops` [`fleet/REGISTRY.md`](../../fleet/REGISTRY.md) keyed by `owner/repo` (open or update a PR; never duplicate). Instruct/confirm the box mirror at `/home/box/agent-data/fleet-morning-digest/REGISTRY.md` is in sync with that SoT. Confirm to the disposer: **「已纳入舰队晨报扫描」**. Bootstrap is not done without this step. See [ADR 0002](../../docs/adr/0002-canonical-fleet-index.md).
 
 ## Important identity limit
 
@@ -44,5 +43,4 @@ If the local Agent and the human disposer use the **same GitHub identity**, GitH
 - Projection candidate is not current authority tip → no projection push.
 - Colleague GitLab URL used as `--projection-url` → stop; that is export / share-export, not projection.
 - Destination exists and is not empty → stop; that is [adoption](../../playbooks/adopt-existing-project.md). Inverted `AGENTS.md` SoT → fail closed (PIN not complete).
-- Fleet REGISTRY row skipped, duplicated, or left only in chat → stop; do not claim bootstrap done. Mirror unwritable → still land the git row and report `BLOCKED:` on GitHub for the mirror gap.
 - Do not use `--no-verify` as a workflow shortcut.
