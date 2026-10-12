@@ -220,10 +220,17 @@ def render(source: Source, values: dict[str, str]) -> dict[str, File]:
     return out
 
 
-def same(a: Optional[File], b: Optional[File]) -> bool:
+def same(a: Optional[File], b: Optional[File], *, legacy_filemode: bool = False) -> bool:
     if a is None or b is None:
         return a is b
-    return a.mode == b.mode and a.data.replace(b"\r\n", b"\n") == b.data.replace(b"\r\n", b"\n")
+    # Windows Git with core.filemode=false cannot reliably preserve the
+    # executable bit written by the old Bash bootstrap. Accept *only* this
+    # known 0644/0755 mode drift for owned snapshot files; content must still
+    # match byte-for-byte apart from CRLF normalization.
+    mode_matches = a.mode == b.mode or (
+        legacy_filemode and {a.mode, b.mode} == {0o644, 0o755}
+    )
+    return mode_matches and a.data.replace(b"\r\n", b"\n") == b.data.replace(b"\r\n", b"\n")
 
 
 def merge_text(local: File, old: File, new: File, name: str) -> File:
@@ -310,16 +317,21 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     old_files, new_files = render(old, values), render(new, fresh)
     changes: dict[str, tuple[Optional[File], Optional[File]]] = {}
     conflicts = []
+    # core.filemode=false is an explicit Git guarantee that executable bits
+    # cannot be trusted from the filesystem/index. This exception applies only
+    # to APO-owned snapshot paths, never arbitrary user-owned bridge files.
+    no_filemode = git(root, "config", "--bool", "--get", "core.filemode", check=False).strip() == b"false"
     for name in sorted(set(old_files) | set(new_files)):
         current, before, after = read_target(root, name), old_files.get(name), new_files.get(name)
-        if name.startswith(".agent-project-ops/") and not same(current, before):
+        mode_drift = no_filemode and name.startswith(".agent-project-ops/")
+        if name.startswith(".agent-project-ops/") and not same(current, before, legacy_filemode=mode_drift):
             conflicts.append("CUSTOM_SNAPSHOT: " + name)
             continue
-        if same(current, after):
+        if same(current, after, legacy_filemode=mode_drift):
             continue
-        if same(current, before):
+        if same(current, before, legacy_filemode=mode_drift):
             resolved = after
-        elif same(before, after):
+        elif same(before, after, legacy_filemode=mode_drift):
             continue  # Preserve unrelated user edits in generated bridge files.
         elif current is not None and before is not None and after is not None:
             try:
