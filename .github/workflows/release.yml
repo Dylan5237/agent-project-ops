@@ -1,0 +1,136 @@
+name: release
+
+on:
+  pull_request:
+    paths:
+      - 'VERSION'
+      - 'scripts/**'
+      - 'skills/**'
+      - 'playbooks/**'
+      - 'templates/**'
+      - 'tests/**'
+      - 'docs/UPGRADE*'
+      - 'docs/releases/**'
+      - '.github/workflows/release.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'VERSION'
+      - '.github/workflows/release.yml'
+      - 'docs/releases/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONUTF8: '1'
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fixture identity
+        run: |
+          git config --global user.name 'APO release contract'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
+      - name: Record exact tested source
+        run: |
+          git rev-parse HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          grep -Ex '[0-9]+\.[0-9]+\.[0-9]+' VERSION
+      - name: All shell contracts and Python upgrade cases
+        run: |
+          set -euo pipefail
+          for test_file in tests/*.sh; do
+            echo "::group::$test_file"
+            bash -n "$test_file"
+            bash "$test_file"
+            echo '::endgroup::'
+          done
+          python3 tests/test_prepare_upgrade.py -v
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+  migration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fixture identity
+        run: |
+          git config --global user.name 'APO release migration'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
+      - name: Upgrade safety and actual legacy project
+        run: |
+          python3 tests/test_prepare_upgrade.py -v
+          bash tests/upgrade-from-v012.sh
+
+  publish:
+    needs: [contracts, migration]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Package exact verified commit and publish new tag only
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          version="$(cat VERSION)"
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          tag="v$version"
+          notes="docs/releases/$tag.md"
+          test -f "$notes"
+          # A tag is immutable here: never overwrite or move an existing release.
+          existing="$(git ls-remote --tags origin "refs/tags/$tag")"
+          if [[ -n "$existing" ]]; then
+            echo "Tag $tag already exists; refusing to replace it."
+            exit 1
+          fi
+          out="$RUNNER_TEMP/apo-release-$version"
+          mkdir -p "$out"
+          git archive --format=tar.gz --prefix="apo-$tag/" "$GITHUB_SHA" > "$out/apo-$tag.tar.gz"
+          git archive --format=zip --prefix="apo-$tag/" "$GITHUB_SHA" > "$out/apo-$tag.zip"
+          printf '%s\n' "$GITHUB_SHA" > "$out/RELEASE_SHA.txt"
+          cp docs/UPGRADE.zh-CN.md "$out/UPGRADE.zh-CN.md"
+          cp docs/UPGRADE.md "$out/UPGRADE.md"
+          (cd "$out"; sha256sum "apo-$tag.tar.gz" "apo-$tag.zip" RELEASE_SHA.txt UPGRADE.zh-CN.md UPGRADE.md > SHA256SUMS)
+          gh release create "$tag" "$out/apo-$tag.tar.gz" "$out/apo-$tag.zip" \
+            "$out/RELEASE_SHA.txt" "$out/SHA256SUMS" "$out/UPGRADE.zh-CN.md" "$out/UPGRADE.md" \
+            --target "$GITHUB_SHA" --title "APO $tag — portable rules and safe upgrades" \
+            --notes-file "$notes" --latest
+          gh release view "$tag" --json tagName,url,isDraft,isPrerelease
+          echo "Released $tag at exact verified main SHA $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
