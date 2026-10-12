@@ -1,0 +1,421 @@
+#!/usr/bin/env python3
+"""Prepare a three-way APO rules upgrade patch. Never modifies the target project.
+
+Run from a trusted, clean methodology clone (history must contain the old PIN).
+Only known bootstrap-owned files may change. Project GitHub state is reconciled
+separately by the user/Agent after reviewing the resulting task-branch diff.
+"""
+from __future__ import annotations
+
+import argparse
+import dataclasses
+import difflib
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import subprocess
+import sys
+import tempfile
+from datetime import datetime, timezone
+from typing import Optional
+from urllib.parse import urlsplit
+
+STAMP = "__APO_UPGRADE_TIME__"
+ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.conf.yml",
+              ".github/CODEOWNERS", ".github/copilot-instructions.md",
+              ".cursor/rules/agent-project-ops.mdc", ".continue/rules/agent-project-ops.md",
+              ".githooks/pre-push"}
+PREFIXES = (".agent-project-ops/", ".agents/skills/", ".claude/skills/",
+            ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE/")
+SCRIPT_FILES = ("new-worktree.sh", "install-hooks.sh", "share-export.sh", "export-sync.sh",
+                "scan-inverted-sot.py", "lib/url-guard.sh",
+                "lib/share-export-denylist.sh", "lib/export-strip-list.sh")
+
+INDEX_MODES: dict[str, int] = {}
+
+class Stop(Exception):
+    pass
+
+@dataclasses.dataclass(frozen=True)
+class File:
+    data: bytes
+    mode: int = 0o644
+
+    def digest(self) -> str:
+        return hashlib.sha256(self.data).hexdigest()
+
+
+def run(args: list[str], cwd: Optional[Path] = None, data: Optional[bytes] = None,
+        check: bool = True) -> subprocess.CompletedProcess:
+    env = os.environ.copy()
+    for key in list(env):
+        if key.startswith("GIT_"):
+            env.pop(key)
+    env.update(GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0", LC_ALL="C")
+    result = subprocess.run(args, cwd=cwd, input=data, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, env=env, timeout=120)
+    if check and result.returncode:
+        raise Stop("COMMAND_FAILED: " + " ".join(args[:3]) + ": " +
+                   result.stderr.decode("utf-8", "replace").strip())
+    return result
+
+
+def git(root: Path, *args: str, check: bool = True) -> bytes:
+    return run(["git", "-c", "core.fsmonitor=false", "-C", str(root), *args], check=check).stdout
+
+
+def canonical_url(value: str) -> str:
+    value = value.strip().removesuffix(".git")
+    scp = re.fullmatch(r"(?:[^/@]+@)?([^/:]+):(.+)", value)
+    if scp and "://" not in value and not re.match(r"^[A-Za-z]:", value):
+        return scp[1].lower() + "/" + scp[2].lstrip("/")
+    parsed = urlsplit(value)
+    if parsed.scheme in ("https", "http", "ssh") and parsed.hostname:
+        if parsed.query or parsed.fragment:
+            raise Stop("SOURCE_URL_UNSAFE")
+        return parsed.hostname.lower() + "/" + parsed.path.lstrip("/")
+    return value
+
+
+def sha_ok(value: str) -> bool:
+    return bool(re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", value))
+
+
+def safe_rel(value: str) -> str:
+    p = PurePosixPath(value)
+    if not value or p.is_absolute() or "\\" in value or ":" in value or any(
+            part in ("", ".", "..") for part in value.split("/")):
+        raise Stop("UNSAFE_PATH: " + value)
+    if value not in ROOT_FILES and not value.startswith(PREFIXES):
+        raise Stop("UNOWNED_PATH: " + value)
+    if not re.fullmatch(r"[A-Za-z0-9._/-]+", value):
+        raise Stop("PATCH_PATH_UNSUPPORTED: " + value)
+    return value
+
+
+def target_path(root: Path, name: str) -> Path:
+    safe_rel(name)
+    p = root
+    for part in name.split("/"):
+        p = p / part
+        if p.is_symlink():
+            raise Stop("SYMLINK_REFUSED: " + name)
+    if p.exists() and not p.is_file():
+        raise Stop("NON_FILE_REFUSED: " + name)
+    return p
+
+
+def read_target(root: Path, name: str) -> Optional[File]:
+    p = target_path(root, name)
+    if not p.exists():
+        return None
+    if p.stat().st_size > 8 * 1024 * 1024:
+        raise Stop("FILE_TOO_LARGE: " + name)
+    return File(p.read_bytes(), INDEX_MODES.get(str(p), 0o755 if p.stat().st_mode & 0o111 else 0o644))
+
+
+def kv(raw: bytes) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for line in raw.decode("utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            raise Stop("INVALID_BINDING_LINE")
+        k, v = line.split("=", 1)
+        if k in result:
+            raise Stop("DUPLICATE_BINDING_KEY: " + k)
+        result[k] = v
+    return result
+
+
+class Source:
+    def __init__(self, root: Path, ref: str, clean: bool = False):
+        self.root = root.resolve()
+        actual = Path(git(self.root, "rev-parse", "--show-toplevel").decode().strip()).resolve()
+        if actual != self.root:
+            raise Stop("SOURCE_NOT_METHODOLOGY_ROOT: use a separate methodology Git clone")
+        if clean and git(self.root, "status", "--porcelain", "--untracked-files=all").strip():
+            raise Stop("SOURCE_DIRTY: commit/stash source changes yourself before upgrading")
+        self.sha = git(self.root, "rev-parse", "--verify", ref + "^{commit}").decode().strip()
+        if not sha_ok(self.sha):
+            raise Stop("SOURCE_SHA_INVALID")
+        rows = git(self.root, "ls-tree", "-rz", "--full-tree", self.sha)
+        self.files: dict[str, tuple[str, str]] = {}
+        self.cache: dict[str, File] = {}
+        for row in rows.split(b"\0"):
+            if not row:
+                continue
+            meta, path = row.split(b"\t", 1)
+            mode, kind, obj = meta.decode().split()
+            if kind == "blob":
+                self.files[path.decode("utf-8")] = (mode, obj)
+        for required in ("PRINCIPLES.md", "scripts/bootstrap-project.sh", "templates/AGENTS.md"):
+            if required not in self.files:
+                raise Stop("SOURCE_LAYOUT_UNSUPPORTED: " + required)
+
+    def get(self, name: str) -> File:
+        if name not in self.cache:
+            mode, obj = self.files[name]
+            if mode not in ("100644", "100755"):
+                raise Stop("SOURCE_SPECIAL_FILE: " + name)
+            raw = git(self.root, "cat-file", "blob", obj)
+            self.cache[name] = File(raw, 0o755 if mode == "100755" else 0o644)
+        return self.cache[name]
+
+
+def render(source: Source, values: dict[str, str]) -> dict[str, File]:
+    """Known v0.1.x/v0.2 bootstrap layout, reconstructed without executing it."""
+    out: dict[str, File] = {}
+    def put(src: str, dest: str, subst: bool = False, executable: bool = False):
+        f = source.get(src)
+        raw = f.data
+        if subst:
+            text = raw.decode("utf-8")
+            for key, value in values.items():
+                text = text.replace("{{" + key + "}}", value)
+            raw = text.encode("utf-8")
+        out[dest] = File(raw, 0o755 if executable else f.mode)
+
+    for path in source.files:
+        if path in ("PRINCIPLES.md", "LICENSE") or path.startswith(("playbooks/", "skills/", "templates/")):
+            put(path, ".agent-project-ops/" + path)
+    for name in SCRIPT_FILES:
+        path = "scripts/" + name
+        if path in source.files:
+            put(path, ".agent-project-ops/" + path, executable="/" not in name)
+    bridges = {
+        "templates/AGENTS.md": "AGENTS.md", "templates/CLAUDE.md": "CLAUDE.md",
+        "templates/cursor-rules/agent-project-ops.mdc": ".cursor/rules/agent-project-ops.mdc",
+        "templates/github/copilot-instructions.md": ".github/copilot-instructions.md",
+        "templates/github/CODEOWNERS": ".github/CODEOWNERS",
+        "templates/gitignore-agent-ops": ".gitignore",
+        "templates/gitattributes-agent-ops": ".gitattributes",
+        "templates/aider.conf.yml": ".aider.conf.yml",
+        "templates/continue-rules/agent-project-ops.md": ".continue/rules/agent-project-ops.md",
+        "scripts/hooks/pre-push-authority.sh": ".githooks/pre-push",
+    }
+    for src, dest in bridges.items():
+        if src in source.files:
+            put(src, dest, subst=dest in ("AGENTS.md", ".github/CODEOWNERS"), executable=dest==".githooks/pre-push")
+    script = source.get("scripts/bootstrap-project.sh").data.decode("utf-8")
+    cc_rendered = 'subst "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/command-center.md"' in script
+    for path in source.files:
+        if path.startswith(("templates/ISSUE_TEMPLATE/", "templates/PULL_REQUEST_TEMPLATE/")) and path.endswith(".md"):
+            put(path, ".github/" + path[len("templates/"):], subst=cc_rendered and path.endswith("/command-center.md"))
+        if re.fullmatch(r"skills/[^/]+/SKILL\.md", path):
+            name = path.split("/")[1]
+            text = source.get(path).data.decode("utf-8")
+            fm = re.match(r"\A---[^\n]*\n.*?^---\s*$", text, re.M | re.S)
+            if not fm:
+                raise Stop("INVALID_SKILL_FRONTMATTER: " + path)
+            frontmatter = fm.group(0).rstrip("\n")
+            wrapper = (frontmatter + "\n\n# " + name + " (pinned wrapper)\n\n"
+                       "Follow the full pinned skill at [../../../.agent-project-ops/skills/" + name +
+                       "/SKILL.md](../../../.agent-project-ops/skills/" + name + "/SKILL.md).\n\n"
+                       "Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.\n")
+            for prefix in (".agents/skills/", ".claude/skills/"):
+                out[prefix + name + "/SKILL.md"] = File(wrapper.encode())
+    return out
+
+
+def same(a: Optional[File], b: Optional[File]) -> bool:
+    if a is None or b is None:
+        return a is b
+    return a.mode == b.mode and a.data.replace(b"\r\n", b"\n") == b.data.replace(b"\r\n", b"\n")
+
+
+def merge_text(local: File, old: File, new: File, name: str) -> File:
+    if b"\0" in local.data + old.data + new.data:
+        raise Stop("BINARY_CONFLICT: " + name)
+    # Preserve clearly appended/prepended project sections even when Git's
+    # line-level merge would conflate them with changed template end lines.
+    left = local.data.replace(b"\r\n", b"\n")
+    base = old.data.replace(b"\r\n", b"\n")
+    right = new.data.replace(b"\r\n", b"\n")
+    if base and left.startswith(base):
+        return File(right + left[len(base):], local.mode)
+    if base and left.endswith(base):
+        return File(left[:-len(base)] + right, local.mode)
+    with tempfile.TemporaryDirectory(prefix="apo-merge-") as d:
+        paths = [Path(d) / n for n in ("local", "old", "new")]
+        for p, raw in zip(paths, (left, base, right)):
+            p.write_bytes(raw)
+        result = run(["git", "merge-file", "-p", *map(str, paths)], check=False)
+        if result.returncode:
+            raise Stop("CUSTOM_RULE_CONFLICT: " + name)
+        return File(result.stdout, local.mode)
+
+
+def describe(f: Optional[File]) -> Optional[dict]:
+    return None if f is None else {"sha256": f.digest(), "mode": f.mode, "bytes": len(f.data)}
+
+
+def clean_target(root: Path) -> tuple[str, str]:
+    INDEX_MODES.clear()
+    actual = Path(git(root, "rev-parse", "--show-toplevel").decode().strip()).resolve()
+    if actual != root:
+        raise Stop("PROJECT_NOT_ROOT")
+    if git(root, "status", "--porcelain", "--untracked-files=all").strip():
+        raise Stop("PROJECT_DIRTY: preserve current work; commit/stash it yourself before upgrade")
+    for row in git(root, "ls-files", "--stage", "-z").split(b"\0"):
+        if row:
+            meta, path = row.split(b"\t", 1)
+            mode, _, stage = meta.decode().split()
+            if stage != "0" or mode not in ("100644", "100755", "120000"):
+                raise Stop("INDEX_STATE_UNSUPPORTED")
+            INDEX_MODES[str(root / path.decode())] = 0o755 if mode == "100755" else 0o644
+    branch = git(root, "symbolic-ref", "--quiet", "--short", "HEAD", check=False).decode().strip()
+    head = git(root, "rev-parse", "--verify", "HEAD").decode().strip()
+    if not branch:
+        raise Stop("DETACHED_HEAD: create an upgrade task branch")
+    return branch, head
+
+
+def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple[Optional[File], Optional[File]]]]:
+    branch, head = clean_target(root)
+    pin_file = read_target(root, ".agent-project-ops/PIN")
+    if pin_file is None:
+        raise Stop("PIN_MISSING: this command upgrades existing bound projects, not adoption")
+    pin = kv(pin_file.data)
+    if set(pin) != {"url", "sha", "ref", "fetched_at"} or not sha_ok(pin["sha"]):
+        raise Stop("PIN_UNSUPPORTED: expected v0.1.x PIN fields url/sha/ref/fetched_at")
+    if not pin["url"] or re.search(r"https?://[^/]*@|[?#]", pin["url"]):
+        raise Stop("PIN_URL_UNSAFE")
+    if pin["sha"] == new.sha:
+        return {"status": "UP_TO_DATE", "source_sha": new.sha, "project": str(root), "changes": []}, {}
+    source_url = git(new.root, "remote", "get-url", "origin", check=False).decode().strip()
+    if not source_url or canonical_url(source_url) != canonical_url(pin["url"]):
+        raise Stop("SOURCE_URL_MISMATCH: use a trusted methodology clone matching the existing PIN URL; no silent fork migration")
+    old = Source(old_root, pin["sha"])
+    if old.sha != pin["sha"]:
+        raise Stop("OLD_PIN_NOT_FOUND")
+    reg = read_target(root, ".agent-project-ops/remotes")
+    if reg is None or kv(reg.data).get("authority") != "origin":
+        raise Stop("AUTHORITY_UNSUPPORTED: preserve and reconcile project authority before upgrade")
+    binding = read_target(root, "AGENTS.md")
+    if binding is None:
+        raise Stop("AGENTS_MISSING")
+    agents = binding.data.decode("utf-8").replace("\r\n", "\n")
+    title = re.search(r"^# (.+) — project operations binding$", agents, re.M)
+    disposer = re.search(r"^- Disposer: `?(@[A-Za-z0-9-]+)`?\s*$", agents, re.M)
+    if not title or not disposer:
+        raise Stop("CUSTOM_BINDING_NEEDS_REVIEW: cannot safely reconstruct original project name/disposer")
+    values = {"PROJECT_NAME": title[1], "DISPOSER": disposer[1], "METHODOLOGY_URL": pin["url"],
+              "METHODOLOGY_SHA": pin["sha"], "METHODOLOGY_REF": pin["ref"],
+              "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": kv(reg.data).get("projection", "(none)")}
+    fresh = dict(values, METHODOLOGY_SHA=new.sha, METHODOLOGY_REF=new.sha, FETCHED_AT=STAMP)
+    # A source clone is supplied explicitly; do not silently change a fork's canonical URL.
+    old_files, new_files = render(old, values), render(new, fresh)
+    changes: dict[str, tuple[Optional[File], Optional[File]]] = {}
+    conflicts = []
+    for name in sorted(set(old_files) | set(new_files)):
+        current, before, after = read_target(root, name), old_files.get(name), new_files.get(name)
+        if name.startswith(".agent-project-ops/") and not same(current, before):
+            conflicts.append("CUSTOM_SNAPSHOT: " + name)
+            continue
+        if same(current, after):
+            continue
+        if same(current, before):
+            resolved = after
+        elif same(before, after):
+            continue  # Preserve unrelated user edits in generated bridge files.
+        elif current is not None and before is not None and after is not None:
+            try:
+                resolved = merge_text(current, before, after, name)
+            except Stop as e:
+                conflicts.append(str(e))
+                continue
+        else:
+            conflicts.append("OWNERSHIP_CONFLICT: " + name)
+            continue
+        if current != resolved:
+            changes[name] = (current, resolved)
+    if conflicts:
+        raise Stop("UPGRADE_CONFLICTS:\n" + "\n".join(conflicts))
+    new_pin = (f"url={pin['url']}\nsha={new.sha}\nref={new.sha}\nfetched_at={STAMP}\n").encode()
+    changes[".agent-project-ops/PIN"] = (pin_file, File(new_pin))
+    # Hash before/after states of EVERY owned path, including unchanged bridges.
+    inputs = {p: describe(read_target(root, p)) for p in sorted(set(old_files) | set(new_files))}
+    # Project-specific settings are not copied/replaced; bind them into the preview.
+    for p in (".agent-project-ops/remotes", ".agent-project-ops/project-config", ".agent-project-ops/export-strip-extra"):
+        inputs[p] = describe(read_target(root, p))
+    rows = [{"path": p, "before": describe(a), "after": describe(b)} for p, (a, b) in sorted(changes.items())]
+    payload = {"project": str(root), "branch": branch, "head": head, "old_sha": old.sha,
+               "source_sha": new.sha, "inputs": inputs, "changes": rows}
+    ident = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    summary = {k: v for k, v in payload.items() if k != "inputs"}
+    summary.update(status="PREVIEW", plan_id=ident,
+                   preserved=["business files", "project custom bridge text", "remotes", "project-config", "Git config", "GitHub Issues"],
+                   policy_change="Inherited generic Fleet/Bugbot requirements removed; explicit project policies are NOT implicitly revoked.",
+                   control_plane="PENDING_RECONCILIATION: review active GitHub CC/Phase/project-specific rules separately; no API calls performed.")
+    return summary, changes
+
+
+def emit_patch(info: dict, changes: dict[str, tuple[Optional[File], Optional[File]]]) -> bytes:
+    """Use Git's standard patch/apply/reverse format, never a custom file writer."""
+    result: list[str] = []
+    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp_paths = {".agent-project-ops/PIN", "AGENTS.md", ".github/ISSUE_TEMPLATE/command-center.md"}
+    for name, (before, after) in sorted(changes.items()):
+        safe_rel(name)
+        old = before.data if before else b""
+        new = after.data if after else b""
+        if name in timestamp_paths:
+            new = new.replace(STAMP.encode(), timestamp.encode())
+        if b"\0" in old + new:
+            raise Stop("BINARY_PATCH_UNSUPPORTED: " + name)
+        a, b = old.decode("utf-8"), new.decode("utf-8")
+        result.append(f"diff --git a/{name} b/{name}\n")
+        if before is None:
+            result.append(f"new file mode {0o100000 | after.mode:o}\n")
+        elif after is None:
+            result.append(f"deleted file mode {0o100000 | before.mode:o}\n")
+        elif before.mode != after.mode:
+            result.extend([f"old mode {0o100000 | before.mode:o}\n", f"new mode {0o100000 | after.mode:o}\n"])
+        # Git checks all hunks before applying (no --reject / --unsafe-paths).
+        for line in difflib.unified_diff(a.splitlines(True), b.splitlines(True),
+                fromfile=f"a/{name}" if before else "/dev/null",
+                tofile=f"b/{name}" if after else "/dev/null", n=3):
+            if not line.endswith("\n"):
+                line += "\n\\ No newline at end of file\n"
+            result.append(line)
+    return "".join(result).encode("utf-8")
+
+
+def main(argv: Optional[list[str]] = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--project", type=Path, required=True)
+    parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--old-source", type=Path, help="Trusted Git clone containing the old PIN commit; default: --source")
+    parser.add_argument("--patch", action="store_true", help="Emit a Git patch to stdout; does not apply it")
+    parser.add_argument("--expect-plan", help="Preview plan_id; required for --patch")
+    args = parser.parse_args(argv)
+    try:
+        root = args.project.resolve(strict=True)
+        source = Source(args.source, "HEAD", clean=True)
+        if root == source.root or root in source.root.parents or source.root in root.parents:
+            raise Stop("SOURCE_PROJECT_OVERLAP: keep the methodology clone separate")
+        info, changes = plan(root, source, args.old_source or args.source)
+        if args.patch:
+            if not args.expect_plan or info.get("plan_id") != args.expect_plan:
+                raise Stop("PLAN_CHANGED: preview and review its exact plan_id before exporting")
+            default = git(root, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD", check=False).decode().strip()
+            if info.get("branch") in {"main", "master", default.removeprefix("origin/")}:
+                raise Stop("DEFAULT_BRANCH_REFUSED: use an isolated upgrade worktree and preview again")
+            patch = emit_patch(info, changes)
+            sys.stdout.buffer.write(patch)
+            print(json.dumps({"status": "PATCH_EXPORTED_NOT_APPLIED", "patch_sha256": hashlib.sha256(patch).hexdigest(),
+                "baseline_commit": info["head"], "source_sha": source.sha, "control_plane": info["control_plane"]}), file=sys.stderr)
+        else:
+            print(json.dumps(info, ensure_ascii=False, indent=2))
+        return 0
+    except (Stop, OSError, ValueError, UnicodeError, KeyError, subprocess.SubprocessError) as e:
+        # Never mix a JSON error with a patch stream that might be blindly applied.
+        print(json.dumps({"status": "BLOCKED", "reason": str(e)}, ensure_ascii=False), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
