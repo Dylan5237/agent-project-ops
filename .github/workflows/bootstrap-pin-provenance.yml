@@ -1,0 +1,31 @@
+name: bootstrap-pin-provenance
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'tests/bootstrap-pin-clean.sh'
+      - '.github/workflows/bootstrap-pin-provenance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/bootstrap-project.sh'
+      - 'tests/bootstrap-pin-clean.sh'
+      - '.github/workflows/bootstrap-pin-provenance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Shell syntax
+        run: |
+          bash -n scripts/bootstrap-project.sh
+          bash -n tests/bootstrap-pin-clean.sh
+      - name: Clean-source PIN contract
+        run: bash tests/bootstrap-pin-clean.sh
