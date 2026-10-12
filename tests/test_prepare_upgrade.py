@@ -143,6 +143,33 @@ class UpgradeTests(unittest.TestCase):
         self.apply()
         self.assertTrue(f.read_text(encoding='utf-8').startswith('# My project banner'))
 
+    def test_legacy_executable_mode_drift_on_nonfilemode_git(self):
+        # Git for Windows commonly stores Bash-bootstrap scripts as 100644,
+        # although the old methodology's render contract expects 100755.
+        # Exact script contents still prove provenance; changed bytes must not.
+        name = '.agent-project-ops/scripts/bootstrap-project.sh'
+        expected = u.render(u.Source(self.src, self.old), {
+            'PROJECT_NAME': 'project', 'DISPOSER': '@Test',
+            'METHODOLOGY_URL': 'https://github.com/example/method',
+            'METHODOLOGY_SHA': self.old, 'METHODOLOGY_REF': 'v0.1.2',
+            'FETCHED_AT': '2026-01-01T00:00:00Z',
+            'PROJECTION_REMOTE': '(none)',
+        })[name]
+        self.assertEqual(expected.mode, 0o755)
+        cmd(self.proj, 'config', 'core.filemode', 'false')
+        cmd(self.proj, 'update-index', '--chmod=-x', name)
+        if cmd(self.proj, 'diff', '--cached', '--name-only'):
+            cmd(self.proj, 'commit', '-m', 'simulate Windows old-mode metadata')
+        self.assertIn(b'100644', cmd(self.proj, 'ls-files', '--stage', name))
+        info, _ = self.preview()
+        self.assertEqual(info['status'], 'PREVIEW')
+        changed = self.proj / name
+        changed.write_bytes(changed.read_bytes() + b'\n# unauthorized snapshot edit\n')
+        cmd(self.proj, 'add', name)
+        cmd(self.proj, 'commit', '-m', 'modify the vendor snapshot')
+        with self.assertRaisesRegex(u.Stop, 'CUSTOM_SNAPSHOT'):
+            self.preview()
+
     def test_custom_snapshot_conflicts(self):
         self.pput('.agent-project-ops/PRINCIPLES.md', 'Custom\n')
         self.pcommit()
