@@ -39,17 +39,21 @@ jobs:
       PYTHONDONTWRITEBYTECODE: '1'
       PYTHONUTF8: '1'
     steps:
+      - name: Configure Git before materializing source files
+        run: |
+          git config --global user.name 'APO contract tests'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Git fixture identity
+      - name: Confirm clean source
         run: |
-          git config --global user.name 'APO contract tests'
-          git config --global user.email 'apo-tests@users.noreply.github.com'
-          git config --global core.autocrlf false
+          git status --short
+          test -z "$(git status --porcelain --untracked-files=all)"
       - name: Read-only preview and patch safety tests
         run: python3 tests/test_prepare_upgrade.py -v
       - name: Real v0.1.2 bootstrap upgrade and reverse
