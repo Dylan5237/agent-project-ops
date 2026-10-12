@@ -1,202 +1,134 @@
-<p align="right">
-  <strong>English</strong> · <a href="./README.zh-CN.md">简体中文</a>
-</p>
+# Agent Project Ops (APO)
 
-<p align="center">
-  <a href="./LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
-  <img alt="version" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
-  <img alt="GitHub native" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
-  <img alt="skill first" src="https://img.shields.io/badge/architecture-skill--first-6366f1.svg">
-  <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml"><img alt="bootstrap contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml/badge.svg"></a>
-  <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/enforcement-contract.yml"><img alt="enforcement contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/enforcement-contract.yml/badge.svg"></a>
-</p>
+[简体中文](./README.zh-CN.md) · [Release notes](./docs/releases/v0.2.0.md) · [Upgrade existing projects](./docs/UPGRADE.md) · [Getting started](./docs/GETTING_STARTED.md)
 
-<p align="center">
-  <strong>Bootstrap once. Enforce continuously. Verify independently.</strong><br/>
-  Turn AI Agents from temporary chat assistants into durable, auditable collaborators for real projects.
-</p>
+**Keep AI-built software maintainable beyond a single session or Agent.**
 
-<p align="center">
-  <a href="./docs/GETTING_STARTED.md"><strong>Getting Started</strong></a> ·
-  <a href="./PRINCIPLES.md">Principles</a> ·
-  <a href="./playbooks/">Playbooks</a> ·
-  <a href="./skills/">Skills</a> ·
-  <a href="./docs/evidence/phase-11-self-dogfood.md">Self-dogfood evidence</a>
-</p>
+APO is a Skill-first project-operations methodology with GitHub as the durable
+project source of truth. It records decisions, isolates task changes, requires
+replayable evidence and supports Agent handoff based on actual repository state.
+It is not another coding Harness, business framework, cloud service or deployment
+stack.
 
----
+## v0.2.0: portable defaults and reviewable rule upgrades
 
-## What is agent-project-ops?
+The **package version is 0.2.0** ([VERSION](./VERSION)). Published artifacts are
+listed under [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases);
+a draft candidate or CI-only PR is not a release. `PRINCIPLES.md` continues to
+identify the **v0.1.2 invariant contract**, independently of package version.
+Project PIN files identify the exact methodology Git commit.
 
-`agent-project-ops` is a **skill-first methodology for multi-Agent project operations**.
-
-It does not provide an application framework, business SOP, runtime, or deployment stack. It solves a more fundamental problem:
-
-> When ChatGPT, Claude Code, Cursor, Copilot, and local coding Agents participate in real software projects over time, how do you keep project state, write authority, branch discipline, verification evidence, and human decision boundaries from drifting across sessions and tools?
-
-The core rules are intentionally small:
-
-| Rule | Meaning |
+| Capability | Behavior |
 | --- | --- |
-| **GitHub `origin` = authority** | One write authority; optional projection is same-history FF only; colleague GitLab is export (`authority − strip`) or share-export, not a projection |
-| **Chat ≠ state** | Project facts belong in the repo, Issues, PRs, CI, and evidence |
-| **One task = one worktree / branch / PR** | Parallel work stays isolated and traceable |
-| **Unknown remotes fail closed** | Unclassified remotes are rejected by default |
-| **Merge ≠ Phase PASS** | The Agent proposes evidence; the disposer decides `ACCEPT / RETURN` |
-| **Server protection is the real gate** | Client hooks are bypassable and are not the final security boundary |
+| Generic bootstrap | No mandatory registration in the author's personal Fleet/box digest |
+| Review policy | No universal Cursor Bugbot dependency; explicit project CI/review/Accept gates remain |
+| Worktree base | Explicit choice, recorded project setting or verified remote default; ambiguous choices stop |
+| Provenance | Clean committed source and a real PIN SHA, not silently following main |
+| Defaults/templates | origin-only by default, extra remotes opt-in, actual source/PIN in CC templates |
+| Local Doctor | Read-only binding/remote/hook diagnostics; unchecked server guarantees remain UNKNOWN |
+| Existing-project upgrade | `upgrade-project` Skill and read-only three-way preview/Git patch generator; preserve custom project rules, stop on conflicts, use isolated application and checked rollback |
 
-> v0.1 has passed real-repository bootstrap, server-side protection bypass tests, fresh-clone recovery, and a full self-dogfood lifecycle. It is ready for **real controlled use**.
+The methodology repository's own self-dogfood Fleet pointer remains intact;
+it is not an external adopter prerequisite. The general three-journey natural-
+language entrypoint proposed in #75 is **not included** pending real user and
+cross-host UX validation.
 
-## Start in 3 minutes
+## Install a fixed release
 
-### Recommended: tell a compatible Agent what you want
+Use Git, Bash (Git Bash on Windows), and Python 3.10+ for the upgrade generator.
+Creating a real GitHub project additionally needs an authorized GitHub CLI `gh`;
+local-only bootstrap is available with explicit `--skip-github`.
 
-```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+```bash
+git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.0
+cd apo-v0.2.0
 ```
 
-### Or run the bootstrap directly
+Keep complete history so the old project PIN can be resolved. Source ZIPs contain
+no Git history and are not upgrade-source clones. Release assets include
+`RELEASE_SHA.txt` and `SHA256SUMS`.
+
+### New project
+
+Load `skills/bootstrap-project/SKILL.md` in a compatible Agent, or run:
 
 ```bash
 bash scripts/bootstrap-project.sh \
-  --name my-project \
-  --dir ../my-project \
-  --github-repo OWNER/my-project \
-  --disposer @OWNER \
-  --no-projection \
-  --private \
-  --yes
+  --name my-project --dir ../my-project \
+  --github-repo OWNER/my-project --disposer @OWNER --private --yes
 ```
 
-Bootstrap creates durable repo bindings, pins the methodology SHA, installs the tracked local hook, registers authority/projection remotes, creates GitHub `origin`, and reports protection capability **A / B / C**.
+Replace OWNER with actual account information and authorize real remote writes.
+The default is just GitHub `origin`, not a mandatory extra-remote questionnaire.
+See [Getting Started](./docs/GETTING_STARTED.md). Existing nonempty repositories
+that never adopted APO use [adoption](./playbooks/adopt-existing-project.md), not
+greenfield bootstrap over their files.
 
-**Next → [Getting Started](./docs/GETTING_STARTED.md)** for protection choices, fresh-clone recovery, Command Center setup, daily Phase workflow, projection vs **colleague export / share-export**.
+### Project already using an older APO version
 
-**Existing repositories** are [adoption](./playbooks/adopt-existing-project.md), not this greenfield command. Step 1 is a must-fix rewrite of local `AGENTS.md` to GitHub `origin` = write authority. The inverted contract (GitLab / non-GitHub Issues host as production SoT; GitHub as “mirror only”) fail-closes before PIN binding is complete.
+Do not rerun bootstrap, edit only PIN, or overwrite the entire project AGENTS.
+Ask your local Agent to use `skills/upgrade-project/SKILL.md` **from the trusted
+release clone**. It should inspect the project's actual PIN/CC, create an isolated
+upgrade task worktree at the approved baseline, and show a readonly preview.
+Only after you approve that exact `plan_id` should it export the Git patch,
+run `git apply --check`, apply, test and prepare the ordinary project PR.
 
-> GitHub Free + **private repositories** cannot provide the branch protection required for B/A, so bootstrap correctly reports **Capability C**. Record C on Command Center and continue. Do not treat C as init failure. Do not require Pro to finish init. Never claim B/A. Client hooks can be bypassed with `--no-verify`; server-side protection is the real gate when available.
+[Full upgrade instructions, CLI and rollback](./docs/UPGRADE.md).
+The generator does not modify target files or contact GitHub. The original
+worktree and baseline commit remain recovery material. Project-specific rules,
+remotes, Git configuration and business files are not replaced blindly.
 
-## What changes after bootstrap?
+**Local files and live GitHub rules are separate steps.** The upgrade Skill
+requires the Agent to reconcile only the selected project's inherited old
+Fleet/box/Bugbot defaults under project-level approval, preserve explicit local
+review policies, owners and history, and reference the upgrade PR/new PIN in CC.
+Without access, report LOCAL PATCH READY / CONTROL PLANE PENDING, not completion.
 
-A project gains a small, durable control surface rather than a second framework:
+## Core operating contract
 
-```text
-your-project/
-├── AGENTS.md                     # canonical Agent instructions
-├── CLAUDE.md                     # adapter → AGENTS.md
-├── .agent-project-ops/
-│   ├── PIN                       # pinned methodology repo/ref/SHA
-│   ├── remotes                   # authority / projection / export / share-export registry
-│   ├── PRINCIPLES.md
-│   ├── playbooks/
-│   └── scripts/
-├── .agents/skills/               # project-facing skill wrappers
-├── .githooks/pre-push            # bypassable local guard
-├── .github/CODEOWNERS
-├── .github/copilot-instructions.md
-├── .cursor/rules/
-└── ... your product code
-```
+GitHub `origin` is the single write authority. Chat is not project state. Each
+task is isolated and linked through Issue/worktree/branch/PR. Unknown remotes
+must not be guessed safe. Scope, verification evidence and human decisions are
+explicit. A merged PR is **not** a Phase Accept.
 
-A fresh compatible Agent should be able to recover authority, rules, control-plane pointers, and the handoff path from durable state rather than the original bootstrap chat.
+Projection/export/share-export are advanced Git roles loaded only when needed.
+A local hook is bypassable, not a server-side security guarantee. Report A/B/C
+from observed capabilities; never call C a verified A/B gate, and never turn
+missing optional integrations into a universal stop-all-work rule.
 
-See [Getting Started](./docs/GETTING_STARTED.md#4-what-bootstrap-writes) for the full structure and takeover procedure.
+## Verification and limits
 
-## Daily operating model
+The release workflow tests core shell contracts, Python upgrade positive/negative
+fixtures and Linux/Windows/macOS migration using a project produced by the **real
+v0.1.2 bootstrap**, including preservation, reverse application and repeat calls.
+Read the Actions results at the exact release SHA. CI does not establish arbitrary
+Agent compliance, live user experience, independent reviewer identity or business
+acceptance.
 
-```text
-Issue / Phase → Freeze → Worktree / Branch → Implement → PR / CI
-                                             ↓
-                                  replayable evidence
-                                             ↓
-                             Disposer ACCEPT / RETURN
-```
+Automatic migration supports recognized bootstrap-owned layouts. Modified
+snapshots, unrecognized hand-written bindings, unknown old PINs, conflicting
+changes, symlinks and dirty work stop for manual three-way review. There is no
+force-overwrite escape hatch. Releasing APO never automatically migrates all
+existing business projects.
 
-The Agent can autonomously implement, test, inspect CI, and prepare evidence. It pauses only at real disposer boundaries such as Freeze, Accept, Return, and Architecture Exception.
-
-Detailed lifecycle: [phase-lifecycle](./playbooks/phase-lifecycle.md) · [verification-and-evidence](./playbooks/verification-and-evidence.md)
-
-## Protection capability
-
-| Level | Server-side state | Project posture |
-| --- | --- | --- |
-| **A** | PR + independently enforceable reviewer / code-owner gate | strongest |
-| **B** | PR required + admins enforced; no independent-human guarantee | accepted for controlled use |
-| **C** | protection unavailable or unverifiable | **record + continue** (expected on GitHub Free private; never claim B/A) |
-
-`agent-project-ops` never upgrades a Capability C environment by wording alone. Capability is reported from the environment that actually exists.
-
-## Verified v0.1
-
-| Gate | Result |
-| --- | --- |
-| Bootstrap contract | ✅ PASS |
-| Real private/public bootstrap smoke | ✅ PASS |
-| `git push --no-verify origin main` rejected server-side on the public/protected smoke (G3); GitHub Free private is Capability C and has no server default-branch gate ([ADR 0004](./docs/adr/0004-free-private-capability-c.md)) | ✅ PASS |
-| Fresh-clone hook recovery | ✅ PASS |
-| Full self-dogfood: Command Center → Phase → implementation → evidence → disposer Accept | ✅ PASS |
-
-Replayable evidence: [docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
-
-Current release: **[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)** (prefer this over the v0.1.1 tag). Since the v0.1 gates above: Fleet REGISTRY as fleet index SoT; three remote roles stay distinct — **projection** is full-tree fast-forward only, **export** is `authority main − strip list` ([ADR 0005](./docs/adr/0005-export-remote-role.md)), and **share-export** is a snapshot (colleague GitLab is export or share-export, not a projection); GitHub Free private reports Capability **C** and continues; inverted SoT in `AGENTS.md` fail-closes; Bugbot-before-merge on business repos (this methodology repo is self-dogfood exempt).
+Historical v0.1 bootstrap/protection/self-dogfood evidence remains in
+[docs/evidence](./docs/evidence/phase-11-self-dogfood.md); do not reuse it as proof
+for every new environment. #85 records the historical missing pre-implementation
+Freeze deviation and prospective exception; packaging is not retroactive Freeze
+or per-Phase Accept.
 
 ## Documentation
 
-| Start here | Purpose |
-| --- | --- |
-| **[Getting Started](./docs/GETTING_STARTED.md)** | bootstrap, protection, first project, daily workflow, [existing-repo adoption](./docs/GETTING_STARTED.md#11-existing-repository-adoption) |
-| [PRINCIPLES.md](./PRINCIPLES.md) | non-negotiable design rules |
-| [playbooks/](./playbooks/) | operational procedures |
-| [skills/](./skills/) | Agent entrypoints |
-| [docs/adr/](./docs/adr/) | accepted architecture decisions |
-| [docs/rfcs/](./docs/rfcs/) | design contracts |
-| [docs/research/](./docs/research/) | research and audit history |
-| [docs/evidence/](./docs/evidence/) | replayable acceptance evidence |
-| [templates/](./templates/) | binding / Issue / PR templates |
-| [tests/](./tests/) | enforcement and bootstrap contracts |
+[Principles](./PRINCIPLES.md) · [Playbooks](./playbooks/) · [Skills](./skills/) ·
+[ADRs](./docs/adr/) · [RFCs](./docs/rfcs/) · [Research](./docs/research/) ·
+[Evidence](./docs/evidence/) · [Templates](./templates/) · [Tests](./tests/)
 
-### Skills (Agent entrypoints)
+Common Skills: [bootstrap-project](./skills/bootstrap-project/SKILL.md),
+[upgrade-project](./skills/upgrade-project/SKILL.md),
+[github-multi-agent-project-ops](./skills/github-multi-agent-project-ops/SKILL.md),
+[git-worktree-and-branch](./skills/git-worktree-and-branch/SKILL.md),
+[project-diagnostics](./skills/project-diagnostics/SKILL.md), and
+[issues-prs-and-evidence](./skills/issues-prs-and-evidence/SKILL.md).
 
-| Skill | Path |
-| --- | --- |
-| GitHub multi-agent project ops | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
-| Git worktree and branch | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
-| Git authority and projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
-| Repo reconciliation & cleanup | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
-| Issues, PRs, and evidence | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
-| Bootstrap project | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) — greenfield only; existing repos → [adopt-existing-project](./playbooks/adopt-existing-project.md) |
-| Export remote | [skills/export-remote/SKILL.md](./skills/export-remote/SKILL.md) |
-| Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
-
-## Design boundaries
-
-This project deliberately does **not** claim:
-
-- a product/app runtime, domain model, deploy stack, or business SOP;
-- universal Agent compliance with repository instructions;
-- client hooks as a security boundary;
-- GitLab or another mirror as a second source of truth;
-- colleague GitLab as a full-tree projection of ops bindings (use [export-remote](./playbooks/export-remote.md) or [share-export](./playbooks/share-export.md));
-- PR merge as project acceptance;
-- silent upgrades to the latest methodology revision.
-
-Business repositories pin a real methodology SHA. Agents propose. The named disposer accepts.
-
-## Colleague export / share-export
-
-Colleague GitLab is a **filtered business tree**, not a `git push --mirror` of GitHub (including `agent-project-ops` bindings). GitHub `origin` stays the only write authority and keeps the full ops tree.
-
-- **Export remote** (`export=` / `export_url=`): tree = `authority main − strip list`; sync = merge + replay strip + FF; not on the auto-push whitelist. Contract: [ADR 0005](./docs/adr/0005-export-remote-role.md). Playbook: [export-remote](./playbooks/export-remote.md).
-- **Share-export helper**: ADR 0003 snapshot publish (keeps `.github/workflows/` by default). Related tooling — not a second write authority.
-
-```bash
-bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --dry-run
-bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --export-url git@gitlab.example:group/business.git --authorized --yes
-bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --push git@gitlab.example:group/business.git --yes
-```
-
-Helpers **refuse** to publish if strip/denylist paths would still be included, and they never `--force`.
-
-## License
-
-[MIT](./LICENSE)
+License: [MIT](./LICENSE). Business SOPs, domain models and production data do not
+belong in this methodology repository.
