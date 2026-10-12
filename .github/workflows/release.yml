@@ -35,17 +35,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Configure Git before checkout
+        run: |
+          git config --global user.name 'APO release contract'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Test fixture identity
-        run: |
-          git config --global user.name 'APO release contract'
-          git config --global user.email 'apo-tests@users.noreply.github.com'
-          git config --global core.autocrlf false
       - name: Record exact tested source
         run: |
           git rev-parse HEAD
@@ -75,17 +75,17 @@ jobs:
       run:
         shell: bash
     steps:
+      - name: Configure Git before checkout
+        run: |
+          git config --global user.name 'APO release migration'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Test fixture identity
-        run: |
-          git config --global user.name 'APO release migration'
-          git config --global user.email 'apo-tests@users.noreply.github.com'
-          git config --global core.autocrlf false
       - name: Upgrade safety and actual legacy project
         run: |
           python3 tests/test_prepare_upgrade.py -v
