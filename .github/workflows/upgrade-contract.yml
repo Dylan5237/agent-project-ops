@@ -1,0 +1,56 @@
+name: upgrade-contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/prepare-upgrade.py'
+      - 'scripts/bootstrap-project.sh'
+      - 'skills/upgrade-project/**'
+      - 'templates/**'
+      - 'playbooks/**'
+      - 'tests/test_prepare_upgrade.py'
+      - 'tests/upgrade-from-v012.sh'
+      - '.github/workflows/upgrade-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/prepare-upgrade.py'
+      - 'scripts/bootstrap-project.sh'
+      - 'skills/upgrade-project/**'
+      - 'tests/test_prepare_upgrade.py'
+      - 'tests/upgrade-from-v012.sh'
+      - '.github/workflows/upgrade-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  migration:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Git fixture identity
+        run: |
+          git config --global user.name 'APO contract tests'
+          git config --global user.email 'apo-tests@users.noreply.github.com'
+          git config --global core.autocrlf false
+      - name: Read-only preview and patch safety tests
+        run: python3 tests/test_prepare_upgrade.py -v
+      - name: Real v0.1.2 bootstrap upgrade and reverse
+        run: bash tests/upgrade-from-v012.sh
