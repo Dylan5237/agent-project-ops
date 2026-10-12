@@ -12,7 +12,7 @@ scan_inverted_sot() {
   local target="$1"
   [[ -f "${INVERTED_SOT_SCANNER}" ]] || die "inverted-SoT scanner missing: ${INVERTED_SOT_SCANNER}"
   command -v python3 >/dev/null || die "python3 is required for the inverted-SoT scan"
-  python3 "${INVERTED_SOT_SCANNER}" --root "${target}"
+  PYTHONDONTWRITEBYTECODE=1 python3 "${INVERTED_SOT_SCANNER}" --root "${target}"
 }
 
 refuse_existing_destination() {
@@ -56,7 +56,7 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
   --private | --public        Visibility (default: private)
   --projection-url URL        Optional credential-free same-history projection git URL
                               (not colleague-share GitLab; that is export / share-export)
-  --no-projection             Explicitly create origin-only configuration
+  --no-projection             Compatibility flag: origin-only is already the default
   --require-codeowner-review  Request protection level A (independent review)
   --skip-github               Local scaffold only; do not create GitHub repo
   --methodology-url URL       Override canonical methodology URL written to PIN
@@ -127,10 +127,8 @@ fi
 [[ "${disposer}" != '@DISPOSER' && "${disposer}" != '@example' ]] || die "placeholder disposer is not allowed"
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
 
-if [[ "${no_projection}" -eq 0 && -z "${projection_url}" && "${assume_yes}" -eq 0 && "${dry_run}" -eq 0 ]]; then
-  printf 'Projection remote URL (empty = origin-only; colleague GitLab = export / share-export, not this prompt): '
-  read -r projection_url
-fi
+# Default is origin-only. Do not prompt every user for an unrelated second remote.
+# A projection is configured only through an explicit --projection-url.
 if [[ -n "${projection_url}" ]]; then
   url_has_secrets "${projection_url}" && die "projection URL is unsafe; credentials/query strings are forbidden"
 fi
@@ -206,6 +204,11 @@ if [[ -e "${dest}" && -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
   refuse_existing_destination "${dest}"
 fi
 
+# PIN identifies committed HEAD, but the snapshot copies working-tree files.
+# Ignore interpreter bytecode caches (never ship them); reject real source drift.
+methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all -- PRINCIPLES.md LICENSE playbooks skills templates scripts | grep -Ev '(/__pycache__/|\.pyc$)' || true)"
+[[ -z "${methodology_dirty}" ]] || die "methodology checkout has uncommitted or untracked source files: snapshot would not match PIN SHA. Commit or clean the source checkout first."
+
 mkdir -p "${dest}"
 cd "${dest}"
 git init -q -b main
@@ -236,6 +239,10 @@ cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
 cp "${METHODOLOGY_ROOT}/scripts/lib/export-strip-list.sh" .agent-project-ops/scripts/lib/export-strip-list.sh
+# Remove transient Python bytecode that may have been produced by prior tests.
+# Only touch the new snapshot; never delete files from the method checkout.
+find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
+find .agent-project-ops -type f -name '*.pyc' -delete
 chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
@@ -281,6 +288,8 @@ cp "${METHODOLOGY_ROOT}/templates/gitattributes-agent-ops" .gitattributes
 cp "${METHODOLOGY_ROOT}/templates/aider.conf.yml" .aider.conf.yml
 cp "${METHODOLOGY_ROOT}/templates/continue-rules/agent-project-ops.md" .continue/rules/agent-project-ops.md
 cp "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/"*.md .github/ISSUE_TEMPLATE/
+# Command Center provenance must match the actual PIN, not a hardcoded author/tag.
+subst "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/command-center.md" .github/ISSUE_TEMPLATE/command-center.md
 cp "${METHODOLOGY_ROOT}/templates/PULL_REQUEST_TEMPLATE/"*.md .github/PULL_REQUEST_TEMPLATE/
 
 write_wrapper() {

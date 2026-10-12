@@ -1,0 +1,31 @@
+name: project-diagnostics-contract
+
+on:
+  pull_request:
+    paths:
+      - 'skills/project-diagnostics/**'
+      - 'tests/project-diagnostics.sh'
+      - '.github/workflows/project-diagnostics-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/project-diagnostics/**'
+      - 'tests/project-diagnostics.sh'
+      - '.github/workflows/project-diagnostics-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Script syntax
+        run: |
+          bash -n skills/project-diagnostics/scripts/doctor.sh
+          bash -n tests/project-diagnostics.sh
+      - name: No mutation and failure semantics
+        run: bash tests/project-diagnostics.sh
+      - name: Generated Skill wrapper remains portable
+        run: bash tests/bootstrap-local.sh

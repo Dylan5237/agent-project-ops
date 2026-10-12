@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### Optional projection vs colleague export / share-export
+### Advanced: explicitly configured projection or filtered export
 
-A **projection** remote is a same-history fast-forward mirror of GitHub (full tree, including ops). Only add one when Command Center names that host as projection — **not** for colleague GitLab.
+Bootstrap defaults to **origin only** and does not ask for a second remote. A **projection** is a same-history fast-forward mirror of GitHub (full tree, including ops), added **only when explicitly requested** and classified by the Command Center — **not** for colleague GitLab.
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -301,7 +301,7 @@ The normal lifecycle is:
 4. Create one worktree / branch for the task
 5. Implement + test
 6. Open PR + run CI
-7. Before asking merge: comment exactly `bugbot run` on the PR; disposer waits for Bugbot (`Dylan5237/agent-project-ops` self-dogfood may skip)
+7. Before requesting merge: inspect the project's required CI and review conditions.
 8. Produce replayable evidence
 9. Agent: EVIDENCE READY
 10. Disposer: PHASE ACCEPT or PHASE RETURN
@@ -316,7 +316,7 @@ Rules that matter most:
 - Agent may autonomously implement, test, inspect CI, and prepare evidence;
 - Agent pauses when a real product/architecture/disposer decision is required;
 - PR merge does **not** equal `PHASE ACCEPT`;
-- before asking the disposer to merge, comment exactly `bugbot run` on the PR and wait for Bugbot results; Bugbot pass ≠ `PHASE ACCEPT` (`Dylan5237/agent-project-ops` self-dogfood may skip the wake/wait; other repos follow the full gate);
+- check mandatory CI/reviewer gates for the current PR SHA before asking for merge; neither CI nor code review replaces `PHASE ACCEPT`;
 - acceptance evidence must be replayable without the original chat.
 
 See:

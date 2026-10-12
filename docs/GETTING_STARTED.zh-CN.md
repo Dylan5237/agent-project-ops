@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### 可选的 projection 与同事 export / share-export
+### 高级用法：显式配置的 projection 或过滤导出
 
-**projection** 远端是 GitHub 的**同历史**快进镜像（含完整 ops）。只有 Command Center 把该宿主登记为 projection 时才添加 —— **不要**把同事 GitLab 填到这里。
+Bootstrap 默认只配置 **origin**，不会在每次初始化时询问第二远端。**projection** 是 GitHub 的**同历史**快进镜像（含完整 ops），仅在用户明确提出、且 Command Center 登记其身份后添加；不要把同事 GitLab 当作 projection。
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -301,7 +301,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 4. 为任务创建唯一 worktree / branch
 5. 实现 + 测试
 6. 打开 PR + 运行 CI
-7. 提合并前：在 PR 评论恰好 `bugbot run`；处置人等 Bugbot 结果再判断是否合入（`Dylan5237/agent-project-ops` 自狗粮可跳过）
+7. 请求合并前核对当前 PR 的必需 CI 与审查门禁
 8. 生成可复验证据
 9. Agent：EVIDENCE READY
 10. Disposer：PHASE ACCEPT 或 PHASE RETURN
@@ -316,7 +316,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 - Agent 可以自主实现、测试、检查 CI、整理证据；
 - 当真正需要产品、架构或 disposer 决策时，Agent 才暂停；
 - PR merge **不等于** `PHASE ACCEPT`；
-- 向处置人请求合并前，必须在 PR 评论恰好 `bugbot run`，并等待 Bugbot 结果；Bugbot 通过 ≠ `PHASE ACCEPT`（`Dylan5237/agent-project-ops` 自狗粮可跳过唤醒/等待；其他仓库仍走完整门禁）；
+- 请求合并前核对当前 PR SHA 的必需 CI 和审查条件；它们通过并不等于 `PHASE ACCEPT`；
 - 验收证据必须在没有原始聊天的情况下仍可复验。
 
 详见：
