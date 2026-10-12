@@ -1,202 +1,83 @@
-<p align="right">
-  <a href="./README.md">English</a> · <strong>简体中文</strong>
-</p>
+# Agent Project Ops（APO）
 
-<p align="center">
-  <a href="./LICENSE"><img alt="许可证" src="https://img.shields.io/badge/license-MIT-0ea5e9.svg"></a>
-  <img alt="版本" src="https://img.shields.io/badge/version-v0.1.2-10b981.svg">
-  <img alt="GitHub 控制面" src="https://img.shields.io/badge/control%20plane-GitHub-181717.svg?logo=github">
-  <img alt="Skill first" src="https://img.shields.io/badge/architecture-skill--first-6366f1.svg">
-  <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml"><img alt="bootstrap contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/bootstrap-contract.yml/badge.svg"></a>
-  <a href="https://github.com/Dylan5237/agent-project-ops/actions/workflows/enforcement-contract.yml"><img alt="enforcement contract" src="https://github.com/Dylan5237/agent-project-ops/actions/workflows/enforcement-contract.yml/badge.svg"></a>
-</p>
+[English](./README.md) · [发行说明](./docs/releases/v0.2.0.md) · [旧项目升级](./docs/UPGRADE.zh-CN.md) · [新项目快速上手](./docs/GETTING_STARTED.zh-CN.md)
 
-<p align="center">
-  <strong>一次初始化，持续约束，独立验证。</strong><br/>
-  把 AI Agent 从“某次聊天里的临时助手”，变成真实项目中可持续、可审计、可接力的协作成员。
-</p>
+**让 AI 编写的软件，不依赖某一个会话，也能持续维护。**
 
-<p align="center">
-  <a href="./docs/GETTING_STARTED.zh-CN.md"><strong>快速上手</strong></a> ·
-  <a href="./PRINCIPLES.md">核心原则</a> ·
-  <a href="./playbooks/">运行手册</a> ·
-  <a href="./skills/">技能入口</a> ·
-  <a href="./docs/evidence/phase-11-self-dogfood.md">自我验证证据</a>
-</p>
+APO 是以 GitHub 为项目事实源、以 Skill 为 Agent 入口的轻量项目治理方法论。它保存目标和决定、隔离任务改动、要求可复验证据，让不同 Agent 能够根据真实仓库状态接力。它不是新的编程 Harness、业务框架、云服务或自动部署平台。
 
----
+## v0.2.0：可独立采用，也能升级旧项目
 
-## agent-project-ops 是什么？
+本版软件包版本为 **0.2.0**（[VERSION](./VERSION)）。正式可下载版本以 [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases) 为准；候选分支和临时测试 PR 不等于发行。十项治理不变量继续沿用 `PRINCIPLES.md` 的 **v0.1.2 合同版本**，与软件包版本分开；项目 PIN 记录完整提交 SHA。
 
-`agent-project-ops` 是一套 **以 Skill 为入口的多 Agent 项目治理方法论**。
-
-它不提供应用框架、业务 SOP、运行时或部署栈。它解决的是一个更底层的问题：
-
-> 当 ChatGPT、Claude Code、Cursor、Copilot 和本地 Coding Agent 长期参与真实软件项目时，如何让项目状态、写权威、分支纪律、验证证据和人类拍板边界不随着会话和工具切换而失控？
-
-核心规则刻意保持精简：
-
-| 规则 | 含义 |
+| 能力 | 本版行为 |
 | --- | --- |
-| **GitHub `origin` = 写权威** | 只有一个写权威；可选 projection 只做同历史快进；同事 GitLab 是 export（权威 − 剥离清单）或 share-export，不是 projection |
-| **聊天 ≠ 状态** | 项目事实必须进入仓库、Issue、PR、CI 和证据 |
-| **一个任务 = 一个 worktree / branch / PR** | 并行工作彼此隔离且可追踪 |
-| **未知远端默认拒绝** | 未分类远端不能被猜测为可信 |
-| **合并 ≠ Phase PASS** | Agent 提交证据，Disposer 决定 `ACCEPT / RETURN` |
-| **服务端保护才是真门槛** | 客户端 hook 可以被绕过，不能作为最终安全边界 |
+| 通用初始化 | 不要求加入作者个人 Fleet、box 晨报或购买 Cursor Bugbot |
+| 项目审查 | 保留项目实际要求的 CI、评审和人工验收，不绑定指定厂商工具 |
+| 工作基线 | 显式选择、项目持久配置或核实远端默认；无法决定时报告候选、请求选择 |
+| 来源固定 | 干净的已提交方法论源与真实 PIN SHA，不静默跟随 main |
+| 配置与模板 | 默认 origin-only，高级远端显式启用；CC 使用真实方法论来源 |
+| 本地诊断 | Doctor 只读检查 PIN 格式、远端和 Hook；服务端保护/在线控制面未检查则 UNKNOWN |
+| 旧项目升级 | `upgrade-project` Skill + 只读预览/标准 Git 补丁；保留项目规则、冲突阻断、隔离应用和可校验回退 |
 
-> v0.1 已完成真实仓库初始化、服务端保护绕过测试、fresh clone 恢复和完整 self-dogfood 生命周期验证，可用于 **真实受控项目**。
+本仓自用的 self-dogfood Fleet 指针保留；它不是外部项目的注册前提。原自然语言三旅程实验 #75 未完成真实用户/跨宿主验证，**不包含在本版**；不要据此宣传任意 Agent 都能可靠全自动管理项目。
 
-## 3 分钟开始
+## 安装固定版本
 
-### 推荐方式：直接告诉兼容 Agent 你的目标
+需要 Git；初始化 shell 需要 Bash（Windows 使用 Git Bash）；升级补丁生成需要 Python 3.10+。创建 GitHub 项目需要已授权的 GitHub CLI `gh`；只做本地初始化可显式使用 `--skip-github`。
 
-```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+```bash
+git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.0
+cd apo-v0.2.0
 ```
 
-### 或直接执行初始化脚本
+保留完整历史，便于核实旧项目 PIN；源码 ZIP 没有 Git 历史，不能直接替代升级源克隆。发行附件的 `RELEASE_SHA.txt` / `SHA256SUMS` 用于核对来源与包完整性。
+
+### 新项目
+
+让兼容 Agent 加载 `skills/bootstrap-project/SKILL.md`，或执行：
 
 ```bash
 bash scripts/bootstrap-project.sh \
-  --name my-project \
-  --dir ../my-project \
-  --github-repo OWNER/my-project \
-  --disposer @OWNER \
-  --no-projection \
-  --private \
-  --yes
+  --name my-project --dir ../my-project \
+  --github-repo OWNER/my-project --disposer @OWNER --private --yes
 ```
 
-初始化会写入持久化仓库绑定、固定方法论 SHA、安装本地 tracked hook、登记 authority / projection 远端、创建 GitHub `origin`，并如实报告保护能力等级 **A / B / C**。
+按实际账户替换 OWNER；创建真实远端前需要明确授权。默认仅 GitHub `origin`，没有多余的投影选择问题。完整流程见 [快速上手](./docs/GETTING_STARTED.zh-CN.md)。已有业务仓但从未采用 APO 的情况走 [adoption](./playbooks/adopt-existing-project.md)，不要覆盖现有目录。
 
-**下一步 → [快速上手](./docs/GETTING_STARTED.zh-CN.md)**，查看保护能力选择、fresh clone 恢复、Command Center 建立、日常 Phase 流程，以及 projection 与 **同事 export / share-export** 的区别。
+### 已经使用旧版 APO 的项目
 
-**已有仓库**走 [adoption](./playbooks/adopt-existing-project.md)，不是上面这条 greenfield 命令。第一步必须改写本地 `AGENTS.md`：GitHub `origin` = 写权威。反置合同（GitLab / 非 GitHub Issues 宿主写成生产 SoT，GitHub 降为「仅镜像」）在 PIN 绑定完成前 fail closed。
-
-> GitHub Free + **私有仓库** 无法提供 B/A 所需的服务端分支保护，因此会被正确报告为 **Capability C**。把 C 写入 Command Center 后继续。不要把 C 当成初始化失败，也不要为了完成初始化去买 Pro。不得把 C 说成 B/A。客户端 hook 可被 `--no-verify` 绕过；有服务端保护时，它才是真正的硬门槛。
-
-## 初始化后项目发生什么变化？
-
-项目不会多出一套业务框架，而是得到一层很小、但可持久化的治理表面：
+不要重新 bootstrap，不要只改 `.agent-project-ops/PIN`，也不要覆盖整份项目 `AGENTS.md`。把以下意图交给本地 Agent：
 
 ```text
-your-project/
-├── AGENTS.md                     # Agent 统一规则
-├── CLAUDE.md                     # 适配器 → AGENTS.md
-├── .agent-project-ops/
-│   ├── PIN                       # 固定的方法论 repo/ref/SHA
-│   ├── remotes                   # 权威 / 投射 / export / share-export 登记
-│   ├── PRINCIPLES.md
-│   ├── playbooks/
-│   └── scripts/
-├── .agents/skills/               # 面向项目的技能入口
-├── .githooks/pre-push            # 可绕过的本地保护
-├── .github/CODEOWNERS
-├── .github/copilot-instructions.md
-├── .cursor/rules/
-└── ... 你的业务代码
+按 agent-project-ops v0.2.0 的 upgrade-project Skill 升级当前项目的旧 APO 规则。
+从独立、可信、完整历史的新版克隆读取工具，先检查旧 PIN、AGENTS、remotes 和真实 CC。
+建立独立升级工作区，保留基线提交，执行只读预览并向我报告变更、冲突、备份和回退。
+我确认 plan_id 后再导出补丁、git apply --check、应用和验证；不强制覆盖自定义规则。
+仅按我确认的项目政策协调本项目 CC/Phase 中继承的旧通用约束，保留历史和审批人。
+最后给出升级 PR、本地/远端规则状态及未完成项，不自动合并、部署或自签验收。
 ```
 
-一个新的兼容 Agent 应该可以仅凭持久状态恢复写权威、规则、控制面指针和接力路径，而不依赖最初那次 bootstrap 聊天。
+[完整中文操作步骤、CLI、冲突处理及回退](./docs/UPGRADE.zh-CN.md)。补丁生成器不修改项目文件或远端；Git 在用户明确授权的隔离工作区应用。**本地规则更新与 GitHub 控制面协调是两步**，缺权限时不能声称整个项目升级完成。
 
-完整结构和接管流程见 [快速上手](./docs/GETTING_STARTED.zh-CN.md#4-bootstrap-会写入什么)。
+## 保留的治理原则
 
-## 日常运行模型
+GitHub `origin` 是唯一写权威；聊天不是项目状态；一项任务使用可追溯的分支/worktree/PR；未知远端不允许猜测写入；范围先确认、证据可复验；PR 合并不等于 Phase Accept，人类仍负责最终决定。
 
-```text
-Issue / Phase → Freeze → Worktree / Branch → 实现 → PR / CI
-                                          ↓
-                                     可复验证据
-                                          ↓
-                               Disposer 接受 / 退回
-```
+可选 projection/export/share-export 属于高级 Git 场景，只有明确需要时才加载相应 Skill；不作为普通用户入门负担。客户端 Hook 可绕过，不是服务端安全边界。A/B/C 保护能力必须按真实检查报告；C 不得被说成 A/B，也不等于所有本地工作都必须停止。
 
-Agent 可以自主推进实现、测试、CI 检查和证据整理；只有到了 Freeze、Accept、Return、Architecture Exception 等真正的 disposer 决策边界才暂停。
+## 验证与限制
 
-详细流程：[phase-lifecycle](./playbooks/phase-lifecycle.md) · [verification-and-evidence](./playbooks/verification-and-evidence.md)
+发行流程在同一提交上运行核心 shell 合同、升级 Python 正负例、Linux/Windows/macOS 升级矩阵，以及**真实 v0.1.2 bootstrap 项目的迁移、反向恢复和重复执行**；最终结果见该 release SHA 的 Actions 日志。CI 不替代真实用户体验、宿主能力检查、独立人员审查或业务验收。
 
-## 保护能力等级
+自动升级支持已知旧版 bootstrap 绑定。自定义方法论快照、无法重建的手写绑定、未知旧 SHA、冲突、符号链接或脏工作树需要人工三方审阅；没有“覆盖一切”的开关。现存项目不会因为 APO 发布新版本而自行迁移。
 
-| 等级 | 服务端状态 | 项目结论 |
-| --- | --- | --- |
-| **A** | PR + 可独立强制执行的 reviewer / code-owner 门禁 | 最强 |
-| **B** | 必须 PR + 管理员也受保护；但无法独立保证“人类身份” | 可用于受控场景 |
-| **C** | 保护不可用或无法验证 | **记录并继续**（GitHub Free 私有仓上属预期；不得把 C 说成 B/A） |
+历史 v0.1 self-dogfood、真实初始化和保护实验保留在 [验证证据](./docs/evidence/phase-11-self-dogfood.md)。它们是历史记录，不冒充本版所有环境的验证。#85 记录既有候选的历史程序偏差及前瞻性例外；不倒签 Freeze，不将发版等同于逐 Phase Accept。
 
-`agent-project-ops` 不会靠措辞把 Capability C 说成“够用了”。能力等级必须来自真实环境。
+## 文档与技能
 
-## 已验证的 v0.1
+[核心原则](./PRINCIPLES.md) · [Playbooks](./playbooks/) · [Skills](./skills/) · [架构决策](./docs/adr/) · [研究](./docs/research/) · [RFC](./docs/rfcs/) · [证据](./docs/evidence/) · [模板](./templates/) · [测试](./tests/)
 
-| 验证项 | 结果 |
-| --- | --- |
-| Bootstrap contract | ✅ 通过 |
-| 真实 private / public 仓库初始化 smoke | ✅ 通过 |
-| `git push --no-verify origin main` 在公开且受保护的 smoke（G3）上被服务端拒绝；GitHub Free 私有仓是 Capability C，没有服务端默认分支门禁（[ADR 0004](./docs/adr/0004-free-private-capability-c.md)） | ✅ 通过 |
-| Fresh clone hook 恢复 | ✅ 通过 |
-| 完整 self-dogfood：Command Center → Phase → 实现 → 证据 → disposer Accept | ✅ 通过 |
+常用入口：[bootstrap-project](./skills/bootstrap-project/SKILL.md)、[upgrade-project](./skills/upgrade-project/SKILL.md)、[github-multi-agent-project-ops](./skills/github-multi-agent-project-ops/SKILL.md)、[git-worktree-and-branch](./skills/git-worktree-and-branch/SKILL.md)、[project-diagnostics](./skills/project-diagnostics/SKILL.md)、[issues-prs-and-evidence](./skills/issues-prs-and-evidence/SKILL.md)。
 
-可复验证据：[docs/evidence/phase-11-self-dogfood.md](./docs/evidence/phase-11-self-dogfood.md)
-
-当前发布：**[v0.1.2](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.1.2)**（优先用它，不要停在 v0.1.1 tag）。相对上面的 v0.1 门禁，之后已落地：Fleet REGISTRY 作为舰队索引 SoT；三种远端角色保持分开——**projection** 只做全树快进，**export** 是 `权威 main − 剥离清单`（[ADR 0005](./docs/adr/0005-export-remote-role.md)），**share-export** 是快照（同事 GitLab 是 export 或 share-export，不是 projection）；GitHub Free 私有仓报告 Capability **C** 并继续；`AGENTS.md` 写反 SoT 时 fail closed；业务仓合入前走 Bugbot（本方法论仓 self-dogfood 豁免）。
-
-## 文档导航
-
-| 从这里开始 | 用途 |
-| --- | --- |
-| **[快速上手](./docs/GETTING_STARTED.zh-CN.md)** | 初始化、保护能力、首个项目、日常流程、[存量仓接入](./docs/GETTING_STARTED.zh-CN.md#11-已有仓库接入) |
-| [PRINCIPLES.md](./PRINCIPLES.md) | 不可妥协的设计原则 |
-| [playbooks/](./playbooks/) | 运行流程 |
-| [skills/](./skills/) | Agent 入口 |
-| [docs/adr/](./docs/adr/) | 已接受的架构决策 |
-| [docs/rfcs/](./docs/rfcs/) | 设计合同 |
-| [docs/research/](./docs/research/) | 调研与审计历史 |
-| [docs/evidence/](./docs/evidence/) | 可复验验收证据 |
-| [templates/](./templates/) | 绑定 / Issue / PR 模板 |
-| [tests/](./tests/) | 约束与 bootstrap contract |
-
-### 技能（Agent 入口）
-
-| 技能 | 路径 |
-| --- | --- |
-| GitHub 多 Agent 项目治理 | [skills/github-multi-agent-project-ops/SKILL.md](./skills/github-multi-agent-project-ops/SKILL.md) |
-| Git worktree 与分支 | [skills/git-worktree-and-branch/SKILL.md](./skills/git-worktree-and-branch/SKILL.md) |
-| Git 写权威与 projection | [skills/git-authority-and-projection/SKILL.md](./skills/git-authority-and-projection/SKILL.md) |
-| 仓库对账与清理 | [skills/repo-reconciliation-cleanup/SKILL.md](./skills/repo-reconciliation-cleanup/SKILL.md) |
-| Issue、PR 与证据 | [skills/issues-prs-and-evidence/SKILL.md](./skills/issues-prs-and-evidence/SKILL.md) |
-| Bootstrap 项目 | [skills/bootstrap-project/SKILL.md](./skills/bootstrap-project/SKILL.md) — 仅 greenfield；已有仓库 → [adopt-existing-project](./playbooks/adopt-existing-project.md) |
-| Export 远端 | [skills/export-remote/SKILL.md](./skills/export-remote/SKILL.md) |
-| Share-export | [skills/share-export/SKILL.md](./skills/share-export/SKILL.md) |
-
-## 设计边界
-
-本项目明确**不声称**以下能力：
-
-- 提供产品 / 应用运行时、领域模型、部署栈或业务 SOP；
-- 保证所有第三方 Agent 都 100% 遵守仓库 instructions；
-- 把客户端 hook 当成安全边界；
-- 把 GitLab 或其他镜像当作第二事实源；
-- 把同事 GitLab 当成含 ops 绑定的全量 projection（应使用 [export-remote](./playbooks/export-remote.md) 或 [share-export](./playbooks/share-export.md)）；
-- 把 PR 合并直接等同于项目验收；
-- 自动漂移到方法论最新版本。
-
-业务仓库会固定到真实方法论 SHA。Agent 提议，命名的 disposer 负责验收。
-
-## 同事 export / share-export
-
-同事 GitLab 是**过滤后的业务树**，不是把 GitHub（含 `agent-project-ops` 绑定）`git push --mirror`。GitHub `origin` 仍是唯一写权威并保留完整 ops。**export 不是第二写权威。**
-
-- **export 远端**（`export=` / `export_url=`）：`export 树 = 权威 main − 剥离清单`；同步 = 基于当前 export tip 合并 + 重放剥离 + 快进；默认不在自动推送白名单。合同：[ADR 0005](./docs/adr/0005-export-remote-role.md)。手册：[export-remote](./playbooks/export-remote.md)。
-- **share-export 助手**：ADR 0003 快照发布（默认保留 `.github/workflows/`）。相关工具，不是第二写权威。
-
-```bash
-bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --dry-run
-bash scripts/export-sync.sh --dir /path/to/business-repo --ref origin/main --export-url git@gitlab.example:group/business.git --authorized --yes
-bash scripts/share-export.sh --dir /path/to/business-repo --ref origin/main --push git@gitlab.example:group/business.git --yes
-```
-
-若剥离/denylist 路径仍会出现在待发布树中，助手会**拒绝推送**，并且永远不 `--force`。
-
-## 许可证
-
-[MIT](./LICENSE)
+许可证：[MIT](./LICENSE)。业务 SOP、领域模型和生产数据不属于本方法论仓库。
