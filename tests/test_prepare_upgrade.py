@@ -23,7 +23,9 @@ class UpgradeTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.base = Path(self.tmp.name)
+        # Match the public CLI's root.resolve(strict=True): macOS /var aliases
+        # and Windows 8.3 temporary-directory paths are not canonical Git roots.
+        self.base = Path(self.tmp.name).resolve(strict=True)
         self.src = self.base / 'method'
         self.src.mkdir()
         cmd(self.src, 'init', '-b', 'main')
