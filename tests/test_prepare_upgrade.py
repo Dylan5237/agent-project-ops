@@ -35,6 +35,7 @@ class UpgradeTests(unittest.TestCase):
         self.put('PRINCIPLES.md', 'Old rules\n')
         self.put('LICENSE', 'MIT\n')
         self.put('scripts/bootstrap-project.sh', '#!/bin/bash\n# old bootstrap\n')
+        self.put('scripts/new-worktree.sh', '#!/bin/bash\n# old worktree helper\n')
         self.put('templates/AGENTS.md', '# {{PROJECT_NAME}} — project operations binding\n\n- Disposer: {{DISPOSER}}\n- PIN: {{METHODOLOGY_SHA}}\n- Date: {{FETCHED_AT}}\n')
         self.put('templates/gitignore-agent-ops', '.worktrees/\n')
         self.put('templates/gitattributes-agent-ops', '*.sh text eol=lf\n')
@@ -147,7 +148,7 @@ class UpgradeTests(unittest.TestCase):
         # Git for Windows commonly stores Bash-bootstrap scripts as 100644,
         # although the old methodology's render contract expects 100755.
         # Exact script contents still prove provenance; changed bytes must not.
-        name = '.agent-project-ops/scripts/bootstrap-project.sh'
+        name = '.agent-project-ops/scripts/new-worktree.sh'
         expected = u.render(u.Source(self.src, self.old), {
             'PROJECT_NAME': 'project', 'DISPOSER': '@Test',
             'METHODOLOGY_URL': 'https://github.com/example/method',
