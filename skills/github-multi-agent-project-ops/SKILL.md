@@ -36,11 +36,10 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 7. Propose PASS with evidence table. Wait for `PHASE ACCEPT`.
 8. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
 
-New projects: after Command Center exists, **Register to Fleet REGISTRY** (`fleet/REGISTRY.md` upsert by `owner/repo` + box mirror confirm). See [bootstrap-project](../bootstrap-project/SKILL.md) and [ADR 0002](../../docs/adr/0002-canonical-fleet-index.md).
 
 ## Command Center hygiene / CC §1（mandatory agent duty）
 
-Keeping Command Center **section 1** current is **Agent work on every gate flip**, not a user habit. Fleet morning digest (and any later fleet tooling) reads **only** CC §1 plus the current Phase status label for registered projects. Stale §1 is a false green.
+Keeping Command Center **section 1** current is **Agent work on every gate flip**, not a user habit. It is the project-local, durable summary that a fresh Agent uses to find the current Phase, gates, and next action. A stale summary is misleading even without any external reporting service.
 
 **On every** gate flip / phase status change / Freeze / blocked / verification / Accept event, in the **same turn**:
 
