@@ -105,9 +105,9 @@ bash scripts/bootstrap-project.sh \
   --dry-run
 ```
 
-### Optional projection vs colleague export / share-export
+### Advanced: explicitly configured projection or filtered export
 
-A **projection** remote is a same-history fast-forward mirror of GitHub (full tree, including ops). Only add one when Command Center names that host as projection — **not** for colleague GitLab.
+Bootstrap defaults to **origin only** and does not ask for a second remote. A **projection** is a same-history fast-forward mirror of GitHub (full tree, including ops), added **only when explicitly requested** and classified by the Command Center — **not** for colleague GitLab.
 
 ```bash
 bash scripts/bootstrap-project.sh \

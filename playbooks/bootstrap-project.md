@@ -26,7 +26,7 @@ scripts/bootstrap-project.sh \
 
 Use `--dry-run` first when evaluating a new environment. Use `--skip-github` only for local scaffold/testing.
 
-Optional **projection** (same-history FF mirror only — **not** colleague GitLab):
+Advanced optional **projection**, configured only when explicitly requested (same-history FF mirror, not colleague GitLab):
 
 ```bash
 scripts/bootstrap-project.sh \

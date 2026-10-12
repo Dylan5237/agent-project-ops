@@ -56,7 +56,7 @@ bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
   --private | --public        Visibility (default: private)
   --projection-url URL        Optional credential-free same-history projection git URL
                               (not colleague-share GitLab; that is export / share-export)
-  --no-projection             Explicitly create origin-only configuration
+  --no-projection             Compatibility flag: origin-only is already the default
   --require-codeowner-review  Request protection level A (independent review)
   --skip-github               Local scaffold only; do not create GitHub repo
   --methodology-url URL       Override canonical methodology URL written to PIN
@@ -127,10 +127,8 @@ fi
 [[ "${disposer}" != '@DISPOSER' && "${disposer}" != '@example' ]] || die "placeholder disposer is not allowed"
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
 
-if [[ "${no_projection}" -eq 0 && -z "${projection_url}" && "${assume_yes}" -eq 0 && "${dry_run}" -eq 0 ]]; then
-  printf 'Projection remote URL (empty = origin-only; colleague GitLab = export / share-export, not this prompt): '
-  read -r projection_url
-fi
+# Default is origin-only. Do not prompt every user for an unrelated second remote.
+# A projection is configured only through an explicit --projection-url.
 if [[ -n "${projection_url}" ]]; then
   url_has_secrets "${projection_url}" && die "projection URL is unsafe; credentials/query strings are forbidden"
 fi
@@ -290,6 +288,8 @@ cp "${METHODOLOGY_ROOT}/templates/gitattributes-agent-ops" .gitattributes
 cp "${METHODOLOGY_ROOT}/templates/aider.conf.yml" .aider.conf.yml
 cp "${METHODOLOGY_ROOT}/templates/continue-rules/agent-project-ops.md" .continue/rules/agent-project-ops.md
 cp "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/"*.md .github/ISSUE_TEMPLATE/
+# Command Center provenance must match the actual PIN, not a hardcoded author/tag.
+subst "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/command-center.md" .github/ISSUE_TEMPLATE/command-center.md
 cp "${METHODOLOGY_ROOT}/templates/PULL_REQUEST_TEMPLATE/"*.md .github/PULL_REQUEST_TEMPLATE/
 
 write_wrapper() {
