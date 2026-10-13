@@ -5,9 +5,17 @@ description: >
   Preview exact owned-file changes, preserve project policy and business files,
   export a reviewed Git patch, and use an isolated task worktree. Do not merely
   change PIN, overwrite custom rules, or imply local files update GitHub state.
+  Also triggered by the URL-first Chinese request:
+  使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
 ---
 
 # Upgrade an existing APO project
+
+## URL-first short prompt (preferred user entry)
+
+Treat `使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。` as the complete user **intent**. Do not ask the user to type a Skill name, pre-install a package or repeat a long prompt. In a capable host, inspect the GitHub repository URL and select its latest **published stable Release** and verified exact tag/commit SHA (unless the user specified a version). Fetch or use a trusted **full-history Git clone**, never an unverified moving `main` or ZIP without Git history, then read the matching `skills/upgrade-project/SKILL.md`. If network/local Git/permissions are missing, explain the blocker and manual fallback; do not claim a successful upgrade.
+
+The prompt authorizes **discovery and read-only preview**, not applying a patch, silently changing PIN, modifying other repositories or merging a PR. First inspect the current project's real binding, classify project state, use its approved task base, and obtain a separate human confirmation for the resulting exact `plan_id`. Bootstrap/Adoption is different from upgrading a previously bound project.
 
 Use when the user asks to update a project's old APO mechanism/rules. This is
 an upgrade of the **selected project only**, not authorization to migrate a fleet,

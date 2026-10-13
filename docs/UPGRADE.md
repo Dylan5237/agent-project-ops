@@ -1,10 +1,20 @@
-# Upgrade an existing project's APO rules to v0.2.0
+# Upgrade an existing project's APO rules to v0.2.1
 
 [简体中文与可直接转交 Agent 的指令](./UPGRADE.zh-CN.md)
 
 A project contains a **pinned snapshot**. Updating a global Skill or changing only
 PIN does not update that snapshot, its generated Agent rules, or live GitHub
 Command Center policies. This workflow treats those as separate responsibilities.
+
+## One-line URL-first entry
+
+Use the following instruction in the current project:
+
+```text
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
+```
+
+For an unbound project, use `使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。`. The user should not need to remember a Skill or CLI command. With the right GitHub/local Git access, the Agent locates the latest **published stable Release** and exact SHA, then loads the safe upgrade procedure below; with insufficient tools it reports a limitation. The selected upgrade `plan_id` still requires explicit approval.
 
 ## Supported path
 
@@ -19,7 +29,7 @@ Use Git and Python 3.10+. Shell examples require Bash (Git Bash on Windows).
 In a separate trusted directory, clone the release **with history**:
 
 ```bash
-git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.0
+git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.1
 ```
 
 Do not use `--depth 1`: the exact old PIN commit must exist locally. A trusted
@@ -29,9 +39,9 @@ history and cannot be used directly as the upgrade source.
 
 ## Recommended Agent entrypoint
 
-Ask your local Agent to read `skills/upgrade-project/SKILL.md` **from the release
-clone**, inspect the selected project's real binding/CC/Phase, and follow its
-preview-first process. Scope this to one chosen project. No fleet-wide migration,
+The short prompt above is enough to express intent. Internally the Agent should read
+`skills/upgrade-project/SKILL.md` **from the verified release clone**, inspect the
+selected project's real binding/CC/Phase, and follow its preview-first process. Scope this to one chosen project. No fleet-wide migration,
 repository visibility change, automatic merge, deployment or Phase acceptance
 is implied.
 
@@ -43,7 +53,7 @@ is implied.
 2. Run the readonly preview, storing output outside both worktrees:
 
    ```bash
-   python3 /path/apo-v0.2.0/scripts/prepare-upgrade.py \
+   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
      --project /path/project-upgrade > /safe/upgrade-plan.json
    ```
 
@@ -51,7 +61,7 @@ is implied.
    `plan_id`. Only after approval export the patch:
 
    ```bash
-   python3 /path/apo-v0.2.0/scripts/prepare-upgrade.py \
+   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
      --project /path/project-upgrade --patch --expect-plan APPROVED_PLAN_ID \
      > /safe/upgrade.patch
    ```

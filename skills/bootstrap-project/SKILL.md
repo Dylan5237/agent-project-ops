@@ -6,9 +6,17 @@ description: >
   snapshot, .worktrees/, a GitHub origin as the single write authority, and an
   optional explicitly requested same-history projection remote. Defaults to
   GitHub origin only; use for one-shot initialization, not business-domain setup.
+  Also triggered by the URL-first Chinese request:
+  使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 ---
 
 # Bootstrap project
+
+## URL-first short prompt (preferred user entry)
+
+Treat `使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。` as a complete **intent**, not a request for the user to install this Skill, memorize a CLI command, or paste a longer prompt. An Agent with GitHub, filesystem and Git capabilities should inspect the supplied repository URL, resolve the **latest published stable Release** (or an explicitly named version), verify the exact tag/commit SHA, and read its corresponding `PRINCIPLES.md`, `skills/bootstrap-project/SKILL.md` and applicable playbooks from a trusted Git checkout. Do not silently use moving `main` as a release identity.
+
+Inspect the **current project** before writing. A new/empty project follows this Bootstrap Skill; a nonempty repository not yet bound to APO follows `playbooks/adopt-existing-project.md`; a previously bound project is inspected/reconciled instead of reinitialized. Never overwrite an existing working tree or create/push a GitHub repository without authorization. If GitHub/network, local Git/filesystem or required permissions are unavailable, clearly report the limitation and a manual fallback rather than inventing completion.
 
 Read [PRINCIPLES.md](../../PRINCIPLES.md) first. This skill creates and binds a repository; it does not Freeze product scope, implement features, or Accept phases.
 

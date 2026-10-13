@@ -10,6 +10,19 @@
 
 ---
 
+## 推荐：一句话触发
+
+直接在当前项目的 Coding Agent 中发送：
+
+```text
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
+```
+
+Agent 应根据当前目录与 APO 绑定情况选择 Bootstrap、Adoption 或安全 Upgrade，不要求你先手工下载 Skill、背诵 CLI。能访问 GitHub 时先核实**最新已发布稳定版本及其精确 SHA**；宿主缺少本地 Git、网络或必要权限时，必须说明缺口。敏感写入仍需用户授权，规则升级仍需核准具体 `plan_id`。
+
+---
+
 ## 1. 开始前准备
 
 你需要：
@@ -60,7 +73,7 @@ Agent 可以准备材料并提出建议，但不能自己完成验收。
 直接使用这条指令：
 
 ```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 ```
 
 兼容 Agent 应该读取方法论、检查环境，然后调用 bootstrap 流程，而不是自行发明另一套项目规则。

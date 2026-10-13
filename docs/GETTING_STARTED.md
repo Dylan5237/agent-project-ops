@@ -10,6 +10,19 @@ This guide is the shortest path from **“I want AI Agents to work on a real pro
 
 ---
 
+## Preferred: one-line URL prompts
+
+From a Coding Agent working in the intended project, send one of these instructions:
+
+```text
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
+```
+
+The Agent should discover the repository's latest **published stable Release** and verify its exact SHA (unless a version was specified), then choose Bootstrap, Adoption or Upgrade according to observed project state. The user does not have to load a named Skill or enter CLI commands. Tool/network/permission gaps must be reported; consequential operations and the upgrade `plan_id` still require explicit authorization.
+
+---
+
 ## 1. Before you start
 
 You need:
@@ -60,7 +73,7 @@ If the same GitHub account is used by both the human disposer and Agent automati
 Use this instruction:
 
 ```text
-Run the bootstrap-project skill from agent-project-ops and initialize this project.
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 ```
 
 A compatible Agent should read the methodology, inspect the environment, and invoke the bootstrap flow rather than improvising its own project rules.
