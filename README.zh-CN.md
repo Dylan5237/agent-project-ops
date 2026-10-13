@@ -1,6 +1,6 @@
 # Agent Project Ops（APO）
 
-[English](./README.md) · [发行说明](./docs/releases/v0.2.0.md) · [旧项目升级](./docs/UPGRADE.zh-CN.md) · [新项目快速上手](./docs/GETTING_STARTED.zh-CN.md)
+[English](./README.md) · [发行说明](./docs/releases/v0.2.1.md) · [旧项目升级](./docs/UPGRADE.zh-CN.md) · [新项目快速上手](./docs/GETTING_STARTED.zh-CN.md)
 
 **让 AI 编写的软件，不依赖某一个会话，也能持续维护。**
 
@@ -17,9 +17,9 @@ APO 是以 GitHub 为项目事实源、以 Skill 为 Agent 入口的轻量项目
 
 具备 GitHub、文件系统与 Git 操作能力的 Agent 应自行核实仓库最新**正式稳定 Release**和对应 Git SHA，再调用已有 Bootstrap/Adoption 或 Upgrade Skill；涉及仓库可见性、写入、升级 `plan_id` 时仍需授权。工具或权限不足则说明缺口，不声称所有宿主都能仅凭 URL 完成操作。
 
-## v0.2.0：可独立采用，也能升级旧项目
+## v0.2.1：可独立采用，也能升级旧项目
 
-本版软件包版本为 **0.2.0**（[VERSION](./VERSION)）。正式可下载版本以 [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases) 为准；候选分支和临时测试 PR 不等于发行。十项治理不变量继续沿用 `PRINCIPLES.md` 的 **v0.1.2 合同版本**，与软件包版本分开；项目 PIN 记录完整提交 SHA。
+本版软件包版本为 **0.2.1**（[VERSION](./VERSION)）。正式可下载版本以 [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases) 为准；候选分支和临时测试 PR 不等于发行。十项治理不变量继续沿用 `PRINCIPLES.md` 的 **v0.1.2 合同版本**，与软件包版本分开；项目 PIN 记录完整提交 SHA。
 
 | 能力 | 本版行为 |
 | --- | --- |
@@ -38,8 +38,8 @@ APO 是以 GitHub 为项目事实源、以 Skill 为 Agent 入口的轻量项目
 需要 Git；初始化 shell 需要 Bash（Windows 使用 Git Bash）；升级补丁生成需要 Python 3.10+。创建 GitHub 项目需要已授权的 GitHub CLI `gh`；只做本地初始化可显式使用 `--skip-github`。
 
 ```bash
-git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.0
-cd apo-v0.2.0
+git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.1
+cd apo-v0.2.1
 ```
 
 保留完整历史，便于核实旧项目 PIN；源码 ZIP 没有 Git 历史，不能直接替代升级源克隆。发行附件的 `RELEASE_SHA.txt` / `SHA256SUMS` 用于核对来源与包完整性。
