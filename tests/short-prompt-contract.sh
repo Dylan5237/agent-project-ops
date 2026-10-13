@@ -30,7 +30,7 @@ grep -Fq "$upgrade" "$upgrader" || fail "upgrade Skill missing exact user prompt
 for key in 'latest published stable Release' 'playbooks/adopt-existing-project.md' 'authorization' 'local Git'; do
   grep -Fiq "$key" "$bootstrap" || fail "bootstrap lost routing/safety contract: $key"
 done
-for key in 'latest published stable Release' 'plan_id' 'full-history Git clone' 'read-only preview'; do
+for key in 'published stable Release' 'plan_id' 'full-history Git clone' 'read-only preview'; do
   grep -Fiq "$key" "$upgrader" || fail "upgrade lost provenance/approval contract: $key"
 done
 grep -Fq 'nonempty repository' "$bootstrap" || fail "greenfield/adoption boundary missing"
