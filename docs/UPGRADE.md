@@ -1,4 +1,4 @@
-# Upgrade an existing project's APO rules to v0.2.0
+# Upgrade an existing project's APO rules to v0.2.1
 
 [简体中文与可直接转交 Agent 的指令](./UPGRADE.zh-CN.md)
 
@@ -29,7 +29,7 @@ Use Git and Python 3.10+. Shell examples require Bash (Git Bash on Windows).
 In a separate trusted directory, clone the release **with history**:
 
 ```bash
-git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.0
+git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.1
 ```
 
 Do not use `--depth 1`: the exact old PIN commit must exist locally. A trusted
@@ -53,7 +53,7 @@ is implied.
 2. Run the readonly preview, storing output outside both worktrees:
 
    ```bash
-   python3 /path/apo-v0.2.0/scripts/prepare-upgrade.py \
+   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
      --project /path/project-upgrade > /safe/upgrade-plan.json
    ```
 
@@ -61,7 +61,7 @@ is implied.
    `plan_id`. Only after approval export the patch:
 
    ```bash
-   python3 /path/apo-v0.2.0/scripts/prepare-upgrade.py \
+   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
      --project /path/project-upgrade --patch --expect-plan APPROVED_PLAN_ID \
      > /safe/upgrade.patch
    ```
