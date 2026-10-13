@@ -2,24 +2,21 @@
 
 适用于已通过旧版 bootstrap 建立 `.agent-project-ops/PIN` 的项目。**更新工具本身，不等于更新项目内固定的规则；只改 PIN 也不算升级。** 本指南把方法论快照、生成的 Agent 规则、项目特有要求和 GitHub 控制面分开处理。
 
-## 推荐：交给你的本地 Agent
+## 最简入口
 
-在需要升级的项目中发送以下指令。只处理当前项目，不批量操作其他仓库。
+在**需要升级的当前项目**中，直接发送：
 
 ```text
-将当前项目的 APO 规则升级到 Dylan5237/agent-project-ops v0.2.0。
-先读取当前 AGENTS.md、.agent-project-ops/PIN、remotes 和真实 Command Center，
-在独立目录准备该版本的可信完整 Git 克隆，并读取新版 skills/upgrade-project/SKILL.md。
-不要在旧项目上重新 bootstrap，不要只改 PIN，不要全文覆盖项目自定义 AGENTS.md。
-保留业务代码、审批人、CC 指针、Git 配置、远端分类和 project-config。
-按已批准基线建立独立升级 worktree，记录原提交作为备份；执行只读升级预览，
-向我说明旧/新 SHA、变更文件、规则冲突、回退路径，以及 GitHub 控制面待协调事项。
-我确认具体 plan_id 后再导出补丁并用 git apply --check 校验，成功后应用同一补丁。
-遇到自定义快照、未知 PIN、冲突或缺权限立即停止，不强制覆盖、不自动提交合并或部署。
-本地验证后准备正常升级 PR；只针对本项目、按我确认的政策协调 CC/Phase 中继承的
-旧 Fleet/box/Bugbot 通用约束，保留项目明确要求的审查、历史决定和未完成任务。
-最后区分“本地补丁完成”“PR 已合并”“控制面已协调”，不要误报整个项目已升级。
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
 ```
+
+尚未接入 APO 的项目则使用：`使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。`。两个短提示词都不要求用户记住 Skill 或 CLI；Agent 应自行获取已发布稳定版本、读取相关 Skill，并报告其工具/权限边界。
+
+## 推荐：交给你的本地 Agent
+
+简短提示词已在上方给出。执行时只处理当前项目，不批量操作其他仓库。
+
+**Agent 内部应履行的步骤**：读取 `AGENTS.md`、旧 PIN、remotes 和真实 Command Center；准备可信完整 Git 历史克隆；使用隔离升级 Worktree，只读预览并给出变更、冲突与回退；由你确认具体 `plan_id` 后才校验/应用补丁和提交升级 PR；单独协调继承的旧通用规则，不能自动覆盖自定义规则、合并 PR 或迁移其他仓库。
 
 ## 前置条件
 
