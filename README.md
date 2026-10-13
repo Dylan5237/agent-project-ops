@@ -1,6 +1,6 @@
 # Agent Project Ops (APO)
 
-[简体中文](./README.zh-CN.md) · [Release notes](./docs/releases/v0.2.0.md) · [Upgrade existing projects](./docs/UPGRADE.md) · [Getting started](./docs/GETTING_STARTED.md)
+[简体中文](./README.zh-CN.md) · [Release notes](./docs/releases/v0.2.1.md) · [Upgrade existing projects](./docs/UPGRADE.md) · [Getting started](./docs/GETTING_STARTED.md)
 
 **Keep AI-built software maintainable beyond a single session or Agent.**
 
@@ -21,9 +21,9 @@ In a Coding Agent that has GitHub, Git and local-project access, the user can si
 
 These mean “initialize the current project” and “upgrade the current project's APO rules.” The Agent should verify the **latest published stable Release** and exact commit SHA (or honor an explicitly requested version), then route to the existing Bootstrap/Adoption or safe Upgrade Skill. Permission-sensitive writes and an upgrade `plan_id` still require approval. If network, filesystem or Git tools are unavailable, report that limitation instead of pretending the prompt performed work.
 
-## v0.2.0: portable defaults and reviewable rule upgrades
+## v0.2.1: portable defaults and reviewable rule upgrades
 
-The **package version is 0.2.0** ([VERSION](./VERSION)). Published artifacts are
+The **package version is 0.2.1** ([VERSION](./VERSION)). Published artifacts are
 listed under [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases);
 a draft candidate or CI-only PR is not a release. `PRINCIPLES.md` continues to
 identify the **v0.1.2 invariant contract**, independently of package version.
@@ -51,8 +51,8 @@ Creating a real GitHub project additionally needs an authorized GitHub CLI `gh`;
 local-only bootstrap is available with explicit `--skip-github`.
 
 ```bash
-git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.0
-cd apo-v0.2.0
+git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.1
+cd apo-v0.2.1
 ```
 
 Keep complete history so the old project PIN can be resolved. Source ZIPs contain
