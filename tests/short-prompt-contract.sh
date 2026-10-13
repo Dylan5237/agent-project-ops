@@ -34,7 +34,7 @@ for key in 'published stable Release' 'plan_id' 'full-history Git clone' 'read-o
   grep -Fiq "$key" "$upgrader" || fail "upgrade lost provenance/approval contract: $key"
 done
 grep -Fq 'nonempty repository' "$bootstrap" || fail "greenfield/adoption boundary missing"
-grep -Fq 'does not' "$upgrader" || fail "upgrade limitations missing"
+grep -Fq 'If network/local Git/permissions are missing' "$upgrader" || fail "upgrade tool-capability limitation missing"
 grep -Fq 'PR merge' "$root/PRINCIPLES.md" || fail "methodology phase acceptance rule missing"
 
 echo 'PASS: URL-first short prompts route existing Bootstrap/Adoption/Upgrade Skills without weakening approval gates'
