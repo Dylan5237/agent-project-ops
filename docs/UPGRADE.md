@@ -6,6 +6,16 @@ A project contains a **pinned snapshot**. Updating a global Skill or changing on
 PIN does not update that snapshot, its generated Agent rules, or live GitHub
 Command Center policies. This workflow treats those as separate responsibilities.
 
+## One-line URL-first entry
+
+Use the following instruction in the current project:
+
+```text
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
+```
+
+For an unbound project, use `使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。`. The user should not need to remember a Skill or CLI command. With the right GitHub/local Git access, the Agent locates the latest **published stable Release** and exact SHA, then loads the safe upgrade procedure below; with insufficient tools it reports a limitation. The selected upgrade `plan_id` still requires explicit approval.
+
 ## Supported path
 
 The automatic generator supports the known v0.1.x bootstrap layout with a valid
@@ -29,9 +39,9 @@ history and cannot be used directly as the upgrade source.
 
 ## Recommended Agent entrypoint
 
-Ask your local Agent to read `skills/upgrade-project/SKILL.md` **from the release
-clone**, inspect the selected project's real binding/CC/Phase, and follow its
-preview-first process. Scope this to one chosen project. No fleet-wide migration,
+The short prompt above is enough to express intent. Internally the Agent should read
+`skills/upgrade-project/SKILL.md` **from the verified release clone**, inspect the
+selected project's real binding/CC/Phase, and follow its preview-first process. Scope this to one chosen project. No fleet-wide migration,
 repository visibility change, automatic merge, deployment or Phase acceptance
 is implied.
 
