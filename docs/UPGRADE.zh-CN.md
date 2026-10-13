@@ -1,4 +1,4 @@
-# 将已有项目的 APO 规则升级到 v0.2.0
+# 将已有项目的 APO 规则升级到 v0.2.1
 
 适用于已通过旧版 bootstrap 建立 `.agent-project-ops/PIN` 的项目。**更新工具本身，不等于更新项目内固定的规则；只改 PIN 也不算升级。** 本指南把方法论快照、生成的 Agent 规则、项目特有要求和 GitHub 控制面分开处理。
 
@@ -25,7 +25,7 @@
 准备一个与业务项目分开的、来源和旧 PIN URL 一致的完整 Git 克隆：
 
 ```bash
-git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.0
+git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.1
 ```
 
 不要使用 `--depth 1`：升级时必须在本地找到旧 PIN 的精确提交。若可信克隆不包含它，先由用户确认并获取相应历史，或提供 `--old-source` 指向保存旧提交的可信克隆。**不要为通过校验修改旧 PIN。** ZIP 源码包可用于审阅，但没有 Git 历史，不能直接作为升级源。
@@ -39,7 +39,7 @@ git clone --branch v0.2.0 https://github.com/Dylan5237/agent-project-ops.git ../
 git status --short
 git rev-parse APPROVED_BASE
 # 保存上一步的精确提交 SHA。原工作区和该提交是回退基线。
-git worktree add -b upgrade/apo-v0.2.0 ../project-apo-upgrade APPROVED_BASE
+git worktree add -b upgrade/apo-v0.2.1 ../project-apo-upgrade APPROVED_BASE
 ```
 
 不要与其他 Agent 共用该升级工作区，不要将工作区放到方法论源克隆中。预览报告、补丁和校验回执存放在**两个工作区之外**的安全位置；补丁可能包含项目专属说明，不应未经允许公开。
@@ -47,7 +47,7 @@ git worktree add -b upgrade/apo-v0.2.0 ../project-apo-upgrade APPROVED_BASE
 ## 二、只读预览
 
 ```bash
-python3 ../apo-v0.2.0/scripts/prepare-upgrade.py \
+python3 ../apo-v0.2.1/scripts/prepare-upgrade.py \
   --project ../project-apo-upgrade > ../apo-upgrade-plan.json
 ```
 
@@ -60,7 +60,7 @@ python3 ../apo-v0.2.0/scripts/prepare-upgrade.py \
 下面命令应逐条执行并检查退出码；不要用不检查错误的管道自动应用。
 
 ```bash
-python3 ../apo-v0.2.0/scripts/prepare-upgrade.py \
+python3 ../apo-v0.2.1/scripts/prepare-upgrade.py \
   --project ../project-apo-upgrade \
   --patch --expect-plan APPROVED_PLAN_ID > ../apo-upgrade.patch
 
