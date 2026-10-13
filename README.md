@@ -10,6 +10,17 @@ replayable evidence and supports Agent handoff based on actual repository state.
 It is not another coding Harness, business framework, cloud service or deployment
 stack.
 
+## URL-first prompts (recommended)
+
+In a Coding Agent that has GitHub, Git and local-project access, the user can simply send one sentence. **No Skill name or CLI command needs to be memorized:**
+
+```text
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
+使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
+```
+
+These mean “initialize the current project” and “upgrade the current project's APO rules.” The Agent should verify the **latest published stable Release** and exact commit SHA (or honor an explicitly requested version), then route to the existing Bootstrap/Adoption or safe Upgrade Skill. Permission-sensitive writes and an upgrade `plan_id` still require approval. If network, filesystem or Git tools are unavailable, report that limitation instead of pretending the prompt performed work.
+
 ## v0.2.0: portable defaults and reviewable rule upgrades
 
 The **package version is 0.2.0** ([VERSION](./VERSION)). Published artifacts are
@@ -50,7 +61,7 @@ no Git history and are not upgrade-source clones. Release assets include
 
 ### New project
 
-Load `skills/bootstrap-project/SKILL.md` in a compatible Agent, or run:
+The preferred entry is the first short prompt above. For manual troubleshooting, the equivalent CLI is:
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -66,7 +77,7 @@ greenfield bootstrap over their files.
 
 ### Project already using an older APO version
 
-Do not rerun bootstrap, edit only PIN, or overwrite the entire project AGENTS.
+Use the second short prompt above. Do not rerun bootstrap, edit only PIN, or overwrite the entire project AGENTS.
 Ask your local Agent to use `skills/upgrade-project/SKILL.md` **from the trusted
 release clone**. It should inspect the project's actual PIN/CC, create an isolated
 upgrade task worktree at the approved baseline, and show a readonly preview.
