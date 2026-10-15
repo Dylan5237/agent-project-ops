@@ -21,8 +21,8 @@ Stop when the contract or environment is insufficient (**fail closed**), and rou
 ### A. Blocked / 阻塞
 
 1. Set **exactly** `status:blocked` (remove `in-progress` if it was set).
-2. Comment `BLOCKED:` plus a checklist of gaps, last good SHA, worktree path, and **what would unblock**.
-3. Park the worktree: commit WIP on the topic branch **or** stash and push the branch so another Agent can resume. Do not leave the only copy on one laptop unsynced if others must continue.
+2. Comment `BLOCKED:` plus a checklist of gaps, last good SHA, branch and working directory, and **what would unblock**.
+3. Park the task: commit WIP on the topic branch, `git push -u origin HEAD`, then `tidy-worktrees.sh --park <branch>` (branch kept locally and on origin; the folder is released, or the primary checkout returns to the default branch). `git stash` is not parking — a stash is local-only and invisible to the next Agent. Resume later with `new-worktree.sh` (same issue, slug and kind).
 4. Do not open unrelated `feat/` work “to stay productive” against the same Phase.
 5. When unblocked: comment `UNBLOCKED:` with proof, restore `status:in-progress` or `verification`.
 6. Update Command Center **section 1** on both block and unblock. [ ] **CC §1 updated**. If CC cannot be edited, the `BLOCKED:` comment on the Issue is still required; do not leave the gap chat-only.

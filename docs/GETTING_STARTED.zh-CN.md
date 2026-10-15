@@ -311,7 +311,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 1. 创建 Issue / Phase
 2. 冻结范围与验收标准
 3. Disposer：FREEZE ACK
-4. 为任务创建唯一 worktree / branch
+4. 为任务开分支（只有一个任务时直接用主文件夹，同时做几个才另建工作文件夹）
 5. 实现 + 测试
 6. 打开 PR + 运行 CI
 7. 请求合并前核对当前 PR 的必需 CI 与审查门禁
@@ -324,7 +324,7 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 最重要的规则：
 
 - 如果 Phase 合同要求 Freeze，就不能在 Freeze 前进入实现；
-- 一个任务 = 一个 worktree / branch / PR；
+- 一个任务 = 一个分支 / 一个 PR；PR 合并或关闭后，Agent 自动收拾对应的文件夹和分支，没合并的工作不会被删；
 - 日常禁止直接 push `main`；
 - Agent 可以自主实现、测试、检查 CI、整理证据；
 - 当真正需要产品、架构或 disposer 决策时，Agent 才暂停；

@@ -10,7 +10,9 @@ on:
       - 'scripts/export-sync.sh'
       - 'tests/hook-behavior.sh'
       - 'scripts/new-worktree.sh'
+      - 'scripts/tidy-worktrees.sh'
       - 'tests/worktree-base.sh'
+      - 'tests/worktree-tidy.sh'
       - 'playbooks/git-worktree.md'
       - 'skills/git-worktree-and-branch/SKILL.md'
       - 'tests/url-guard.sh'
@@ -27,7 +29,9 @@ on:
       - 'scripts/export-sync.sh'
       - 'tests/hook-behavior.sh'
       - 'scripts/new-worktree.sh'
+      - 'scripts/tidy-worktrees.sh'
       - 'tests/worktree-base.sh'
+      - 'tests/worktree-tidy.sh'
       - 'playbooks/git-worktree.md'
       - 'skills/git-worktree-and-branch/SKILL.md'
       - 'tests/url-guard.sh'
@@ -54,7 +58,9 @@ jobs:
           bash -n scripts/export-sync.sh
           bash -n tests/hook-behavior.sh
           bash -n scripts/new-worktree.sh
+          bash -n scripts/tidy-worktrees.sh
           bash -n tests/worktree-base.sh
+          bash -n tests/worktree-tidy.sh
           bash -n tests/url-guard.sh
           bash -n tests/share-export.sh
           bash -n tests/export-sync.sh
@@ -62,6 +68,8 @@ jobs:
         run: bash tests/url-guard.sh
       - name: Worktree base selection contract
         run: bash tests/worktree-base.sh
+      - name: Worktree retirement contract
+        run: bash tests/worktree-tidy.sh
       - name: Authority/projection behavior matrix
         run: bash tests/hook-behavior.sh
       - name: Share-export denylist contract

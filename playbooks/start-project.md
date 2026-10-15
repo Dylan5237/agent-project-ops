@@ -14,7 +14,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 
 - You can create Issues and labels on the business repo.
 - GitHub is the write authority (`origin`).
-- `PRINCIPLES.md` v0.1.2 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
+- `PRINCIPLES.md` v0.1.3 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
 - If the repo was bootstrapped, `.agent-project-ops/PIN` contains a real methodology SHA and `.agent-project-ops/remotes` is the remote registry.
 
 ## Steps

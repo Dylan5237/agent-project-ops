@@ -51,12 +51,14 @@ On every gate flip / phase status / Freeze / blocked / verification: update Comm
 
 ## Implementation links
 
-- Worktree:
+- Working directory (primary checkout or `.worktrees/…`):
+- Branch:
 - PRs:
 
 ## Verification
 
 - Evidence PR or proof comment:
+- Repo tidy before proposal (`apo-tidy:` line):
 - Agent proposal (`EVIDENCE READY`):
 - Disposer: `PHASE ACCEPT` / `PHASE RETURN`
 

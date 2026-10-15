@@ -29,7 +29,7 @@ ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.
               ".githooks/pre-push"}
 PREFIXES = (".agent-project-ops/", ".agents/skills/", ".claude/skills/",
             ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE/")
-SCRIPT_FILES = ("new-worktree.sh", "install-hooks.sh", "share-export.sh", "export-sync.sh",
+SCRIPT_FILES = ("new-worktree.sh", "tidy-worktrees.sh", "install-hooks.sh", "share-export.sh", "export-sync.sh",
                 "scan-inverted-sot.py", "lib/url-guard.sh",
                 "lib/share-export-denylist.sh", "lib/export-strip-list.sh")
 

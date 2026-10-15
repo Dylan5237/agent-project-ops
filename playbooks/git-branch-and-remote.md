@@ -47,7 +47,7 @@ If a **projection** (same-history mirror) remote exists, this playbook still gov
 
    Never: `git push origin main`. Never: `--force` on `main`. Force-with-lease on a **topic** branch only if the Issue comments that the branch is Agent-private and not under review.
 7. **PR target:** `main` (or the default branch named on Command Center).
-8. **After merge:** delete the remote topic branch on **authority**; remove worktree; do not keep pushing the old name. After the **authority tip** merges to the default branch, **new work starts from that tip** (fetch `origin`; do not base the next branch on a superseded transitional head).
+8. **After merge (or close):** run `scripts/tidy-worktrees.sh --apply` — it deletes the merged topic branch on **authority** and locally, removes its folder (or switches the primary checkout back), and archives closed-unmerged tips as `archive/<branch>-<sha7>` before deleting; anything unproven is kept and listed. With GitHub **Automatically delete head branches** enabled the remote branch may already be gone; tidy treats that as normal. Do not delete by hand and do not keep pushing the old name. After the **authority tip** merges to the default branch, **new work starts from that tip** (fetch `origin`; do not base the next branch on a superseded transitional head).
 9. **Do not** add `upstream` / `backup` / unnamed remotes to replace Issues or to dodge protected `main`. A named projection remote is not a backup workflow; it is a same-history mirror (see the projection playbook). A colleague-share GitLab URL is not a backup and not a projection.
 
 ## Done when
@@ -66,3 +66,4 @@ If a **projection** (same-history mirror) remote exists, this playbook still gov
 - Pushing topic branches to a projection/mirror remote.
 - Adding colleague GitLab as `projection` so a full ops tree can be pushed (classify `export=` or use share-export).
 - Rewriting `main` history (except disposer-authorized align in the projection playbook).
+- `git branch -D` / `git push --delete` on a topic branch without tidy's proof (merged PR) or an archive tag (closed or abandoned).

@@ -35,12 +35,13 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 ### 2. Implement / 实现
 
-1. One worktree + one branch per task/PR (`playbooks/git-worktree.md`, `git-branch-and-remote.md`).
+1. One branch per task/PR, on the idle primary checkout or its own worktree (`playbooks/git-worktree.md`, `git-branch-and-remote.md`).
 2. Implementation PRs use `templates/PULL_REQUEST_TEMPLATE/implementation.md`.
 3. Link `Closes` / `Refs` the Phase or child task issue.
 4. Do not “improve” frozen fields in the same PR. That is an Architecture Exception.
 5. Update CC §1 when the implementation PR opens or the Phase label moves. [ ] **CC §1 updated**
 6. Before asking for merge/review, check actual mandatory CI and review gates for the current PR SHA using `playbooks/issues-and-prs.md` step 8.
+7. After each PR merges or closes, run `tidy-worktrees.sh --apply`: merged work is retired, closed work is archived first, everything unproven is kept and listed.
 
 ### 3. Verify / 验证
 
@@ -51,7 +52,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 ### 4. Accept / 验收
 
-1. Agent **proposes** PASS: comment on the Phase with evidence links and a mapping “acceptance test → proof.”
+1. Agent **proposes** PASS: comment on the Phase with evidence links and a mapping “acceptance test → proof.” Run `tidy-worktrees.sh --apply` first and include its `apo-tidy:` line; every folder or branch it still keeps for this Phase is retired, parked or listed with a reason in the same comment.
 2. Disposer comments `PHASE ACCEPT` or `PHASE RETURN` with gaps.
 3. `PHASE ACCEPT` is the only PASS. PR merge, CI green and automated or human review do not substitute.
 4. After Accept or Return, update CC §1 (do not treat merge as PASS). [ ] **CC §1 updated**
@@ -71,11 +72,13 @@ If blocked at any step: `playbooks/blocked-and-exceptions.md`. Do not skip Freez
 - [ ] `PHASE ACCEPT` (or an explicit cancel/supersede note) is on the issue.
 - [ ] Phase is `status:done` and closed, or still open only because a documented follow-on Phase owns remaining work.
 - [ ] Command Center index updated.
+- [ ] The acceptance proposal carried an `apo-tidy:` line with `failed=0`; no leftover folder or branch of this Phase is unexplained.
 - [ ] **CC §1 updated** on each gate flip recorded above (current phase, status word, gates, single Next Action).
 
 ## Anti-patterns
 
 - Coding on `main` or before Freeze ACK.
+- Proposing PASS while finished task folders/branches of this Phase are still lying around unexplained.
 - “We merged, so the phase passed.”
 - Asking the disposer to merge with unmet mandatory CI/reviewer gates, or treating checks as Accept.
 - Flipping a Phase label or Freeze/blocked/verification event without updating Command Center §1 (leaving the new state in chat).

@@ -1,8 +1,8 @@
-# PRINCIPLES — v0.1.2
+# PRINCIPLES — v0.1.3
 
 These invariants are **binding**. A local Agent that owns a project must load this file with the skills in `skills/` before proposing work. If a playbook step conflicts with an invariant, the invariant wins.
 
-Version: **v0.1.2**  
+Version: **v0.1.3**  
 Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 ---
@@ -64,11 +64,13 @@ Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 ## 8. One worktree ≈ one task ≈ one PR branch
 
-并行工作用 worktree 隔离。每个 worktree 绑定一个 Issue（或 Phase 子任务）和一条 PR 分支。
+并行工作用 worktree 隔离。每个 worktree 绑定一个 Issue（或 Phase 子任务）和一条 PR 分支。只有一个任务在做时，空闲的主检出直接承载这条任务分支，不另建文件夹。收尾由脚本自动完成，不靠记性。
 
-- Path convention: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
+- Path convention: `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`; at most `max_worktrees` task folders at once (default 3; `0` = unlimited).
 - Do not stack unrelated diffs in one worktree.
-- Delete or park the worktree when the PR is merged or abandoned.
+- Retire with `tidy-worktrees.sh --apply` after every merge, before every new task (built into `new-worktree.sh`) and before every Phase acceptance proposal. Retire only what is proven landed (a merged PR whose head contains the local tip, or an upstream deleted after landing); never uncommitted or unmerged work.
+- Abandoned work (PR closed unmerged, or a disposer-approved `--abandon`) is pushed as tag `archive/<branch>-<sha7>` before its branch is deleted. Deleting an archived branch is not deleting unmerged work.
+- Park = commit + push, then `tidy-worktrees.sh --park <branch>`: the folder goes, the branch stays.
 
 ## 9. Evidence PRs ≠ implementation PRs
 
@@ -97,5 +99,6 @@ Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbook
 
 ### Changelog
 
+- **v0.1.3** — Principle 8: automatic retirement (after merge, before each new task, before Accept); idle primary checkout hosts a single task; task-folder cap; archive-before-delete for abandoned branches; park = push + remove folder.
 - **v0.1.2** — Principle 10: export is a third remote role (authority − strip list), not a second write authority.
 - **v0.1.1** — Principle 10: at most one write authority; projection remotes are read-or-FF-from-authority.

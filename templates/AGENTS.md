@@ -19,7 +19,7 @@ Core rules:
 3. `origin` (GitHub) is the only write authority. An explicitly configured projection is same-history FF only; a filtered export, when requested, is a distinct advanced role, never a second source of truth.
 4. Unknown remotes fail closed. `.agent-project-ops/remotes` is the clone-portable registry.
 5. Topic branches push only to `origin`. Never substitute a projection/export or unclassified remote when the authority is unavailable.
-6. One task, one worktree under `.worktrees/`; keep the primary checkout clean for sync/control work.
+6. One task, one branch, one PR. A single task uses the idle primary checkout; parallel tasks get folders under `.worktrees/` (at most `max_worktrees`, default 3). Finished work is retired by `.agent-project-ops/scripts/tidy-worktrees.sh`; never delete task folders or branches by hand.
 7. Do not copy business/domain SOP back into the methodology snapshot or upstream methodology repository.
 
 ## Before your first push in this clone
@@ -45,7 +45,8 @@ A missing client hook is **not** permission to push `main`. The hook is bypassab
 ## Starting work
 
 - No Command Center / first project setup: `.agent-project-ops/playbooks/start-project.md`
-- New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook. Resolve the base from project config or verified origin default; if ambiguous, ask with the Agent host's native choice tool, use plain conversation as fallback, and require `--base` in headless mode. Persist a project default only after explicit user choice and a normal PR.
+- New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook. Resolve the base from project config or verified origin default; if ambiguous, ask with the Agent host's native choice tool, use plain conversation as fallback, and require `--base` in headless mode. Persist a project default only after explicit user choice and a normal PR. The helper retires finished work first; exit 3 means the folder cap is reached and nothing was created (queue the task or park one).
+- After a PR merges or closes, before each status report and before proposing acceptance: run `.agent-project-ops/scripts/tidy-worktrees.sh --apply` and quote its `apo-tidy:` line. Pause = commit + push + `--park <branch>`; abandon only on a disposer decision with `--abandon <branch>` (archives first).
 - Multiple remotes / same-history mirror / divergence: load `git-authority-and-projection` before any non-`origin` push.
 - Only if a user asks for a second host or filtered publication: load `git-authority-and-projection`, `export-remote`, or `share-export` as appropriate; never classify a filtered export as a same-history projection.
 - Cannot verify an invariant or remote state: fail closed and record `BLOCKED:` on the active Issue.

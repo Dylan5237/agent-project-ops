@@ -92,6 +92,25 @@ change business behavior, deploy, or accept unrelated Phases.
     reviewed rule update and control-plane record agree. Never fabricate old
     Freeze/Accept or erase the historical version's evidence.
 
+## After the upgrade PR merges: switch on automatic retirement
+
+13. Only after the upgrade PR is merged (the project now ships
+    `.agent-project-ops/scripts/tidy-worktrees.sh`):
+    - Enable GitHub **Automatically delete head branches**
+      (`gh repo edit OWNER/REPO --delete-branch-on-merge`; needs admin, else
+      give the user that command). If a long-lived branch such as `develop`
+      reaches the default branch through PRs and cannot be protected from
+      deletion, ask first instead of enabling it.
+    - From the primary checkout run `tidy-worktrees.sh` (read-only plan). Turn
+      the inherited backlog into **one** decision request: what would be
+      retired (merged), what would be archived then deleted (closed), and every
+      `keep` line with its reason; old unmerged branches may be proposed for
+      `--abandon` individually or as a listed batch.
+    - After approval: `tidy-worktrees.sh --apply`, then `--abandon <branch>` for
+      each approved branch, and record the final `apo-tidy:` line on the upgrade
+      Issue / CC. Never delete by hand; leftovers that need investigation
+      (diverged, no PR, other tools' folders) go to `repo-reconciliation-cleanup`.
+
 ## Rollback
 
 Before commit, keep the exact exported patch and baseline. First run

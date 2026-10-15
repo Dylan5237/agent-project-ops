@@ -18,9 +18,13 @@ git clone -q "$tmp/origin.git" "$tmp/project"
 
 (
   cd "$tmp/project"
+  # A single task is hosted by the idle primary checkout (no extra folder).
   bash "$root/scripts/new-worktree.sh" 101 agent first feat > "$tmp/default"
   main_sha="$(git rev-parse refs/remotes/origin/main)"
-  [[ "$(git -C .worktrees/101-agent-first rev-parse HEAD)" == "$main_sha" ]] || fail "default origin HEAD base"
+  [[ "$(git rev-parse HEAD)" == "$main_sha" ]] || fail "default origin HEAD base"
+  [[ "$(git symbolic-ref --short HEAD)" == feat/101-first ]] || fail "idle primary checkout did not host the single task"
+  [[ ! -e .worktrees/101-agent-first ]] || fail "single task created an extra folder"
+  grep -Fxq 'mode:     here' "$tmp/default" || fail "single task mode not reported"
 
   bash "$root/scripts/new-worktree.sh" 102 agent second fix --base origin/develop --save-base > "$tmp/explicit"
   develop_sha="$(git rev-parse refs/remotes/origin/develop)"
@@ -58,7 +62,7 @@ git -C "$tmp/master-seed" push -q origin master
 git clone -q "$tmp/master-origin.git" "$tmp/master-project"
 (
   cd "$tmp/master-project"
-  bash "$root/scripts/new-worktree.sh" 201 agent master-task fix > "$tmp/master.log"
+  bash "$root/scripts/new-worktree.sh" 201 agent master-task fix --worktree > "$tmp/master.log"
   [[ "$(git -C .worktrees/201-agent-master-task rev-parse HEAD)" == "$(git rev-parse refs/remotes/origin/master)" ]] || fail "master default ignored"
 )
 # Separate negative fixture: remote HEAD is UNVERIFIABLE although origin has
@@ -88,4 +92,4 @@ git --git-dir="$tmp/origin.git" symbolic-ref HEAD refs/heads/default-not-present
   if git show-ref --verify --quiet refs/heads/feat/301-unresolved; then fail "branch created with unverifiable remote HEAD"; fi
 )
 
-echo 'PASS: main/master defaults, develop/explicit choices, invalid refs and unsafe paths; missing remote HEAD with multiple candidates fails closed'
+echo 'PASS: main/master defaults, single task in idle primary, develop/explicit choices, invalid refs and unsafe paths; missing remote HEAD with multiple candidates fails closed'

@@ -311,7 +311,7 @@ The normal lifecycle is:
 1. Create Issue / Phase
 2. Freeze the scope and acceptance tests
 3. Disposer: FREEZE ACK
-4. Create one worktree / branch for the task
+4. Create the task branch (single task: main checkout; parallel tasks: own worktree)
 5. Implement + test
 6. Open PR + run CI
 7. Before requesting merge: inspect the project's required CI and review conditions.
@@ -324,7 +324,7 @@ The normal lifecycle is:
 Rules that matter most:
 
 - no implementation before Freeze when the Phase contract requires it;
-- one task = one worktree / branch / PR;
+- one task = one branch / PR; after the PR merges or closes, the Agent retires its folder and branch automatically, never unmerged work;
 - no routine direct push to `main`;
 - Agent may autonomously implement, test, inspect CI, and prepare evidence;
 - Agent pauses when a real product/architecture/disposer decision is required;
