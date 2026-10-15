@@ -131,6 +131,212 @@ tail -1 "$tmp/apply.txt" | grep -Eq '^apo-tidy: mode=apply gh=ok fetch=ok .* fai
 bash "$tidy" --apply > "$tmp/again.txt" || fail "second apply failed"
 grep -Fq 'folders_removed=0 branches_deleted=0 remote_deleted=0 archived=0 ' "$tmp/again.txt" || fail "second run not a no-op: $(tail -1 "$tmp/again.txt")"
 
+# --- Ignored files protect finished folders; report is read-only ---
+fixture ig 'max_worktrees=0'
+printf '/from-gitignore.data\n/park-only.data\n/abandon-only.data\n/.worktrees/\n' \
+  > "$tmp/ig-maint/.gitignore"
+git -C "$tmp/ig-maint" add .gitignore
+git -C "$tmp/ig-maint" commit -q -m 'ignore local-only fixture data'
+git -C "$tmp/ig-maint" push -q origin main
+printf '/from-exclude.data\n' >> "$tmp/ig/.git/info/exclude"
+cd "$tmp/ig"
+bash "$new" 51 agent gitignore feat --worktree > /dev/null
+bash "$new" 52 agent exclude feat --worktree > /dev/null
+bash "$new" 53 agent safe feat --worktree > /dev/null
+w51="$tmp/ig/.worktrees/51-agent-gitignore"
+w52="$tmp/ig/.worktrees/52-agent-exclude"
+w53="$tmp/ig/.worktrees/53-agent-safe"
+commit_in "$w51" "gitignore task"; git -C "$w51" push -q -u origin HEAD; t51="$(git -C "$w51" rev-parse HEAD)"
+commit_in "$w52" "exclude task"; git -C "$w52" push -q -u origin HEAD; t52="$(git -C "$w52" rev-parse HEAD)"
+commit_in "$w53" "safe task"; git -C "$w53" push -q -u origin HEAD; t53="$(git -C "$w53" rev-parse HEAD)"
+printf 'gitignore unique data\n' > "$w51/from-gitignore.data"
+mkdir -p "$w51/.worktrees/leaf"
+printf 'nested ignored unique data\n' > "$w51/.worktrees/leaf/unique.data"
+printf 'exclude unique data\n' > "$w52/from-exclude.data"
+git -C "$w51" check-ignore -q from-gitignore.data || fail ".gitignore fixture is not ignored"
+git -C "$w51" check-ignore -q .worktrees/leaf/unique.data || fail "nested .worktrees fixture is not ignored"
+git -C "$w52" check-ignore -q from-exclude.data || fail "info/exclude fixture is not ignored"
+maint_merge ig feat/51-gitignore
+maint_merge ig feat/53-safe
+pr feat/51-gitignore 51 MERGED "$t51"
+pr feat/52-exclude 52 CLOSED "$t52"
+pr feat/53-safe 53 MERGED "$t53"
+
+ig_refs_before="$(git show-ref || true)"
+ig_archive_before="$(git for-each-ref --format='%(refname) %(objectname)' refs/tags/archive)"
+ig_worktrees_before="$(git worktree list --porcelain)"
+ig_dirs_before="$(for p in "$w51" "$w52" "$w53"; do if [[ -d "$p" ]]; then printf 'present %s\n' "$p"; else printf 'absent %s\n' "$p"; fi; done)"
+ig_status_before="$(for p in "$w51" "$w52" "$w53"; do git -C "$p" status --porcelain --ignored --untracked-files=all; done)"
+bash "$tidy" --no-fetch > "$tmp/ignored-report.txt" || fail "ignored report failed: $(cat "$tmp/ignored-report.txt")"
+grep -Eq '^keep +folder +\.worktrees/51-agent-gitignore .*ignored files' "$tmp/ignored-report.txt" \
+  || fail "report did not explain ignored .gitignore data"
+grep -Eq '^keep +folder +\.worktrees/52-agent-exclude .*ignored files' "$tmp/ignored-report.txt" \
+  || fail "report did not explain ignored info/exclude data"
+grep -Eq '^plan +remove-folder +\.worktrees/53-agent-safe ' "$tmp/ignored-report.txt" \
+  || fail "report lost the safe task plan row"
+if grep -Eq '^plan +archive +feat/52-exclude ' "$tmp/ignored-report.txt"; then
+  fail "report planned an archive before checking ignored data"
+fi
+tail -1 "$tmp/ignored-report.txt" \
+  | grep -Eq '^apo-tidy: mode=report gh=ok fetch=skipped folders_removed=0 branches_deleted=0 remote_deleted=0 archived=0 .*folders_left=3/unlimited$' \
+  || fail "ignored report summary or actual folder count: $(tail -1 "$tmp/ignored-report.txt")"
+[[ "$(git show-ref || true)" == "$ig_refs_before" ]] || fail "report changed task or archive refs"
+[[ "$(git for-each-ref --format='%(refname) %(objectname)' refs/tags/archive)" == "$ig_archive_before" ]] \
+  || fail "report changed archive tags"
+[[ "$(git worktree list --porcelain)" == "$ig_worktrees_before" ]] || fail "report changed registered worktrees"
+[[ "$(for p in "$w51" "$w52" "$w53"; do if [[ -d "$p" ]]; then printf 'present %s\n' "$p"; else printf 'absent %s\n' "$p"; fi; done)" == "$ig_dirs_before" ]] \
+  || fail "report changed worktree directories"
+[[ "$(for p in "$w51" "$w52" "$w53"; do git -C "$p" status --porcelain --ignored --untracked-files=all; done)" == "$ig_status_before" ]] \
+  || fail "report changed worktree file status"
+
+mkdir -p "$tmp/ig/.worktrees/orphan" "$tmp/ig/.worktrees/.hidden"
+bash "$tidy" --no-fetch > "$tmp/physical-folders.txt" || fail "physical folder report failed"
+tail -1 "$tmp/physical-folders.txt" | grep -Eq 'folders_left=5/unlimited$' \
+  || fail "report did not count hidden and unregistered directories"
+
+bash "$tidy" --apply --no-fetch > "$tmp/ignored-apply.txt" || fail "ignored apply failed: $(cat "$tmp/ignored-apply.txt")"
+[[ -d "$w51" && -f "$w51/from-gitignore.data" && -f "$w51/.worktrees/leaf/unique.data" ]] \
+  || fail "merged task with ignored files was removed or altered"
+[[ -d "$w52" && -f "$w52/from-exclude.data" ]] || fail "closed task with ignored files was removed or altered"
+[[ -d "$w53" ]] && fail "safe merged task folder was not retired"
+[[ -d "$tmp/ig/.worktrees/orphan" && -d "$tmp/ig/.worktrees/.hidden" ]] \
+  || fail "unregistered directories were removed"
+has_branch feat/51-gitignore && on_origin feat/51-gitignore || fail "merged ignored task refs were removed"
+has_branch feat/52-exclude && on_origin feat/52-exclude || fail "closed ignored task refs were removed"
+grep -Eq '^keep +folder +\.worktrees/51-agent-gitignore .*ignored files' "$tmp/ignored-apply.txt" \
+  || fail "apply did not explain ignored .gitignore data"
+grep -Eq '^keep +folder +\.worktrees/52-agent-exclude .*ignored files' "$tmp/ignored-apply.txt" \
+  || fail "apply did not explain ignored info/exclude data"
+closed_tag="archive/feat/52-exclude-${t52:0:7}"
+[[ -z "$(git ls-remote --tags origin "refs/tags/$closed_tag")" ]] || fail "closed ignored task was archived before refusal"
+if git show-ref --verify --quiet "refs/tags/$closed_tag"; then fail "closed ignored task received a local archive tag"; fi
+
+bash "$new" 54 agent park feat --worktree > /dev/null
+w54="$tmp/ig/.worktrees/54-agent-park"
+commit_in "$w54" "park task"; git -C "$w54" push -q -u origin HEAD
+printf 'park unique data\n' > "$w54/park-only.data"
+set +e; bash "$tidy" --park feat/54-park > "$tmp/ignored-park.txt" 2>&1; ignored_park_rc=$?; set -e
+[[ "$ignored_park_rc" -eq 1 ]] || fail "park with ignored files was not refused (rc=$ignored_park_rc)"
+grep -Fq 'ignored files' "$tmp/ignored-park.txt" || fail "park refusal did not explain ignored files"
+[[ -d "$w54" && -f "$w54/park-only.data" ]] && has_branch feat/54-park && on_origin feat/54-park \
+  || fail "refused park changed its folder, data, or branches"
+
+bash "$new" 55 agent abandon feat --worktree > /dev/null
+w55="$tmp/ig/.worktrees/55-agent-abandon"
+commit_in "$w55" "abandon task"
+t55="$(git -C "$w55" rev-parse HEAD)"
+printf 'abandon unique data\n' > "$w55/abandon-only.data"
+set +e; bash "$tidy" --abandon feat/55-abandon > "$tmp/ignored-abandon.txt" 2>&1; ignored_abandon_rc=$?; set -e
+[[ "$ignored_abandon_rc" -eq 1 ]] || fail "abandon with ignored files was not refused (rc=$ignored_abandon_rc)"
+grep -Fq 'ignored files' "$tmp/ignored-abandon.txt" || fail "abandon refusal did not explain ignored files"
+[[ -d "$w55" && -f "$w55/abandon-only.data" ]] && has_branch feat/55-abandon \
+  || fail "refused abandon changed its folder, data, or branch"
+abandon_tag="archive/feat/55-abandon-${t55:0:7}"
+[[ -z "$(git ls-remote --tags origin "refs/tags/$abandon_tag")" ]] || fail "abandon archived before refusing ignored files"
+if git show-ref --verify --quiet "refs/tags/$abandon_tag"; then fail "refused abandon created a local archive tag"; fi
+
+# --- Primary checkout: ignored data blocks reuse/removal; ignored .worktrees is scoped out ---
+fixture primary 'max_worktrees=0'
+printf '/.worktrees/\n/default-cache.data\n/collision.data\n/primary-cache.data\n/park-cache.data\n/abandon-cache.data\n' \
+  > "$tmp/primary-maint/.gitignore"
+printf 'default tracked collision\n' > "$tmp/primary-maint/collision.data"
+git -C "$tmp/primary-maint" add .gitignore
+git -C "$tmp/primary-maint" add -f collision.data
+git -C "$tmp/primary-maint" commit -q -m 'add ignored-path fixture'
+git -C "$tmp/primary-maint" push -q origin main
+cd "$tmp/primary"
+git fetch -q origin
+git merge -q --ff-only origin/main
+printf 'default ignored unique data\n' > default-cache.data
+git check-ignore -q default-cache.data || fail "default primary ignored fixture is not ignored"
+set +e; bash "$new" 60 agent defaultignored feat --here > "$tmp/default-here.txt" 2>&1; default_here_rc=$?; set -e
+[[ "$default_here_rc" -eq 2 ]] || fail "--here accepted a primary checkout with ignored data (rc=$default_here_rc)"
+grep -Fq 'primary checkout is busy' "$tmp/default-here.txt" || fail "--here refusal did not explain the busy primary"
+[[ "$(git symbolic-ref --short HEAD)" == main && -f default-cache.data ]] || fail "--here changed the default branch or ignored data"
+! has_branch feat/60-defaultignored || fail "--here refusal still created a branch"
+bash "$new" 60 agent defaultignored feat > "$tmp/default-auto.txt" 2>"$tmp/default-auto.err" \
+  || fail "auto task with ignored primary data failed: $(cat "$tmp/default-auto.err")"
+grep -Fxq 'mode:     worktree' "$tmp/default-auto.txt" || fail "auto task reused an ignored primary checkout"
+w60="$tmp/primary/.worktrees/60-agent-defaultignored"
+[[ -d "$w60" && "$(git symbolic-ref --short HEAD)" == main && -f default-cache.data ]] \
+  || fail "auto task changed the primary checkout or its ignored data"
+rm -f "$tmp/primary/default-cache.data"
+
+# A root-level ignored .worktrees folder must not make an otherwise clean primary busy.
+bash "$new" 61 agent primaryreuse feat --here > "$tmp/primary-here.txt" 2>"$tmp/primary-here.err" \
+  || fail "safe primary checkout refused because .worktrees is ignored: $(cat "$tmp/primary-here.err")"
+grep -Fxq 'mode:     here' "$tmp/primary-here.txt" || fail "safe task did not use the primary checkout"
+[[ "$(git symbolic-ref --short HEAD)" == feat/61-primaryreuse && -d "$tmp/primary/.worktrees" ]] \
+  || fail "primary task setup failed with ignored .worktrees"
+commit_in "$tmp/primary" "primary reuse"; git push -q -u origin HEAD; t61="$(git rev-parse HEAD)"
+maint_merge primary feat/61-primaryreuse
+pr feat/61-primaryreuse 61 MERGED "$t61"
+bash "$new" 62 agent primaryagain feat > "$tmp/primary-again.txt" 2>"$tmp/primary-again.err" \
+  || fail "primary reuse after merge failed: $(cat "$tmp/primary-again.err")"
+grep -Fxq 'mode:     here' "$tmp/primary-again.txt" || fail "merged task did not safely reuse primary"
+[[ "$(git symbolic-ref --short HEAD)" == feat/62-primaryagain ]] \
+  || fail "safe primary was not switched back and reused"
+
+# The task removes a default-tracked path, then holds unique ignored bytes at that same path.
+git rm -q collision.data
+git commit -q -m 'remove collision on task branch'
+git push -q -u origin HEAD
+t62="$(git rev-parse HEAD)"
+printf 'unique primary ignored bytes\n' > collision.data
+git check-ignore -q collision.data || fail "primary collision fixture is not ignored"
+maint_merge primary feat/62-primaryagain
+pr feat/62-primaryagain 62 MERGED "$t62"
+git -C "$tmp/primary-maint" checkout -q main
+printf 'default tracked collision\n' > "$tmp/primary-maint/collision.data"
+git -C "$tmp/primary-maint" add -f collision.data
+git -C "$tmp/primary-maint" commit -q -m 'restore tracked default collision path'
+git -C "$tmp/primary-maint" push -q origin main
+git show origin/main:collision.data | grep -Fxq 'default tracked collision' \
+  || fail "default branch does not track the colliding path"
+bash "$tidy" --apply > "$tmp/primary-ignored-apply.txt" \
+  || fail "primary ignored apply failed: $(cat "$tmp/primary-ignored-apply.txt")"
+grep -Eq '^keep +folder +primary checkout .*ignored files' "$tmp/primary-ignored-apply.txt" \
+  || fail "primary apply did not explain ignored data"
+[[ "$(git symbolic-ref --short HEAD)" == feat/62-primaryagain && "$(cat collision.data)" == 'unique primary ignored bytes' ]] \
+  || fail "automatic apply switched the primary or overwrote colliding ignored bytes"
+[[ "$(git show origin/main:collision.data)" == 'default tracked collision' ]] \
+  || fail "default branch lost its tracked collision path"
+
+set +e; bash "$tidy" --park feat/62-primaryagain > "$tmp/primary-park.txt" 2>&1; primary_park_rc=$?; set -e
+[[ "$primary_park_rc" -eq 1 ]] || fail "primary park with ignored data was not refused (rc=$primary_park_rc)"
+grep -Fq 'ignored files' "$tmp/primary-park.txt" || fail "primary park refusal did not explain ignored files"
+[[ "$(git symbolic-ref --short HEAD)" == feat/62-primaryagain && "$(cat collision.data)" == 'unique primary ignored bytes' ]] \
+  || fail "refused primary park switched branches or changed ignored data"
+set +e; bash "$tidy" --abandon feat/62-primaryagain > "$tmp/primary-abandon.txt" 2>&1; primary_abandon_rc=$?; set -e
+[[ "$primary_abandon_rc" -eq 1 ]] || fail "primary abandon with ignored data was not refused (rc=$primary_abandon_rc)"
+grep -Fq 'ignored files' "$tmp/primary-abandon.txt" || fail "primary abandon refusal did not explain ignored files"
+[[ "$(git symbolic-ref --short HEAD)" == feat/62-primaryagain && "$(cat collision.data)" == 'unique primary ignored bytes' ]] \
+  || fail "refused primary abandon switched branches or changed ignored data"
+primary_tag="archive/feat/62-primaryagain-${t62:0:7}"
+[[ -z "$(git ls-remote --tags origin "refs/tags/$primary_tag")" ]] || fail "primary abandon archived before refusing ignored files"
+if git show-ref --verify --quiet "refs/tags/$primary_tag"; then fail "primary abandon created a local archive tag"; fi
+bash "$new" 63 agent parallel feat > "$tmp/primary-parallel.txt" 2>"$tmp/primary-parallel.err" \
+  || fail "new task with ignored primary data failed: $(cat "$tmp/primary-parallel.err")"
+grep -Fxq 'mode:     worktree' "$tmp/primary-parallel.txt" || fail "new task switched away from ignored primary data"
+[[ -d "$tmp/primary/.worktrees/63-agent-parallel" \
+  && "$(git symbolic-ref --short HEAD)" == feat/62-primaryagain \
+  && "$(cat collision.data)" == 'unique primary ignored bytes' ]] \
+  || fail "ignored root .worktrees blocked a parallel task or primary data was changed"
+
+# The primary exclusion applies to an actual task directory, never a same-named file.
+fixture shape
+cd "$tmp/shape"
+printf '/.worktrees\n' >> .git/info/exclude
+printf 'unique ignored file\n' > .worktrees
+set +e; bash "$new" 70 agent shape feat --here > "$tmp/shape-here.txt" 2>&1; shape_rc=$?; set -e
+[[ "$shape_rc" -eq 2 ]] || fail "--here excluded an ignored .worktrees file"
+git checkout -qb feat/70-shape
+pr feat/70-shape 70 MERGED "$(git rev-parse HEAD)"
+bash "$tidy" --apply > "$tmp/shape-apply.txt" || fail "same-named file protection failed"
+grep -Fq 'ignored files' "$tmp/shape-apply.txt" || fail "same-named file was hidden from status"
+[[ "$(git symbolic-ref --short HEAD)" == feat/70-shape && "$(cat .worktrees)" == 'unique ignored file' ]] \
+  || fail "same-named ignored file or its task branch was changed"
+
 # --- Lifecycle: single task in the primary checkout, folder cap, park, abandon, resume ---
 fixture l
 cd "$tmp/l"
@@ -184,4 +390,4 @@ grep -Fq 'cannot verify merge without gh' "$tmp/offline.txt" || fail "offline re
 grep -Fq 'apo-tidy: mode=apply gh=off' "$tmp/offline.txt" || fail "offline summary missing"
 unset FAKE_GH_OFFLINE
 
-echo 'PASS: merged/squash/closed retired (closed archived first); dirty, newer, open, fresh, foreign and protected kept; single task in primary; folder cap; park/abandon/resume; offline proof only'
+echo 'PASS: merged/squash/closed retirement; ignored data protection/report snapshot; primary ignored-data and .worktrees reuse; dirty/open/fresh/protected kept; folder cap; park/abandon/resume; offline proof only'

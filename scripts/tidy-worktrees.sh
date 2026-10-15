@@ -10,7 +10,7 @@
 #   merged  GitHub PR MERGED whose head equals or contains the local tip (squash/rebase safe), or,
 #           without gh, upstream origin/<branch> was deleted and the tip is in origin/<default>
 #   closed  GitHub PR CLOSED unmerged: tag archive/<branch>-<sha7> is pushed to origin first
-# Uncommitted changes, commits newer than a merged head, open PRs, no PR, locked or detached
+# Uncommitted/ignored files, commits newer than a merged head, open PRs, no PR, locked or detached
 # folders, folders outside .worktrees/ (other tools) and anything unverifiable are kept and listed.
 # Never touches the default branch, the configured task_base, or long-lived branch names.
 # The last line is a fixed summary for status reports and acceptance proposals.
@@ -135,11 +135,20 @@ act() { # action target reason command...
   return 1
 }
 
-status_of() { # porcelain status; nested .worktrees/ never makes the primary checkout dirty
-  if [[ "$1" == "$primary" ]]; then
-    git -C "$1" status --porcelain -- . ':(exclude).worktrees'
+status_of() { # ignored data is local-only too; exclude only the primary's task-folder root
+  if [[ "$1" == "$primary" && -d "$primary/.worktrees" && ! -L "$primary/.worktrees" ]]; then
+    # Git still reports an ignored nested repository despite the pathspec exclusion.
+    git -C "$1" status --porcelain --untracked-files=all --ignored=matching -- . ':(top,exclude).worktrees' \
+      | sed '\#^!! \.worktrees/$#d'
   else
-    git -C "$1" status --porcelain
+    git -C "$1" status --porcelain --untracked-files=all --ignored=matching
+  fi
+}
+local_files_reason() {
+  if [[ "$1" == '!! '* || "$1" == *$'\n!! '* ]]; then
+    printf 'ignored files (not backed up by Git archive tags)'
+  else
+    printf 'uncommitted changes'
   fi
 }
 contains() { # ancestor descendant
@@ -214,14 +223,15 @@ push_archive() { # branch sha
 }
 archive() { # branch sha reason
   if act archive "$1 -> $(archive_tag "$1" "$2")" "$3" push_archive "$1" "$2"; then
-    archived=$((archived + 1)); return 0
+    if [[ "$apply" -eq 1 ]]; then archived=$((archived + 1)); fi
+    return 0
   fi
   return 1
 }
 drop_remote() { # branch expected_sha reason
   if act delete-remote "origin/$1" "$3" \
     g push --quiet --force-with-lease="refs/heads/$1:$2" origin ":refs/heads/$1"; then
-    deleted_remote=$((deleted_remote + 1))
+    if [[ "$apply" -eq 1 ]]; then deleted_remote=$((deleted_remote + 1)); fi
   fi
   return 0
 }
@@ -229,7 +239,9 @@ retire_branch() { # branch tip reason (uses v_head)
   local b="$1" tip="$2" reason="$3" r
   printf '%s\n' "$b" >> "$work/handled"
   if g show-ref --verify --quiet "refs/heads/$b"; then
-    if act delete-branch "$b" "$reason" g branch -D "$b"; then deleted=$((deleted + 1)); else return 0; fi
+    if act delete-branch "$b" "$reason" g branch -D "$b"; then
+      if [[ "$apply" -eq 1 ]]; then deleted=$((deleted + 1)); fi
+    else return 0; fi
   fi
   if g show-ref --verify --quiet "refs/remotes/origin/$b"; then
     r="$(g rev-parse "refs/remotes/origin/$b")"
@@ -251,11 +263,20 @@ switch_primary() {
   g merge --ff-only --quiet "refs/remotes/origin/$default_name" >/dev/null 2>&1 || true
 }
 release_checkout() { # path reason
+  local dirty label
+  label="$(rel "$1")"
+  if [[ "$1" == "$primary" ]]; then label="primary checkout"; fi
+  # Recheck immediately before removing a folder or switching the primary checkout.
+  if ! dirty="$(status_of "$1" 2>/dev/null)"; then keep folder "$label" "cannot read status"; return 1; fi
+  if [[ -n "$dirty" ]]; then keep folder "$label" "$(local_files_reason "$dirty"); preserved"; return 1; fi
   if [[ "$1" == "$primary" ]]; then
     [[ -n "$default_name" ]] || { keep folder "primary checkout" "$2; default branch unknown, cannot switch back"; return 1; }
     act switch-primary "primary checkout -> $default_name" "$2" switch_primary
   else
-    if act remove-folder "$(rel "$1")" "$2" g worktree remove "$1"; then removed=$((removed + 1)); return 0; fi
+    if act remove-folder "$(rel "$1")" "$2" g worktree remove "$1"; then
+      if [[ "$apply" -eq 1 ]]; then removed=$((removed + 1)); fi
+      return 0
+    fi
     return 1
   fi
 }
@@ -274,7 +295,8 @@ if [[ -n "$park" ]]; then
   in_scope "$park" || refuse "$park is not a task branch"
   path="$(locate_checkout "$park")"
   [[ -n "$path" ]] || refuse "$park is not checked out; nothing to park"
-  [[ -z "$(status_of "$path")" ]] || refuse "uncommitted changes in $(rel "$path"); commit and push first"
+  dirty="$(status_of "$path")" || refuse "cannot read status in $(rel "$path")"
+  [[ -z "$dirty" ]] || refuse "$(local_files_reason "$dirty") in $(rel "$path"); local files preserved"
   tip="$(git -C "$path" rev-parse HEAD)"
   [[ "$(g rev-parse -q --verify "refs/remotes/origin/$park" || true)" == "$tip" ]] \
     || refuse "origin/$park is not at $tip; push first: git -C \"$path\" push -u origin HEAD"
@@ -288,8 +310,9 @@ if [[ -n "$abandon" ]]; then
   b="$abandon"
   if is_protected "$b"; then refuse "$b is a protected long-lived branch"; fi
   path="$(locate_checkout "$b")"
-  if [[ -n "$path" && -n "$(status_of "$path")" ]]; then
-    refuse "uncommitted changes in $(rel "$path"); commit them (they will be archived) or discard them explicitly first"
+  if [[ -n "$path" ]]; then
+    dirty="$(status_of "$path")" || refuse "cannot read status in $(rel "$path")"
+    [[ -z "$dirty" ]] || refuse "$(local_files_reason "$dirty") in $(rel "$path"); local files preserved"
   fi
   local_tip="$(g rev-parse -q --verify "refs/heads/$b" || true)"
   remote_tip="$(g rev-parse -q --verify "refs/remotes/origin/$b" || true)"
@@ -320,7 +343,7 @@ process_checkout() { # path branch
   if [[ "$path" == "$primary" ]]; then label="primary checkout"; fi
   if ! dirty="$(status_of "$path" 2>/dev/null)"; then keep folder "$label" "cannot read status"; return 0; fi
   tip="$(git -C "$path" rev-parse HEAD)"
-  if [[ -n "$dirty" ]]; then keep folder "$label" "uncommitted changes on $b" "$tip"; return 0; fi
+  if [[ -n "$dirty" ]]; then keep folder "$label" "$(local_files_reason "$dirty") on $b" "$tip"; return 0; fi
   judge "$b" "$tip"
   reason="$(why)"
   case "$v_state" in
@@ -381,12 +404,12 @@ if [[ "$prunable" -gt 0 ]]; then
   act prune ".git/worktrees" "$prunable registered folder(s) already deleted" g worktree prune || true
 fi
 
-left="$(g worktree list --porcelain | awk -v pre="$primary/.worktrees/" '
-  /^worktree /{ if (p != "" && !x && index(p, pre) == 1) n++; p = substr($0, 10); x = 0; next }
-  /^prunable/{ x = 1 }
-  END { if (p != "" && !x && index(p, pre) == 1) n++; print n + 0 }')"
+left=0
+for folder in "$primary/.worktrees/"* "$primary/.worktrees/".[!.]* "$primary/.worktrees/"..?*; do
+  if [[ -d "$folder" ]]; then left=$((left + 1)); fi
+done
 mode=apply; limit="$max_worktrees"; gh_word=off
-if [[ "$apply" -eq 0 ]]; then mode=report; left=$((left - removed)); fi
+if [[ "$apply" -eq 0 ]]; then mode=report; fi
 if [[ "$limit" -eq 0 ]]; then limit=unlimited; fi
 if [[ "$gh_ok" -eq 1 ]]; then gh_word=ok; fi
 printf 'apo-tidy: mode=%s gh=%s fetch=%s folders_removed=%s branches_deleted=%s remote_deleted=%s archived=%s kept=%s stale=%s failed=%s folders_left=%s/%s\n' \

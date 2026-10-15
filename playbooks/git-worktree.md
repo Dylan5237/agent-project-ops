@@ -61,9 +61,9 @@ One task = one branch = one PR, and Agents never share an index. A single task r
 
    | Situation | With `--apply` |
    | --- | --- |
-   | PR **merged** (squash/rebase included: the PR head equals or contains the local tip), no uncommitted changes, no commits after the merged head | remove the folder, delete the local and `origin` branch; a primary checkout on that branch switches back to the default branch and fast-forwards |
+   | PR **merged** (squash/rebase included: the PR head equals or contains the local tip), no uncommitted or ignored files, no commits after the merged head | remove the folder, delete the local and `origin` branch; a primary checkout on that branch switches back to the default branch and fast-forwards |
    | PR **closed unmerged**, clean | push tag `archive/<branch>-<sha7>` to origin first, then remove folder and branches |
-   | Uncommitted changes, commits after the merge, PR open, no PR yet, locked, detached, outside `.worktrees/` (other tools), the folder you are standing in, or anything it cannot verify | **keep** and list the reason; `stale` after `--stale-days` (default 7) |
+   | Uncommitted or ignored files, commits after the merge, PR open, no PR yet, locked, detached, outside `.worktrees/` (other tools), the folder you are standing in, or anything it cannot verify | **keep** and list the reason; `stale` after `--stale-days` (default 7) |
    | Default branch, `task_base`, `main` `master` `develop` `dev` `trunk` `staging` `production` `prod` `gh-pages`, `release*`, `hotfix/*` | never touched |
 
    It runs before every new task (step 4). Agents also run it after a PR merges or closes, before each status report, and before proposing Phase acceptance:
@@ -73,11 +73,15 @@ One task = one branch = one PR, and Agents never share an index. A single task r
    scripts/tidy-worktrees.sh --apply    # act on proven cases only
    ```
 
+   Ignored files (including caches and local configuration) also prevent automatic removal, parking, abandoning, or switching the primary checkout. Archive tags preserve commits only, not these files. Only the primary checkout's root `.worktrees/` is excluded from its status check; each task folder is checked separately. Any later disposal of ignored contents needs its own approved inventory.
+
    The last line is a fixed summary; paste it into status reports and acceptance proposals:
 
    ```text
    apo-tidy: mode=apply gh=ok fetch=ok folders_removed=1 branches_deleted=1 remote_deleted=1 archived=0 kept=2 stale=0 failed=0 folders_left=1/3
    ```
+
+   Counters describe completed actions. In `mode=report`, `folders_removed`, `branches_deleted`, `remote_deleted`, and `archived` are all zero; `folders_left` counts existing directories directly under the primary `.worktrees/`, including hidden or unregistered folders. Planned actions appear in `plan` lines. Reporting still refreshes local remote-tracking refs and may fetch missing PR head objects; it does not delete task folders or branches.
 
    Exit `1` = an action failed or was refused (for example a folder still open in an editor on Windows); nothing is lost and the next run retries. Exit `2` = usage error. Branches created by other tools outside `.worktrees/` are only listed; `--include-other` lets tidy consider them under the same proof rules.
 

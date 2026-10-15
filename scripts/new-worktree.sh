@@ -129,15 +129,24 @@ fi
 
 # The primary checkout is idle when it is not on a task branch and has no changes at all.
 current="$(git -C "$root" symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+primary_status_paths=(.)
+if [[ -d "$root/.worktrees" && ! -L "$root/.worktrees" ]]; then
+  primary_status_paths+=(':(top,exclude).worktrees')
+fi
+primary_status="$(git -C "$root" status --porcelain --untracked-files=all --ignored=matching -- "${primary_status_paths[@]}")" \
+  || die "cannot read primary checkout status"
+if [[ -d "$root/.worktrees" && ! -L "$root/.worktrees" ]]; then
+  primary_status="$(printf '%s\n' "$primary_status" | sed '\#^!! \.worktrees/$#d')"
+fi
 primary_idle=0
 if [[ -n "$current" && ! "$current" =~ ^(feat|fix|docs|evidence)/ \
-  && -z "$(git -C "$root" status --porcelain -- . ':(exclude).worktrees')" ]]; then
+  && -z "$primary_status" ]]; then
   primary_idle=1
 fi
 mode=worktree
 case "$mode_flag" in
   here)
-    [[ "$primary_idle" -eq 1 ]] || die "primary checkout is busy (on ${current:-a detached HEAD} or has changes); use --worktree"
+    [[ "$primary_idle" -eq 1 ]] || die "primary checkout is busy (on ${current:-a detached HEAD} or has local/ignored files); use --worktree"
     mode=here ;;
   worktree) mode=worktree ;;
   *) if [[ "$worktree_mode" == auto && "$primary_idle" -eq 1 ]]; then mode=here; fi ;;
