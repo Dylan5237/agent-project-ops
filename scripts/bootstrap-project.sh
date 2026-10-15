@@ -182,6 +182,7 @@ if [[ "${dry_run}" -eq 1 ]]; then
   log "plan: create git repo + durable Agent binding + pinned methodology snapshot"
   log "plan: write clone-portable remotes registry and install .githooks/pre-push"
   log "plan: create .worktrees/ and ignore nested worktrees"
+  log "plan: retire finished task folders/branches automatically (tidy-worktrees.sh; GitHub deletes merged PR branches)"
   if [[ "${skip_github}" -eq 1 ]]; then
     log "plan: skip GitHub creation"
   else
@@ -232,6 +233,7 @@ cp -a "${METHODOLOGY_ROOT}/playbooks" .agent-project-ops/playbooks
 cp -a "${METHODOLOGY_ROOT}/skills" .agent-project-ops/skills
 cp -a "${METHODOLOGY_ROOT}/templates" .agent-project-ops/templates
 cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-worktree.sh
+cp "${METHODOLOGY_ROOT}/scripts/tidy-worktrees.sh" .agent-project-ops/scripts/tidy-worktrees.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 cp "${METHODOLOGY_ROOT}/scripts/share-export.sh" .agent-project-ops/scripts/share-export.sh
 cp "${METHODOLOGY_ROOT}/scripts/export-sync.sh" .agent-project-ops/scripts/export-sync.sh
@@ -243,7 +245,7 @@ cp "${METHODOLOGY_ROOT}/scripts/lib/export-strip-list.sh" .agent-project-ops/scr
 # Only touch the new snapshot; never delete files from the method checkout.
 find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
 find .agent-project-ops -type f -name '*.pyc' -delete
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -343,6 +345,11 @@ vis_flag="--private"
 gh repo create "${github_repo}" "${vis_flag}" --source=. --remote=origin --push --description "Project bound to agent-project-ops"
 log "created GitHub authority: ${github_repo} (${visibility})"
 gh repo edit "${github_repo}" --enable-issues=true >/dev/null 2>&1 || true
+if gh repo edit "${github_repo}" --delete-branch-on-merge >/dev/null 2>&1; then
+  log "GitHub deletes merged PR head branches automatically (restorable from the PR page)"
+else
+  warn "could not enable automatic deletion of merged PR branches; run: gh repo edit ${github_repo} --delete-branch-on-merge (Settings > General > Pull Requests)"
+fi
 
 if [[ -n "${projection_url}" ]]; then
   git remote add projection "${projection_url}"

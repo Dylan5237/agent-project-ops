@@ -26,7 +26,7 @@ These mean “initialize the current project” and “upgrade the current proje
 The **package version is 0.2.1** ([VERSION](./VERSION)). Published artifacts are
 listed under [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases);
 a draft candidate or CI-only PR is not a release. `PRINCIPLES.md` continues to
-identify the **v0.1.2 invariant contract**, independently of package version.
+identify the **v0.1.3 invariant contract**, independently of package version.
 Project PIN files identify the exact methodology Git commit.
 
 | Capability | Behavior |

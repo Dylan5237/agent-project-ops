@@ -12,9 +12,9 @@
 - [ ] `fix`
 - [ ] `docs` (no behavior change)
 
-## Worktree
+## Working directory
 
-`{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
+Primary checkout (single task) or `{repo}/.worktrees/{issue-or-phase}-{owner}-{slug}`
 
 Branch: `feat|fix|docs/{issue}-{slug}` → target `main` via **origin only**
 
@@ -42,7 +42,7 @@ Merging this PR does not close the Phase. Disposer still records `PHASE ACCEPT` 
 
 ## Checklist
 
-- [ ] One task, one branch, one worktree
+- [ ] One task, one branch, one working directory
 - [ ] No `evidence/`-only files mixed in
 - [ ] No push to `main`
 - [ ] Secrets not committed

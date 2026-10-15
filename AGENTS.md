@@ -18,7 +18,7 @@ This repository is the **methodology repository itself**. It is running a bounde
 1. Read `PRINCIPLES.md` before changing repository state.
 2. Open Command Center #10 and follow its current Phase index/status.
 3. Do not create implementation work before that Phase has a disposer `FREEZE ACK`.
-4. One task/Phase uses one dedicated branch/PR (and a worktree when operating locally).
+4. One task/Phase uses one dedicated branch/PR. Locally, a single task may use the idle primary checkout; parallel tasks use `.worktrees/` (at most `max_worktrees`); finished work is retired with `scripts/tidy-worktrees.sh`, never by hand.
 5. Direct push to `main` is forbidden. Server-side GitHub protection is the real gate; client hooks are only an additional guard.
 6. Agent proposes evidence; Agent must never self-issue `PHASE ACCEPT`, `PHASE RETURN`, `FREEZE ACK`, or `EXCEPTION ACCEPT`.
 7. Merge is not Phase PASS. The disposer decision recorded on the Phase is authoritative.

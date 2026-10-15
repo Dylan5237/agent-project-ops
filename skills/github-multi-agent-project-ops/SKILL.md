@@ -9,7 +9,7 @@ description: >
 
 # GitHub multi-agent project ops
 
-Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.1.2** first. Invariants beat this skill.
+Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.1.3** first. Invariants beat this skill.
 
 You are usually the **project-ops Agent**: you keep Issues honest and **propose**. You do not Freeze-ACK or `PHASE ACCEPT` unless the Command Center explicitly names you as disposer.
 
@@ -30,10 +30,10 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 1. Find Command Center. If missing → start-project playbook. Stop implementation.
 2. Confirm disposer + roster. If missing → fail closed, comment on a new Command Center draft.
 3. One Phase = one core problem. No Freeze ACK → no `feat/` / `fix/` branch.
-4. Dispatch: Issue comment with owner, worktree, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
-5. Implement in one worktree / one PR. Verify with **separate** evidence.
+4. Dispatch: Issue comment with owner, working directory, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
+5. Implement on one branch / one PR (single task: idle primary checkout; parallel: own worktree, capped). Verify with **separate** evidence. After each merge or close, `tidy-worktrees.sh --apply` retires finished work.
 6. Before requesting merge or review, inspect the project's actual required CI, code-review and acceptance gates for the current PR SHA. A provider-specific bot is never a generic requirement; passing checks does not imply `PHASE ACCEPT`.
-7. Propose PASS with evidence table. Wait for `PHASE ACCEPT`.
+7. Propose PASS with evidence table plus the latest `apo-tidy:` line. Wait for `PHASE ACCEPT`.
 8. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
 
 
