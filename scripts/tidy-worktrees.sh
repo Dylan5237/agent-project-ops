@@ -4,7 +4,7 @@
 # Usage:
 #   tidy-worktrees.sh [--apply] [--quiet] [--no-fetch] [--include-other] [--stale-days N]
 #   tidy-worktrees.sh --park <branch>      pushed + clean task: remove its folder, keep the branch
-#   tidy-worktrees.sh --abandon <branch>   disposer-approved: push an archive tag, then delete
+#   tidy-worktrees.sh --abandon <branch>   decided on the Issue: push an archive tag, then delete
 #
 # Default is a read-only plan; --apply acts. Something is retired only with proof:
 #   merged  GitHub PR MERGED whose head equals or contains the local tip (squash/rebase safe), or,
@@ -322,10 +322,10 @@ if [[ -n "$abandon" ]]; then
     [[ "$v_state" != open ]] || refuse "PR #$v_pr is still open; close it first"
   fi
   apply=1
-  if [[ -n "$local_tip" ]]; then archive "$b" "$local_tip" "abandoned by disposer" || exit 1; fi
+  if [[ -n "$local_tip" ]]; then archive "$b" "$local_tip" "abandoned (decision on the Issue)" || exit 1; fi
   if [[ -n "$remote_tip" && "$remote_tip" != "$local_tip" ]] \
     && ! { [[ -n "$local_tip" ]] && contains "$remote_tip" "$local_tip"; }; then
-    archive "$b" "$remote_tip" "abandoned by disposer (origin copy)" || exit 1
+    archive "$b" "$remote_tip" "abandoned (decision on the Issue; origin copy)" || exit 1
   fi
   if [[ -n "$path" ]]; then release_checkout "$path" "abandoned $b" || exit 1; fi
   if [[ -n "$local_tip" ]]; then act delete-branch "$b" "abandoned; archived" g branch -D "$b" || exit 1; fi

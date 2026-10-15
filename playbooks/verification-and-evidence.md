@@ -8,11 +8,11 @@ Make Phase Accept **replayable**: a disposer who was not in the chat can follow 
 
 - Implementation is reviewable or merged per Command Center policy.
 - Phase is entering `status:verification`.
-- Agent wants to propose `PHASE PASS` (proposal only).
+- The lead Agent is preparing a final-acceptance request (the disposer's reply is the only PASS).
 
 ## Preconditions
 
-- Freeze ACK exists.
+- The contract is frozen (and start-confirmed if it hit the PRINCIPLES §11 list).
 - Acceptance tests on the Phase issue are the only bar.
 - No secrets in evidence (redact tokens, customer data, `.env`).
 

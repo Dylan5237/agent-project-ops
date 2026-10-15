@@ -4,7 +4,7 @@
 
 - Issue: #
 - Phase: #
-- Freeze ACK comment:
+- Contract freeze + `大改动检查` line (start-confirmation link on a §11 hit):
 
 ## Type
 
@@ -38,7 +38,7 @@ This PR must **not** be the evidence pack. Link evidence PR or Issue proofs:
 
 ## Merge ≠ PASS
 
-Merging this PR does not close the Phase. Disposer still records `PHASE ACCEPT` on the Phase issue.
+Merging this PR does not close the Phase. The Phase (`light`: the release) still needs the disposer's final acceptance.
 
 ## Checklist
 

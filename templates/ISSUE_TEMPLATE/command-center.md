@@ -5,19 +5,21 @@ title: "[Command Center] Project control plane"
 labels: "type:command-center, status:in-progress"
 ---
 
-## 1. One-glance / 一眼状态（agents keep fresh）
+## 1. 一眼状态
 
-Agents **must** rewrite this section on every gate flip / phase status / Freeze / blocked / verification / Accept. This is Agent duty, not a user habit. Chat pings are not a substitute. If this section cannot be updated → `BLOCKED:` on GitHub.
+<!-- Agent: this table is the fixed status format (PRINCIPLES.md §12). Rewrite it in the same turn as every gate flip / phase status / freeze / blocked / verification / decision request / reply. Agent duty, not a user habit. Field meaning: current work, status word, pending decisions, last closed work, blockers, single next action, latest apo-tidy line. If it cannot be updated → `BLOCKED:` on GitHub. -->
 
-| Field | Value |
+| 项目 | 现在 |
 | --- | --- |
-| **Current phase** | # |
-| **Status word** | backlog / implementation / blocked / verification / awaiting Accept |
-| **Last closed phase** | — |
-| **Open gates** | |
-| **Single Next Action** | |
+| **当前工作** | #编号 + 一句话 |
+| **状态** | 未开工 / 进行中 / 卡住 / 待验收 / 已完成 |
+| **待你决定** | 无，或 `D-n`（类型）+ 链接 |
+| **最近完成** | — |
+| **卡点** | 无，或缺什么 |
+| **下一步**（只写一件） | |
+| **收尾检查** | 最新 `apo-tidy:` 行 |
 
-Updated: YYYY-MM-DD. Chat ≠ State.
+更新于 YYYY-MM-DD。聊天里说的不算状态，以这里为准。
 
 ## 目的 / Purpose
 
@@ -30,26 +32,37 @@ Canonical **control plane** for this business repository. Chat is not state. Met
 - PIN ref/date:
 - Root binding files present: yes / no
 
+## Project settings / 项目设置
+
+Chosen by the disposer at initialization; changing them later is `PRINCIPLES.md` §11 item 7.
+
+- Process mode / 流程档位: `standard` / `light` (`process_mode` in `.agent-project-ops/project-config`; unrecorded = `standard`)
+- Agent tools / Agent 工具:
+- External tools / 外部工具: none
+
 ## Disposer / 拍板人
 
 - Handle:
-- May `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT`: **yes**
+- Decides (`PRINCIPLES.md` §1): start confirmations for §11 hits, final acceptance, exceptions — nothing else
+- Replies to fixed-format requests with `批准 A` / `改用 B` / `退回：<原因>` (legacy `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT` still count)
 - Distinct GitHub identity from day-to-day Agent credentials?: yes / no / unknown
 
-## Project-ops Agent / 日常 Owner（仍为 propose）
+## Lead Agent / 主 Agent
 
 - Agent id:
 - GitHub identity used for git/PR operations (if known):
 - May push directly to `main`: no
-- May self-Accept phases: **no**
+- May merge task PRs after required checks: **yes** (a merge that releases or deploys is §11 item 4)
+- May accept: tasks implemented by other Agents; **never** its own work, a Phase or a release
 
 ## Roster
 
 | Role | Handle / Agent | Notes |
 | --- | --- | --- |
 | Disposer | | |
-| Implementer | | |
-| Reviewer | | |
+| Lead Agent | | |
+| Executing Agent(s) | | |
+| Reviewer (optional) | | |
 
 ## Git authority / remotes
 

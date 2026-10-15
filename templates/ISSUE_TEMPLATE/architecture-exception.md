@@ -1,6 +1,6 @@
 ---
 name: Architecture Exception
-about: 已冻结合同必须变更时使用 — fail closed, do not quiet-edit the Phase
+about: 已冻结的合同要改，且命中大改动清单、超出已确认目标或放宽验收标准时使用
 title: "[Exception] "
 labels: "type:exception, status:backlog"
 ---
@@ -34,7 +34,10 @@ labels: "type:exception, status:backlog"
 
 ## Decision
 
-- [ ] Disposer `EXCEPTION ACCEPT` + new `CONTRACT FREEZE` on the Phase
-- [ ] Disposer `EXCEPTION REJECT` — keep original freeze
+Post the request on this issue with `.agent-project-ops/templates/decision-request.md` (methodology repository: `templates/decision-request.md`), type `例外`. The disposer replies:
 
-Agent proposes only. Do not self-Accept.
+- [ ] `批准 A` (legacy `EXCEPTION ACCEPT`) → new `CONTRACT FREEZE` on the Phase
+- [ ] `改用 B` → adjust as chosen, then new `CONTRACT FREEZE`
+- [ ] `退回：<原因>` (legacy `EXCEPTION REJECT`) — keep the original freeze
+
+Agents propose only and never answer their own request.

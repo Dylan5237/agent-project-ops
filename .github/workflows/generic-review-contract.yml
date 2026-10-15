@@ -10,6 +10,13 @@ on:
       - 'templates/PULL_REQUEST_TEMPLATE/**'
       - 'docs/GETTING_STARTED*.md'
       - 'tests/no-bugbot-contract.sh'
+      - 'PRINCIPLES.md'
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'playbooks/**'
+      - 'skills/git-worktree-and-branch/**'
+      - 'templates/**'
+      - 'tests/decision-contract.sh'
       - '.github/workflows/generic-review-contract.yml'
   push:
     branches: [main]
@@ -21,6 +28,13 @@ on:
       - 'templates/PULL_REQUEST_TEMPLATE/**'
       - 'docs/GETTING_STARTED*.md'
       - 'tests/no-bugbot-contract.sh'
+      - 'PRINCIPLES.md'
+      - 'AGENTS.md'
+      - 'README.md'
+      - 'playbooks/**'
+      - 'skills/git-worktree-and-branch/**'
+      - 'templates/**'
+      - 'tests/decision-contract.sh'
       - '.github/workflows/generic-review-contract.yml'
 
 permissions:
@@ -33,3 +47,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: No mandatory vendor-specific review tool
         run: bash tests/no-bugbot-contract.sh
+      - name: Major-change list and fixed decision format
+        run: bash tests/decision-contract.sh

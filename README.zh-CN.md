@@ -19,7 +19,7 @@ APO 是以 GitHub 为项目事实源、以 Skill 为 Agent 入口的轻量项目
 
 ## v0.2.1：可独立采用，也能升级旧项目
 
-本版软件包版本为 **0.2.1**（[VERSION](./VERSION)）。正式可下载版本以 [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases) 为准；候选分支和临时测试 PR 不等于发行。十项治理不变量继续沿用 `PRINCIPLES.md` 的 **v0.1.2 合同版本**，与软件包版本分开；项目 PIN 记录完整提交 SHA。
+本版软件包版本为 **0.2.1**（[VERSION](./VERSION)）。正式可下载版本以 [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases) 为准；候选分支和临时测试 PR 不等于发行。治理规则以 `PRINCIPLES.md` 的 **v0.2.0 规则版本**为准，与软件包版本分开；项目 PIN 记录完整提交 SHA。
 
 | 能力 | 本版行为 |
 | --- | --- |
