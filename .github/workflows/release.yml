@@ -9,15 +9,13 @@ on:
       - 'playbooks/**'
       - 'templates/**'
       - 'tests/**'
-      - 'docs/UPGRADE*'
+      - 'docs/UPGRADE.md'
       - 'docs/releases/**'
       - '.github/workflows/release.yml'
   push:
     branches: [main]
     paths:
       - 'VERSION'
-      - '.github/workflows/release.yml'
-      - 'docs/releases/**'
 
 permissions:
   contents: read
@@ -125,11 +123,10 @@ jobs:
           git archive --format=tar.gz --prefix="apo-$tag/" "$GITHUB_SHA" > "$out/apo-$tag.tar.gz"
           git archive --format=zip --prefix="apo-$tag/" "$GITHUB_SHA" > "$out/apo-$tag.zip"
           printf '%s\n' "$GITHUB_SHA" > "$out/RELEASE_SHA.txt"
-          cp docs/UPGRADE.zh-CN.md "$out/UPGRADE.zh-CN.md"
           cp docs/UPGRADE.md "$out/UPGRADE.md"
-          (cd "$out"; sha256sum "apo-$tag.tar.gz" "apo-$tag.zip" RELEASE_SHA.txt UPGRADE.zh-CN.md UPGRADE.md > SHA256SUMS)
+          (cd "$out"; sha256sum "apo-$tag.tar.gz" "apo-$tag.zip" RELEASE_SHA.txt UPGRADE.md > SHA256SUMS)
           gh release create "$tag" "$out/apo-$tag.tar.gz" "$out/apo-$tag.zip" \
-            "$out/RELEASE_SHA.txt" "$out/SHA256SUMS" "$out/UPGRADE.zh-CN.md" "$out/UPGRADE.md" \
+            "$out/RELEASE_SHA.txt" "$out/SHA256SUMS" "$out/UPGRADE.md" \
             --target "$GITHUB_SHA" --title "APO $tag — portable rules and safe upgrades" \
             --notes-file "$notes" --latest
           gh release view "$tag" --json tagName,url,isDraft,isPrerelease

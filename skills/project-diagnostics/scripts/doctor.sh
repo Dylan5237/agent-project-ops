@@ -49,19 +49,33 @@ if [[ -f "$registry" ]]; then
     emit FAIL AUTHORITY_INVALID "Expected authority=origin with a configured origin remote."
   fi
 
-  projections="$(sed -n 's/^projection=//p' "$registry" | head -1)"
-  exports="$(sed -n 's/^export=//p' "$registry" | head -1)"
-  shared="$(sed -n 's/^share_export=//p' "$registry" | head -1)"
-  allowed="$(printf '%s\n' "$projections" "$exports" "$shared" | tr ',' '\n' | grep -v -e '^$' -e '^(none)' || true)"
+  legacy_role_active=0
+  while IFS='=' read -r key value; do
+    case "$key" in
+      projection|export|share_export)
+        if [[ -n "$value" && "$value" != '(none)' ]]; then
+          emit FAIL REMOTE_ROLE_UNSUPPORTED "Legacy remote role '$key' is unsupported; reconcile it before use."
+          legacy_role_active=1
+        fi
+        ;;
+      projection_url|export_url|share_export_url)
+        if [[ -n "$value" ]]; then
+          emit FAIL REMOTE_ROLE_UNSUPPORTED "Legacy remote URL '$key' is unsupported; reconcile it before use."
+          legacy_role_active=1
+        fi
+        ;;
+    esac
+  done < "$registry"
+
+  extra_remote_count=0
   while IFS= read -r remote; do
-    [[ -n "$remote" ]] || continue
-    [[ "$remote" != origin ]] || continue
-    if printf '%s\n' "$allowed" | grep -Fxq "$remote"; then
-      emit PASS REMOTE_CLASSIFIED "Additional remote '$remote' has a declared role."
-    else
-      emit FAIL REMOTE_UNCLASSIFIED "Unregistered remote '$remote'; do not push until classified."
-    fi
+    [[ -n "$remote" && "$remote" != origin ]] || continue
+    emit FAIL EXTRA_REMOTE_UNSUPPORTED "Additional remote '$remote' is unsupported; reconcile it before use."
+    extra_remote_count=$((extra_remote_count + 1))
   done < <(git -C "$root" remote)
+  if [[ "$legacy_role_active" -eq 0 && "$extra_remote_count" -eq 0 && "$authority" == origin ]] && git -C "$root" remote get-url origin >/dev/null 2>&1; then
+    emit PASS ORIGIN_ONLY "Only GitHub origin is configured as a remote authority."
+  fi
 else
   emit FAIL REMOTE_REGISTRY_MISSING "Clone-portable remote classification missing."
 fi

@@ -23,6 +23,9 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 STAMP = "__APO_UPGRADE_TIME__"
+# Legacy descriptors are intentionally retained: render(old PIN) needs them to
+# remove unmodified retired bindings and restore them with the reverse patch.
+# render(new) emits only files actually present in the selected source tree.
 ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.conf.yml",
               ".github/CODEOWNERS", ".github/copilot-instructions.md",
               ".cursor/rules/agent-project-ops.mdc", ".continue/rules/agent-project-ops.md",
@@ -301,6 +304,16 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     reg = read_target(root, ".agent-project-ops/remotes")
     if reg is None or kv(reg.data).get("authority") != "origin":
         raise Stop("AUTHORITY_UNSUPPORTED: preserve and reconcile project authority before upgrade")
+    registry = kv(reg.data)
+    for role in ("projection", "export", "share_export"):
+        value = registry.get(role, "")
+        if value and value != "(none)":
+            raise Stop("LEGACY_REMOTE_ROLE_ACTIVE: reconcile " + role + " before upgrade")
+        if registry.get(role + "_url", ""):
+            raise Stop("LEGACY_REMOTE_ROLE_ACTIVE: reconcile " + role + "_url before upgrade")
+    extra_remotes = [name for name in git(root, "remote").decode().splitlines() if name != "origin"]
+    if extra_remotes:
+        raise Stop("EXTRA_REMOTE_UNSUPPORTED: reconcile additional remotes before upgrade: " + ", ".join(extra_remotes))
     binding = read_target(root, "AGENTS.md")
     if binding is None:
         raise Stop("AGENTS_MISSING")
@@ -311,7 +324,7 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
         raise Stop("CUSTOM_BINDING_NEEDS_REVIEW: cannot safely reconstruct original project name/disposer")
     values = {"PROJECT_NAME": title[1], "DISPOSER": disposer[1], "METHODOLOGY_URL": pin["url"],
               "METHODOLOGY_SHA": pin["sha"], "METHODOLOGY_REF": pin["ref"],
-              "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": kv(reg.data).get("projection", "(none)")}
+              "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": registry.get("projection", "(none)")}
     fresh = dict(values, METHODOLOGY_SHA=new.sha, METHODOLOGY_REF=new.sha, FETCHED_AT=STAMP)
     # A source clone is supplied explicitly; do not silently change a fork's canonical URL.
     old_files, new_files = render(old, values), render(new, fresh)
@@ -360,7 +373,7 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     summary = {k: v for k, v in payload.items() if k != "inputs"}
     summary.update(status="PREVIEW", plan_id=ident,
                    preserved=["business files", "project custom bridge text", "remotes", "project-config", "Git config", "GitHub Issues"],
-                   policy_change="Inherited generic Fleet/Bugbot requirements removed; explicit project policies are NOT implicitly revoked.",
+                   policy_change="Retired generic rules and adapters removed; explicit project policies are NOT implicitly revoked.",
                    control_plane="PENDING_RECONCILIATION: review active GitHub CC/Phase/project-specific rules separately; no API calls performed.")
     return summary, changes
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Contract test for the v0.2.0 decision rules: major-change list, fixed
+# Contract test for the v0.3.0 decision rules: major-change list, fixed
 # decision-request format, process modes and where Agents must use them.
 # Documentation contract only; it does not prove that a live Agent complies.
 set -euo pipefail
@@ -37,9 +37,9 @@ for key in '## 0. Three layers' 'Fixed floor' 'Project settings' 'Per-change jud
            'No Agent accepts its own work' "$template" 'PR merge' '## 13. Write for the reader'; do
   has "$principles" "$key"
 done
-grep -Fq '# PRINCIPLES — v0.2.0' "$root/$principles" || fail "PRINCIPLES version header is not v0.2.0"
+grep -Fq '# PRINCIPLES — v0.3.0' "$root/$principles" || fail "PRINCIPLES version header is not v0.3.0"
 for f in README.md skills/github-multi-agent-project-ops/SKILL.md playbooks/start-project.md; do
-  has "$f" 'v0.2.0'
+  has "$f" 'v0.3.0'
 done
 
 # 3. Fixed request format: marker, required headings, reply syntax, result

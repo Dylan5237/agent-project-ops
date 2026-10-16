@@ -53,7 +53,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 ### 3. Verify / 验证
 
-1. After the implementation PR is reviewable (merged or merge-ready per Command Center policy, respecting required CI/reviewer gates before asking for merge), open or update **evidence** work — separate PR if artifacts live in-repo (`playbooks/verification-and-evidence.md`).
+1. After the implementation PR is reviewable (merged or merge-ready per Command Center policy, respecting required CI/reviewer gates before asking for merge), attach replayable evidence to the implementation PR or Issue; a separate evidence PR is optional (`playbooks/verification-and-evidence.md`).
 2. Label Phase `status:verification`.
 3. Evidence must be replayable by the disposer without the original chat.
 4. Update CC §1. [ ] **CC §1 updated**
@@ -77,7 +77,7 @@ If blocked at any step: `playbooks/blocked-and-exceptions.md`. Do not skip the f
 ## Done when
 
 - [ ] The freeze carries a `大改动检查` line; on a hit, the start confirmation was approved (legacy `FREEZE ACK` counts).
-- [ ] Implementation and evidence are on **distinct** PRs/branches when both exist.
+- [ ] Each frozen acceptance test has replayable proof in the task PR or Issue; a separate evidence PR is optional.
 - [ ] The disposer's final acceptance (`批准 …` on a `最终验收` request, or legacy `PHASE ACCEPT`) or an explicit cancel/supersede note is on the issue.
 - [ ] Phase is `status:done` and closed, or still open only because a documented follow-on Phase owns remaining work.
 - [ ] Command Center index updated.

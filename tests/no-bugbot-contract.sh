@@ -9,7 +9,6 @@ files=(
   templates/PULL_REQUEST_TEMPLATE/evidence.md
   templates/PULL_REQUEST_TEMPLATE/implementation.md
   docs/GETTING_STARTED.md
-  docs/GETTING_STARTED.zh-CN.md
 )
 for file in "${files[@]}"; do
   if grep -Ein 'bugbot|bugbot run' "${root}/${file}"; then

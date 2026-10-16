@@ -16,11 +16,11 @@ for file in "${files[@]}"; do
     exit 1
   fi
 done
-# Self-dogfood's historical Fleet pointer is intentionally retained in this
-# methodology repository; it must not leak into generic generated bindings.
-grep -Fq 'Self-dogfood Fleet index **for this methodology repository only**' "${root}/AGENTS.md"
-grep -Fq '[`fleet/REGISTRY.md`](./fleet/REGISTRY.md)' "${root}/AGENTS.md"
-grep -Fq 'not an external APO bootstrap/adoption requirement' "${root}/AGENTS.md"
+# Neither the methodology self-binding nor generated bindings retain a registry.
+[[ ! -e "${root}/fleet/REGISTRY.md" ]] || { echo 'FAIL: retired Fleet registry remains' >&2; exit 1; }
+if grep -Eiq 'Fleet|晨报|Grok Bot' "${root}/AGENTS.md"; then
+  echo 'FAIL: retired self-binding dependency remains' >&2; exit 1
+fi
 if grep -Ein "${bad}" "${root}/templates/AGENTS.md"; then
   printf 'FAIL: personal Fleet requirement leaked into external AGENTS template\n' >&2
   exit 1

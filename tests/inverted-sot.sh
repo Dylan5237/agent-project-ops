@@ -68,7 +68,7 @@ bash "${root}/scripts/bootstrap-project.sh" \
   --name already-there \
   --dir "${existing}" \
   --disposer @apo-test \
-  --no-projection \
+  \
   --skip-github \
   --yes >"${tmp}/bootstrap-existing.out" 2>&1
 boot_rc=$?

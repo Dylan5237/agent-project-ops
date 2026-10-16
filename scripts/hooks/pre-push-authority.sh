@@ -41,63 +41,10 @@ registry="${root}/.agent-project-ops/remotes"
 [[ -f "${registry}" ]] || deny "remote registry missing: ${registry}; classify remotes before pushing"
 
 authority="$(sed -n 's/^authority=//p' "${registry}" | head -1)"
-projection_csv="$(sed -n 's/^projection=//p' "${registry}" | head -1)"
-export_csv="$(sed -n 's/^export=//p' "${registry}" | head -1)"
-share_export_csv="$(sed -n 's/^share_export=//p' "${registry}" | head -1)"
 [[ -n "${authority}" ]] || deny "remote registry has no authority entry"
-
-is_authority=0
-is_projection=0
-is_export=0
-is_share_export=0
-[[ "${remote_name}" == "${authority}" ]] && is_authority=1
-
-if [[ -n "${projection_csv}" && "${projection_csv}" != "(none)" ]]; then
-  IFS=',' read -r -a projection_names <<< "${projection_csv}"
-  for p in "${projection_names[@]}"; do
-    p="${p//[[:space:]]/}"
-    [[ -n "${p}" && "${remote_name}" == "${p}" ]] && is_projection=1
-  done
-fi
-
-if [[ -n "${export_csv}" && "${export_csv}" != "(none)" ]]; then
-  IFS=',' read -r -a export_names <<< "${export_csv}"
-  for e in "${export_names[@]}"; do
-    e="${e//[[:space:]]/}"
-    [[ -n "${e}" && "${remote_name}" == "${e}" ]] && is_export=1
-  done
-fi
-
-if [[ -n "${share_export_csv}" && "${share_export_csv}" != "(none)" ]]; then
-  IFS=',' read -r -a share_export_names <<< "${share_export_csv}"
-  for s in "${share_export_names[@]}"; do
-    s="${s//[[:space:]]/}"
-    [[ -n "${s}" && "${remote_name}" == "${s}" ]] && is_share_export=1
-  done
-fi
-
-if [[ "${is_projection}" -eq 1 && ( "${is_export}" -eq 1 || "${is_share_export}" -eq 1 ) ]]; then
-  deny "remote '${remote_name}' cannot be both projection and export; colleague GitLab is export / share-export only"
-fi
-
-if [[ "${is_export}" -eq 1 ]]; then
-  deny "export remote '${remote_name}' is not on the auto-push whitelist; bound-clone push is denied. Sync requires disposer explicit authorization, then scripts/export-sync.sh --authorized --yes (FF only, no force)"
-fi
-
-if [[ "${is_share_export}" -eq 1 ]]; then
-  deny "share-export remote '${remote_name}' must not receive git push from this bound clone (ops tree). Use scripts/export-sync.sh (export role) or scripts/share-export.sh (ADR 0003 snapshot)"
-fi
-
-if [[ "${is_authority}" -eq 0 && "${is_projection}" -eq 0 ]]; then
-  deny "remote '${remote_name}' is unregistered (authority='${authority}', projection='${projection_csv:-none}', export='${export_csv:-none}', share_export='${share_export_csv:-none}'); fail closed"
-fi
-
-resolve_authority_tip() {
-  local tip=""
-  tip="$(git rev-parse --verify -q "refs/remotes/${authority}/${default_branch}" 2>/dev/null || true)"
-  [[ -n "${tip}" ]] || return 1
-  printf '%s\n' "${tip}"
-}
+[[ "${authority}" == "origin" ]] || deny "remote registry must name origin as the only write authority"
+[[ "${remote_name}" == "origin" ]] || \
+  deny "only GitHub origin is an allowed push target; legacy remote-role entries do not authorize '${remote_name}'"
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ -z "${local_ref:-}" ]] && continue
@@ -110,28 +57,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
 
-  if [[ "${is_projection}" -eq 1 ]]; then
-    [[ "${remote_ref}" == "refs/heads/${default_branch}" ]] || \
-      deny "projection accepts only ${default_branch}; topic branches push to ${authority}"
-
-    authority_tip="$(resolve_authority_tip || true)"
-    [[ -n "${authority_tip}" ]] || \
-      deny "cannot resolve refs/remotes/${authority}/${default_branch}; fetch authority before projecting"
-
-    # A projection is a projection of the current authority tip, not merely any
-    # commit that happens to be a fast-forward of its previous state.
-    [[ "${local_sha}" == "${authority_tip}" ]] || \
-      deny "projection candidate ${local_sha} is not current authority tip ${authority_tip}"
-
-    if [[ "${remote_sha}" != "${zero}" ]]; then
-      git merge-base --is-ancestor "${remote_sha}" "${local_sha}" 2>/dev/null || \
-        deny "non-fast-forward projection update is forbidden"
-    fi
-    continue
-  fi
-
-  # Registered authority: topic branches are allowed. Bootstrap may create the
-  # authority default branch once; later direct updates must go through PRs.
+  # Topic branches may be pushed to origin. Bootstrap may create the authority
+  # default branch once; later direct updates must go through PRs.
   if [[ "${remote_ref}" == "refs/heads/${default_branch}" ]]; then
     if [[ "${remote_sha}" == "${zero}" ]]; then
       continue

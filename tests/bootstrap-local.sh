@@ -20,7 +20,6 @@ bash "${root}/scripts/bootstrap-project.sh" \
   --name sample-project \
   --dir "${dest}" \
   --disposer @apo-test \
-  --no-projection \
   --skip-github \
   --yes >"${bootstrap_out}" 2>&1
 
@@ -37,8 +36,10 @@ pass 'wrapper rendering does not execute Markdown/backticks'
 [[ -d "${dest}/.git" ]] || fail 'generated git repository missing'
 [[ -f "${dest}/AGENTS.md" ]] || fail 'AGENTS.md missing'
 [[ -f "${dest}/CLAUDE.md" ]] || fail 'CLAUDE.md missing'
-[[ -f "${dest}/.cursor/rules/agent-project-ops.mdc" ]] || fail 'Cursor rule missing'
-[[ -f "${dest}/.github/copilot-instructions.md" ]] || fail 'Copilot instructions missing'
+[[ ! -e "${dest}/.cursor/rules/agent-project-ops.mdc" ]] || fail 'retired Cursor adapter was generated'
+[[ ! -e "${dest}/.github/copilot-instructions.md" ]] || fail 'retired Copilot adapter was generated'
+[[ ! -e "${dest}/.continue/rules/agent-project-ops.md" ]] || fail 'retired Continue adapter was generated'
+[[ ! -e "${dest}/.aider.conf.yml" ]] || fail 'retired Aider adapter was generated'
 [[ -f "${dest}/.github/CODEOWNERS" ]] || fail 'CODEOWNERS missing'
 [[ -f "${dest}/.agent-project-ops/PRINCIPLES.md" ]] || fail 'pinned principles missing'
 [[ -f "${dest}/.agent-project-ops/scripts/install-hooks.sh" ]] || fail 'hook installer missing from snapshot'
@@ -83,19 +84,17 @@ pin_url="$(sed -n 's/^url=//p' "${dest}/.agent-project-ops/PIN")"
 [[ "${pin_url}" != *@* ]] || fail "PIN URL contains userinfo: ${pin_url}"
 pass 'PIN carries the real methodology SHA'
 
-[[ "$(sed -n 's/^authority=//p' "${dest}/.agent-project-ops/remotes")" == 'origin' ]] || fail 'authority registry is not origin'
-[[ "$(sed -n 's/^projection=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'origin-only registry incorrect'
-[[ "$(sed -n 's/^export=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'export registry incorrect'
-[[ "$(sed -n 's/^share_export=//p' "${dest}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'share_export registry incorrect'
-[[ -f "${dest}/.agent-project-ops/scripts/export-sync.sh" ]] || fail 'export-sync helper missing from snapshot'
-[[ -f "${dest}/.agent-project-ops/scripts/lib/export-strip-list.sh" ]] || fail 'export strip list missing from snapshot'
-[[ -f "${dest}/.agent-project-ops/scripts/share-export.sh" ]] || fail 'share-export helper missing from snapshot'
+[[ "$(cat "${dest}/.agent-project-ops/remotes")" == 'authority=origin' ]] || fail 'authority registry is not origin-only'
+for retired in \
+  .agent-project-ops/scripts/export-sync.sh \
+  .agent-project-ops/scripts/lib/export-strip-list.sh \
+  .agent-project-ops/scripts/share-export.sh \
+  .agent-project-ops/scripts/lib/share-export-denylist.sh; do
+  [[ ! -e "${dest}/${retired}" ]] || fail "retired remote helper was copied: ${retired}"
+done
 [[ -f "${dest}/.agent-project-ops/scripts/scan-inverted-sot.py" ]] || fail 'inverted-SoT scanner wrapper missing from snapshot'
 [[ -f "${dest}/.agent-project-ops/skills/repo-reconciliation-cleanup/scripts/scan_inverted_sot.py" ]] || fail 'inverted-SoT scanner missing from pinned skill'
-[[ -f "${dest}/.agent-project-ops/scripts/lib/share-export-denylist.sh" ]] || fail 'share-export denylist missing from snapshot'
-pass 'remote registry is explicit and clone-portable'
-pass 'export-sync helper is vendored into the snapshot'
-pass 'share-export helper is vendored into the snapshot'
+pass 'only origin is configured and retired remote helpers are absent'
 pass 'inverted-SoT scanner is vendored into the snapshot'
 
 if ! python3 "${dest}/.agent-project-ops/scripts/scan-inverted-sot.py" --root "${dest}"; then
@@ -132,22 +131,26 @@ fi
 pass 'fresh-clone hook installation path works'
 
 # Placeholder disposer must fail.
-if bash "${root}/scripts/bootstrap-project.sh" --name bad-disposer --dir "${tmp}/bad-disposer" --disposer @DISPOSER --no-projection --skip-github --yes >/dev/null 2>&1; then
+if bash "${root}/scripts/bootstrap-project.sh" --name bad-disposer --dir "${tmp}/bad-disposer" --disposer @DISPOSER --skip-github --yes >/dev/null 2>&1; then
   fail 'placeholder disposer was accepted'
 fi
 pass 'placeholder disposer fails closed'
 
-# Query-bearing projection URL must fail before writing a project.
-if bash "${root}/scripts/bootstrap-project.sh" --name bad-url --dir "${tmp}/bad-url" --disposer @apo-test --projection-url 'https://gitlab.example/r.git?token=secret' --skip-github --yes >/dev/null 2>&1; then
-  fail 'query-bearing projection URL was accepted'
-fi
-pass 'unsafe projection URL fails closed'
+# Retired multi-remote options are rejected during argument parsing, before any destination is created.
+for retired in --projection-url --no-projection; do
+  rejected="${tmp}/rejected-${retired#--}"
+  if bash "${root}/scripts/bootstrap-project.sh" --name rejected --dir "${rejected}" --disposer @apo-test "${retired}" --skip-github --yes >/dev/null 2>&1; then
+    fail "retired option was accepted: ${retired}"
+  fi
+  [[ ! -e "${rejected}" ]] || fail "retired option wrote a destination before failing: ${retired}"
+done
+pass 'retired projection options fail before any destination write'
 
 # A non-git methodology source must not silently write sha=unknown.
 mkdir -p "${tmp}/nongit/scripts/lib"
 cp "${root}/scripts/bootstrap-project.sh" "${tmp}/nongit/scripts/bootstrap-project.sh"
 cp "${root}/scripts/lib/url-guard.sh" "${tmp}/nongit/scripts/lib/url-guard.sh"
-if bash "${tmp}/nongit/scripts/bootstrap-project.sh" --name nongit --dir "${tmp}/nongit-output" --disposer @apo-test --no-projection --skip-github --yes >/dev/null 2>&1; then
+if bash "${tmp}/nongit/scripts/bootstrap-project.sh" --name nongit --dir "${tmp}/nongit-output" --disposer @apo-test --skip-github --yes >/dev/null 2>&1; then
   fail 'non-git methodology source was accepted'
 fi
 pass 'non-git methodology source fails closed instead of sha=unknown'

@@ -6,10 +6,9 @@ This repository is the **methodology repository itself**. It is running a bounde
 
 - Chat is not project state.
 - GitHub `origin` is the sole write authority.
-- Projection remotes: `(none)` unless the Command Center explicitly changes that classification.
+- Supported remote: GitHub `origin` only; non-origin pushes are unsupported.
 - Self-dogfood Command Center: https://github.com/Dylan5237/agent-project-ops/issues/10
 - Keep Command Center #10 **section 1** current on every gate flip (Agent duty, not a user habit).
-- Self-dogfood Fleet index **for this methodology repository only** (not an external APO bootstrap/adoption requirement): [`fleet/REGISTRY.md`](./fleet/REGISTRY.md) (SoT; box path is a mirror). ADR: [`docs/adr/0002-canonical-fleet-index.md`](./docs/adr/0002-canonical-fleet-index.md).
 - The **current Phase is discovered from the Command Center Phase index**, not from chat and not from a hard-coded phase number in this file.
 - Methodology source: local `PRINCIPLES.md`, then the relevant files under `playbooks/` and `skills/`.
 
@@ -22,7 +21,7 @@ This repository is the **methodology repository itself**. It is running a bounde
 5. Direct push to `main` is forbidden. Server-side GitHub protection is the real gate; client hooks are only an additional guard.
 6. Agent proposes evidence; Agent must never self-issue `PHASE ACCEPT`, `PHASE RETURN`, `FREEZE ACK`, or `EXCEPTION ACCEPT`. Every request to the disposer uses `templates/decision-request.md`; the disposer's `批准 A` / `改用 B` / `退回：<原因>` counts the same as those words, and no Agent writes it.
 7. Merge is not Phase PASS. The disposer decision recorded on the Phase is authoritative.
-8. Unknown remotes are BLOCKED until the Command Center classifies them.
+8. Additional remotes are unsupported. Stop affected writes and record the needed migration decision; never silently change an existing project remote.
 
 ## Fresh-clone hook check
 

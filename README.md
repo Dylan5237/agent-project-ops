@@ -1,145 +1,43 @@
-# Agent Project Ops (APO)
+# Agent Project Ops（APO）
 
-[简体中文](./README.zh-CN.md) · [Release notes](./docs/releases/v0.2.1.md) · [Upgrade existing projects](./docs/UPGRADE.md) · [Getting started](./docs/GETTING_STARTED.md)
+APO 帮你把项目状态、改动范围和验收证据留在 GitHub 上，让后续 Agent 能从仓库和 Issue 接着工作。
 
-**Keep AI-built software maintainable beyond a single session or Agent.**
+## 当前版本
 
-APO is a Skill-first project-operations methodology with GitHub as the durable
-project source of truth. It records decisions, isolates task changes, requires
-replayable evidence and supports Agent handoff based on actual repository state.
-It is not another coding Harness, business framework, cloud service or deployment
-stack.
+- **最近的正式稳定版：v0.2.1。** 它已发布，发行页有 6 个附件。正式使用时，应以已发布版本和精确提交为准。
+- **当前主线规则：v0.3.0，尚未正式发布。** 这次主线改动不等于已发布软件，也不代表发行检查或用户验收已经通过。
+- **下一次发行计划：** 发行附件计划为 5 个，升级说明统一使用中文 `docs/UPGRADE.md`。计划尚未发布，不能据此声称新版本已通过检查。
 
-## URL-first prompts (recommended)
+[查看 v0.2.1 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.2.1)
 
-In a Coding Agent that has GitHub, Git and local-project access, the user can simply send one sentence. **No Skill name or CLI command needs to be memorized:**
+## 推荐入口
+
+在目标项目的 Agent 对话中发送其中一条：
 
 ```text
 使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
 ```
 
-These mean “initialize the current project” and “upgrade the current project's APO rules.” The Agent should verify the **latest published stable Release** and exact commit SHA (or honor an explicitly requested version), then route to the existing Bootstrap/Adoption or safe Upgrade Skill. Permission-sensitive writes and an upgrade `plan_id` still require approval. If network, filesystem or Git tools are unavailable, report that limitation instead of pretending the prompt performed work.
+Agent 应核实最新**已发布稳定版**，再根据项目现状选择初始化、接入已有项目或升级。当前主线 v0.3.0 尚未发行，不要把它当成稳定版。
 
-## v0.2.1: portable defaults and reviewable rule upgrades
+## APO 怎么工作
 
-The **package version is 0.2.1** ([VERSION](./VERSION)). Published artifacts are
-listed under [GitHub Releases](https://github.com/Dylan5237/agent-project-ops/releases);
-a draft candidate or CI-only PR is not a release. `PRINCIPLES.md` identifies
-the **v0.2.0 invariant contract**, independently of package version.
-Project PIN files identify the exact methodology Git commit.
+- GitHub 仓库、Issue、PR 和提交记录保存项目状态；聊天记录不代替项目记录。
+- 一个任务使用一条任务分支和一个 PR；并行任务用各自的工作区。
+- 开始一个阶段前先冻结范围、接口和验收办法；命中大改动清单时，等拍板人确认后再开工。
+- 检查结果可以记在 Phase Issue 或实现 PR 中。需要单独存放大型材料时，可以自愿开证据 PR；这不是必需流程。
+- PR 合并和 CI 通过都不等于阶段验收。最终验收由拍板人完成，Agent 不能替拍板人回复。
+- 当前流程只使用 GitHub `origin` 作为写入仓库。其他远端不属于当前支持范围。
 
-| Capability | Behavior |
-| --- | --- |
-| Generic bootstrap | No mandatory registration in the author's personal Fleet/box digest |
-| Review policy | No universal Cursor Bugbot dependency; explicit project CI/review/Accept gates remain |
-| Worktree base | Explicit choice, recorded project setting or verified remote default; ambiguous choices stop |
-| Provenance | Clean committed source and a real PIN SHA, not silently following main |
-| Defaults/templates | origin-only by default, extra remotes opt-in, actual source/PIN in CC templates |
-| Local Doctor | Read-only binding/remote/hook diagnostics; unchecked server guarantees remain UNKNOWN |
-| Existing-project upgrade | `upgrade-project` Skill and read-only three-way preview/Git patch generator; preserve custom project rules, stop on conflicts, use isolated application and checked rollback |
+## 文档入口
 
-The methodology repository's own self-dogfood Fleet pointer remains intact;
-it is not an external adopter prerequisite. The general three-journey natural-
-language entrypoint proposed in #75 is **not included** pending real user and
-cross-host UX validation.
+- [快速上手](./docs/GETTING_STARTED.md)
+- [升级已有项目](./docs/UPGRADE.md)
+- [核心原则](./PRINCIPLES.md)
+- [工作流程](./playbooks/)
+- [Agent 技能](./skills/)
+- [模板](./templates/)
+- [历史决策](./docs/adr/README.md)、[历史提案](./docs/rfcs/README.md)、[研究记录](./docs/research/README.md)、[验证证据](./docs/evidence/)
 
-## Install a fixed release
-
-Use Git, Bash (Git Bash on Windows), and Python 3.10+ for the upgrade generator.
-Creating a real GitHub project additionally needs an authorized GitHub CLI `gh`;
-local-only bootstrap is available with explicit `--skip-github`.
-
-```bash
-git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git apo-v0.2.1
-cd apo-v0.2.1
-```
-
-Keep complete history so the old project PIN can be resolved. Source ZIPs contain
-no Git history and are not upgrade-source clones. Release assets include
-`RELEASE_SHA.txt` and `SHA256SUMS`.
-
-### New project
-
-The preferred entry is the first short prompt above. For manual troubleshooting, the equivalent CLI is:
-
-```bash
-bash scripts/bootstrap-project.sh \
-  --name my-project --dir ../my-project \
-  --github-repo OWNER/my-project --disposer @OWNER --private --yes
-```
-
-Replace OWNER with actual account information and authorize real remote writes.
-The default is just GitHub `origin`, not a mandatory extra-remote questionnaire.
-See [Getting Started](./docs/GETTING_STARTED.md). Existing nonempty repositories
-that never adopted APO use [adoption](./playbooks/adopt-existing-project.md), not
-greenfield bootstrap over their files.
-
-### Project already using an older APO version
-
-Use the second short prompt above. Do not rerun bootstrap, edit only PIN, or overwrite the entire project AGENTS.
-Ask your local Agent to use `skills/upgrade-project/SKILL.md` **from the trusted
-release clone**. It should inspect the project's actual PIN/CC, create an isolated
-upgrade task worktree at the approved baseline, and show a readonly preview.
-Only after you approve that exact `plan_id` should it export the Git patch,
-run `git apply --check`, apply, test and prepare the ordinary project PR.
-
-[Full upgrade instructions, CLI and rollback](./docs/UPGRADE.md).
-The generator does not modify target files or contact GitHub. The original
-worktree and baseline commit remain recovery material. Project-specific rules,
-remotes, Git configuration and business files are not replaced blindly.
-
-**Local files and live GitHub rules are separate steps.** The upgrade Skill
-requires the Agent to reconcile only the selected project's inherited old
-Fleet/box/Bugbot defaults under project-level approval, preserve explicit local
-review policies, owners and history, and reference the upgrade PR/new PIN in CC.
-Without access, report LOCAL PATCH READY / CONTROL PLANE PENDING, not completion.
-
-## Core operating contract
-
-GitHub `origin` is the single write authority. Chat is not project state. Each
-task is isolated and linked through Issue/worktree/branch/PR. Unknown remotes
-must not be guessed safe. Scope, verification evidence and human decisions are
-explicit. A merged PR is **not** a Phase Accept.
-
-Projection/export/share-export are advanced Git roles loaded only when needed.
-A local hook is bypassable, not a server-side security guarantee. Report A/B/C
-from observed capabilities; never call C a verified A/B gate, and never turn
-missing optional integrations into a universal stop-all-work rule.
-
-## Verification and limits
-
-The release workflow tests core shell contracts, Python upgrade positive/negative
-fixtures and Linux/Windows/macOS migration using a project produced by the **real
-v0.1.2 bootstrap**, including preservation, reverse application and repeat calls.
-Read the Actions results at the exact release SHA. CI does not establish arbitrary
-Agent compliance, live user experience, independent reviewer identity or business
-acceptance.
-
-Automatic migration supports recognized bootstrap-owned layouts. Modified
-snapshots, unrecognized hand-written bindings, unknown old PINs, conflicting
-changes, symlinks and dirty work stop for manual three-way review. There is no
-force-overwrite escape hatch. Releasing APO never automatically migrates all
-existing business projects.
-
-Historical v0.1 bootstrap/protection/self-dogfood evidence remains in
-[docs/evidence](./docs/evidence/phase-11-self-dogfood.md); do not reuse it as proof
-for every new environment. #85 records the historical missing pre-implementation
-Freeze deviation and prospective exception; packaging is not retroactive Freeze
-or per-Phase Accept.
-
-## Documentation
-
-[Principles](./PRINCIPLES.md) · [Playbooks](./playbooks/) · [Skills](./skills/) ·
-[ADRs](./docs/adr/) · [RFCs](./docs/rfcs/) · [Research](./docs/research/) ·
-[Evidence](./docs/evidence/) · [Templates](./templates/) · [Tests](./tests/)
-
-Common Skills: [bootstrap-project](./skills/bootstrap-project/SKILL.md),
-[upgrade-project](./skills/upgrade-project/SKILL.md),
-[github-multi-agent-project-ops](./skills/github-multi-agent-project-ops/SKILL.md),
-[git-worktree-and-branch](./skills/git-worktree-and-branch/SKILL.md),
-[project-diagnostics](./skills/project-diagnostics/SKILL.md), and
-[issues-prs-and-evidence](./skills/issues-prs-and-evidence/SKILL.md).
-
-License: [MIT](./LICENSE). Business SOPs, domain models and production data do not
-belong in this methodology repository.
+这些文档中的主线规则属于尚未发行的 v0.3.0。正式发行前，请以 v0.2.1 发布包为稳定使用依据。

@@ -29,6 +29,7 @@ class UpgradeTests(unittest.TestCase):
         self.src = self.base / 'method'
         self.src.mkdir()
         cmd(self.src, 'init', '-b', 'main')
+        cmd(self.src, 'config', 'core.autocrlf', 'false')
         cmd(self.src, 'config', 'user.email', 'test@example.invalid')
         cmd(self.src, 'config', 'user.name', 'Test')
         cmd(self.src, 'remote', 'add', 'origin', 'https://github.com/example/method')
@@ -37,16 +38,24 @@ class UpgradeTests(unittest.TestCase):
         self.put('scripts/bootstrap-project.sh', '#!/bin/bash\n# old bootstrap\n')
         self.put('scripts/new-worktree.sh', '#!/bin/bash\n# old worktree helper\n')
         self.put('templates/AGENTS.md', '# {{PROJECT_NAME}} — project operations binding\n\n- Disposer: {{DISPOSER}}\n- PIN: {{METHODOLOGY_SHA}}\n- Date: {{FETCHED_AT}}\n')
+        self.put('templates/CLAUDE.md', '@AGENTS.md\n')
+        self.put('templates/cursor-rules/agent-project-ops.mdc', 'Old Cursor adapter reads AGENTS.md\n')
+        self.put('templates/github/copilot-instructions.md', 'Old Copilot adapter reads AGENTS.md\n')
+        self.put('templates/aider.conf.yml', 'read: AGENTS.md\n')
+        self.put('templates/continue-rules/agent-project-ops.md', 'Old Continue adapter reads AGENTS.md\n')
         self.put('templates/gitignore-agent-ops', '.worktrees/\n')
         self.put('templates/gitattributes-agent-ops', '*.sh text eol=lf\n')
         self.put('templates/ISSUE_TEMPLATE/command-center.md', 'Personal Fleet registration REQUIRED\n')
         self.put('skills/bootstrap-project/SKILL.md', '---\nname: bootstrap-project\ndescription: Test\n---\n\nOld Fleet rule\n')
         self.put('playbooks/start-project.md', 'Old Fleet requirement\n')
+        for name in ('share-export.sh', 'export-sync.sh', 'lib/share-export-denylist.sh', 'lib/export-strip-list.sh'):
+            self.put('scripts/' + name, '#!/bin/bash\n# old helper\n')
         self.commit()
         self.old = cmd(self.src, 'rev-parse', 'HEAD').decode().strip()
         self.proj = self.base / 'project'
         self.proj.mkdir()
         cmd(self.proj, 'init', '-b', 'main')
+        cmd(self.proj, 'config', 'core.autocrlf', 'false')
         cmd(self.proj, 'config', 'user.email', 'test@example.invalid')
         cmd(self.proj, 'config', 'user.name', 'Test')
         pin = {'url': 'https://github.com/example/method', 'sha': self.old,
@@ -70,6 +79,15 @@ class UpgradeTests(unittest.TestCase):
         self.put('playbooks/start-project.md', 'No personal dependencies\n')
         self.put('templates/ISSUE_TEMPLATE/command-center.md', 'Methodology {{METHODOLOGY_SHA}}\n')
         self.put('scripts/bootstrap-project.sh', '#!/bin/bash\nsubst "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/command-center.md" x\n')
+        for name in (
+            'templates/cursor-rules/agent-project-ops.mdc',
+            'templates/github/copilot-instructions.md',
+            'templates/aider.conf.yml',
+            'templates/continue-rules/agent-project-ops.md',
+            'scripts/share-export.sh', 'scripts/export-sync.sh',
+            'scripts/lib/share-export-denylist.sh', 'scripts/lib/export-strip-list.sh',
+        ):
+            (self.src / name).unlink()
         self.put('skills/upgrade-project/helper.py', 'STAMP = "__APO_UPGRADE_TIME__"\n')
         self.put('skills/upgrade-project/SKILL.md', '---\nname: upgrade-project\ndescription: Test\n---\n\nNew upgrade rule\n')
         self.commit()
@@ -126,6 +144,16 @@ class UpgradeTests(unittest.TestCase):
         self.assertIn(self.new.sha, (self.proj / '.agent-project-ops/PIN').read_text(encoding='utf-8'))
         self.assertEqual((self.proj / 'business.py').read_text(encoding='utf-8'), 'x = 42\n')
         self.assertEqual((self.proj / '.agent-project-ops/project-config').read_text(encoding='utf-8'), 'task_base=origin/develop\n')
+        for retired in (
+            '.cursor/rules/agent-project-ops.mdc', '.github/copilot-instructions.md',
+            '.aider.conf.yml', '.continue/rules/agent-project-ops.md',
+            '.agent-project-ops/scripts/share-export.sh', '.agent-project-ops/scripts/export-sync.sh',
+            '.agent-project-ops/scripts/lib/share-export-denylist.sh',
+            '.agent-project-ops/scripts/lib/export-strip-list.sh',
+        ):
+            self.assertFalse((self.proj / retired).exists(), retired)
+        self.assertTrue((self.proj / '.agents/skills/upgrade-project/SKILL.md').is_file())
+        self.assertTrue((self.proj / '.claude/skills/upgrade-project/SKILL.md').is_file())
         cmd(self.proj, 'apply', '--reverse', '--check', str(patch))
         cmd(self.proj, 'apply', '--reverse', str(patch))
         self.assertEqual(self.snapshot(), initial)
@@ -178,6 +206,28 @@ class UpgradeTests(unittest.TestCase):
         with self.assertRaisesRegex(u.Stop, 'CUSTOM_SNAPSHOT'):
             self.preview()
         self.assertEqual(initial, self.snapshot())
+
+    def test_custom_retired_adapter_conflicts_with_deletion(self):
+        adapter = self.proj / '.aider.conf.yml'
+        adapter.write_text(adapter.read_text(encoding='utf-8') + 'read: LOCAL_POLICY.md\n', encoding='utf-8')
+        self.pcommit()
+        initial = self.snapshot()
+        with self.assertRaisesRegex(u.Stop, r'OWNERSHIP_CONFLICT: \.aider\.conf\.yml'):
+            self.preview()
+        self.assertEqual(initial, self.snapshot())
+
+    def test_active_legacy_remote_role_blocks_upgrade(self):
+        self.pput('.agent-project-ops/remotes',
+                  'authority=origin\nprojection=projection\nprojection_url=https://gitlab.example/team/project.git\n')
+        cmd(self.proj, 'remote', 'add', 'projection', 'https://gitlab.example/team/project.git')
+        self.pcommit()
+        with self.assertRaisesRegex(u.Stop, 'LEGACY_REMOTE_ROLE_ACTIVE'):
+            self.preview()
+
+    def test_extra_remote_blocks_upgrade_even_without_legacy_role(self):
+        cmd(self.proj, 'remote', 'add', 'extra', 'https://example.invalid/team/project.git')
+        with self.assertRaisesRegex(u.Stop, 'EXTRA_REMOTE_UNSUPPORTED'):
+            self.preview()
 
     def test_custom_root_conflicts(self):
         f = self.proj / 'AGENTS.md'

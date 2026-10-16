@@ -14,7 +14,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 
 - You can create Issues and labels on the business repo.
 - GitHub is the write authority (`origin`).
-- `PRINCIPLES.md` v0.2.0 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
+- `PRINCIPLES.md` v0.3.0 is in force, either from a pinned `.agent-project-ops/` snapshot or an explicitly loaded methodology checkout.
 - If the repo was bootstrapped, `.agent-project-ops/PIN` contains a real methodology SHA and `.agent-project-ops/remotes` is the remote registry.
 
 ## Steps
@@ -24,7 +24,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 3. **Create labels.** Apply `templates/labels.md` (or the pinned snapshot copy) without inventing overlapping status names.
 4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/unverifiable. Never call B an independent-human-review gate. On GitHub Free private, C is expected: record C and continue (hooks + PR discipline). Do not claim B/A. Do not treat C as a stop-all-work gate. See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill **section 1** (one-glance), project settings (process mode; unrecorded = `standard`), disposer, lead Agent, PIN, default branch, protection capability and Agent roster.
-6. **Reconcile remotes.** `git remote -v` must match the registered classification. Default is `origin` only. If a **projection** is required, it remains same-history mirror/FF only and `git-authority-and-projection` applies before any non-origin push. If colleagues need a GitLab copy, that is [export-remote](./export-remote.md) (`export=`) or [share-export](./share-export.md), not a projection and not a second write authority. Unknown remotes → Blocked.
+6. **Reconcile remotes.** Only GitHub `origin` is supported; `.agent-project-ops/remotes` records `authority=origin`. Extra remotes or active old role settings stop affected writes. Preserve them for a separately approved project migration, never use them as another write authority.
 7. **Open Phase-0/Phase-1.** One core problem only. Use the Phase template with backlog status.
 8. **Do not implement yet.** Run Freeze on that Phase before any `feat/` / `fix/` branch.
 
@@ -34,7 +34,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - [ ] Status labels exist.
 - [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
 - [ ] Command Center records protection capability A/B/C honestly; capability C (expected on GitHub Free private) is recorded and work continues. Never claim B/A when only C was verified.
-- [ ] Command Center records authority/projection/export (and share-export alias) and matches `.agent-project-ops/remotes` when present.
+- [ ] Command Center records origin as the only supported remote and matches `.agent-project-ops/remotes` when present.
 - [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
 - [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
 
@@ -46,8 +46,6 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - Treating Free-private capability C as “stop all work” or claiming B/A when only C was verified.
 - Skipping Command Center and tracking work only in chat.
 - Pushing “just this once” to `main`.
-- Adding a second write authority or using projection as a fallback.
-- Registering colleague GitLab as projection so the bound clone can be mirrored.
-- Treating an `export=` remote as a second write authority, or syncing it without disposer authorization.
+- Adding a second write authority or using another host as a fallback.
 - Embedding business SOP into this methodology repository.
-- Starting this playbook while `AGENTS.md` still names GitLab (or another non-GitHub Issues host) as production/write SoT.
+- Starting this playbook while `AGENTS.md` still names a non-GitHub host as production/write SoT.
