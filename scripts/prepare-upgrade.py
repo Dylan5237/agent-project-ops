@@ -361,14 +361,7 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
         raise Stop("PIN_UNSUPPORTED: expected v0.1.x PIN fields url/sha/ref/fetched_at")
     if not pin["url"] or re.search(r"https?://[^/]*@|[?#]", pin["url"]):
         raise Stop("PIN_URL_UNSAFE")
-    if pin["sha"] == new.sha:
-        return {"status": "UP_TO_DATE", "source_sha": new.sha, "project": str(root), "changes": []}, {}
-    source_url = git(new.root, "remote", "get-url", "origin", check=False).decode().strip()
-    if not source_url or canonical_url(source_url) != canonical_url(pin["url"]):
-        raise Stop("SOURCE_URL_MISMATCH: use a trusted methodology clone matching the existing PIN URL; no silent fork migration")
-    old = Source(old_root, pin["sha"])
-    if old.sha != pin["sha"]:
-        raise Stop("OLD_PIN_NOT_FOUND")
+    # A matching PIN does not make unsupported remote configuration valid.
     reg = read_target(root, ".agent-project-ops/remotes")
     if reg is None or kv(reg.data).get("authority") != "origin":
         raise Stop("AUTHORITY_UNSUPPORTED: preserve and reconcile project authority before upgrade")
@@ -382,6 +375,14 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     extra_remotes = [name for name in git(root, "remote").decode().splitlines() if name != "origin"]
     if extra_remotes:
         raise Stop("EXTRA_REMOTE_UNSUPPORTED: reconcile additional remotes before upgrade: " + ", ".join(extra_remotes))
+    if pin["sha"] == new.sha:
+        return {"status": "UP_TO_DATE", "source_sha": new.sha, "project": str(root), "changes": []}, {}
+    source_url = git(new.root, "remote", "get-url", "origin", check=False).decode().strip()
+    if not source_url or canonical_url(source_url) != canonical_url(pin["url"]):
+        raise Stop("SOURCE_URL_MISMATCH: use a trusted methodology clone matching the existing PIN URL; no silent fork migration")
+    old = Source(old_root, pin["sha"])
+    if old.sha != pin["sha"]:
+        raise Stop("OLD_PIN_NOT_FOUND")
     binding = read_target(root, "AGENTS.md")
     if binding is None:
         raise Stop("AGENTS_MISSING")

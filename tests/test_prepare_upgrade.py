@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 import unittest
+from unittest import mock
 
 sys.dont_write_bytecode = True
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts' / 'prepare-upgrade.py'
@@ -26,6 +27,19 @@ class UpgradeTests(unittest.TestCase):
         # Match the public CLI's root.resolve(strict=True): macOS /var aliases
         # and Windows 8.3 temporary-directory paths are not canonical Git roots.
         self.base = Path(self.tmp.name).resolve(strict=True)
+        # The production helper strips GIT_* variables; temporary user paths
+        # also isolate its children from global URL rewrites and includeIf.
+        git_home = self.base / 'git-home'
+        git_xdg = self.base / 'git-xdg'
+        git_home.mkdir()
+        git_xdg.mkdir()
+        git_env = mock.patch.dict(os.environ, {
+            'HOME': str(git_home), 'USERPROFILE': str(git_home),
+            'XDG_CONFIG_HOME': str(git_xdg),
+            'GIT_CONFIG_GLOBAL': os.devnull, 'GIT_CONFIG_NOSYSTEM': '1',
+        })
+        git_env.start()
+        self.addCleanup(git_env.stop)
         self.src = self.base / 'method'
         self.src.mkdir()
         cmd(self.src, 'init', '-b', 'main')
@@ -135,11 +149,15 @@ class UpgradeTests(unittest.TestCase):
         config = (self.proj / '.git/config').read_bytes()
         files = self.snapshot()
         status = cmd(self.proj, 'status', '--porcelain')
+        head = cmd(self.proj, 'rev-parse', 'HEAD')
+        index = cmd(self.proj, 'ls-files', '--stage', '-z')
         with self.assertRaisesRegex(u.Stop, reason):
             self.preview()
         self.assertEqual((self.proj / '.git/config').read_bytes(), config)
         self.assertEqual(self.snapshot(), files)
         self.assertEqual(cmd(self.proj, 'status', '--porcelain'), status)
+        self.assertEqual(cmd(self.proj, 'rev-parse', 'HEAD'), head)
+        self.assertEqual(cmd(self.proj, 'ls-files', '--stage', '-z'), index)
 
     def test_origin_missing_refused_without_modifying_config(self):
         cmd(self.proj, 'remote', 'remove', 'origin')
@@ -334,6 +352,24 @@ class UpgradeTests(unittest.TestCase):
         p, changes = self.preview()
         self.assertEqual(p['status'], 'UP_TO_DATE')
         self.assertEqual(changes, {})
+
+    def test_up_to_date_still_refuses_extra_remote(self):
+        self.apply()
+        self.pcommit()
+        cmd(self.proj, 'remote', 'add', 'legacy', 'https://gitlab.example/team/project.git')
+        self.assert_origin_refusal_preserves_state('EXTRA_REMOTE_UNSUPPORTED')
+
+    def test_up_to_date_still_refuses_active_legacy_role(self):
+        self.apply()
+        self.pput('.agent-project-ops/remotes', 'authority=origin\nprojection=legacy\n')
+        self.pcommit()
+        self.assert_origin_refusal_preserves_state('LEGACY_REMOTE_ROLE_ACTIVE')
+
+    def test_up_to_date_still_refuses_non_origin_authority(self):
+        self.apply()
+        self.pput('.agent-project-ops/remotes', 'authority=legacy\n')
+        self.pcommit()
+        self.assert_origin_refusal_preserves_state('AUTHORITY_UNSUPPORTED')
 
     def test_apply_precheck_is_all_or_nothing(self):
         _, patch = self.make_patch()
