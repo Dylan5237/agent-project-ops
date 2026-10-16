@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'skills/project-diagnostics/**'
+      - 'scripts/lib/url-guard.sh'
       - 'tests/project-diagnostics.sh'
       - '.github/workflows/project-diagnostics-contract.yml'
   push:
     branches: [main]
     paths:
       - 'skills/project-diagnostics/**'
+      - 'scripts/lib/url-guard.sh'
       - 'tests/project-diagnostics.sh'
       - '.github/workflows/project-diagnostics-contract.yml'
 
@@ -23,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Script syntax
         run: |
+          bash -n scripts/lib/url-guard.sh
           bash -n skills/project-diagnostics/scripts/doctor.sh
           bash -n tests/project-diagnostics.sh
       - name: No mutation and failure semantics

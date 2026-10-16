@@ -46,6 +46,13 @@ authority="$(sed -n 's/^authority=//p' "${registry}" | head -1)"
 [[ "${remote_name}" == "origin" ]] || \
   deny "only GitHub origin is an allowed push target; legacy remote-role entries do not authorize '${remote_name}'"
 
+origin_identity="$(github_origin_identity "$root")" || \
+  deny "origin fetch/push URLs must resolve to the same supported GitHub repository"
+push_identity="$(github_repo_identity "$remote_url")" || \
+  deny "actual push URL is not a supported GitHub repository URL"
+[[ "$push_identity" == "$origin_identity" ]] || \
+  deny "actual push destination differs from the GitHub origin repository"
+
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ -z "${local_ref:-}" ]] && continue
 

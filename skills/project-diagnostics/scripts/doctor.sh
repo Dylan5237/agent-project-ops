@@ -20,6 +20,14 @@ root="$(git -C "$target" rev-parse --show-toplevel 2>/dev/null)" || {
   exit 1
 }
 
+url_guard="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/scripts/lib/url-guard.sh"
+if [[ -f "$url_guard" ]]; then
+  # shellcheck source=/dev/null
+  source "$url_guard"
+else
+  emit FAIL URL_GUARD_MISSING "Shared URL validation is missing; refresh the pinned binding."
+fi
+
 [[ -f "$root/AGENTS.md" ]] && emit PASS AGENT_BINDING_PRESENT "Root AGENTS.md found." ||
   emit FAIL AGENT_BINDING_MISSING "Root AGENTS.md missing; inspect adoption before writing."
 
@@ -43,8 +51,14 @@ fi
 registry="$root/.agent-project-ops/remotes"
 if [[ -f "$registry" ]]; then
   authority="$(sed -n 's/^authority=//p' "$registry" | head -1)"
+  origin_url_valid=0
   if [[ "$authority" == origin ]] && git -C "$root" remote get-url origin >/dev/null 2>&1; then
-    emit PASS AUTHORITY_ORIGIN "Configured sole write authority is GitHub origin (URL not externally verified)."
+    if [[ -f "$url_guard" ]] && github_origin_identity "$root" >/dev/null; then
+      origin_url_valid=1
+      emit PASS AUTHORITY_ORIGIN "Origin fetch/push URLs identify the same GitHub repository (server not verified)."
+    else
+      emit FAIL ORIGIN_URL_INVALID "Origin fetch/push URLs must resolve to the same supported GitHub repository."
+    fi
   else
     emit FAIL AUTHORITY_INVALID "Expected authority=origin with a configured origin remote."
   fi
@@ -73,7 +87,7 @@ if [[ -f "$registry" ]]; then
     emit FAIL EXTRA_REMOTE_UNSUPPORTED "Additional remote '$remote' is unsupported; reconcile it before use."
     extra_remote_count=$((extra_remote_count + 1))
   done < <(git -C "$root" remote)
-  if [[ "$legacy_role_active" -eq 0 && "$extra_remote_count" -eq 0 && "$authority" == origin ]] && git -C "$root" remote get-url origin >/dev/null 2>&1; then
+  if [[ "$legacy_role_active" -eq 0 && "$extra_remote_count" -eq 0 && "$origin_url_valid" -eq 1 ]]; then
     emit PASS ORIGIN_ONLY "Only GitHub origin is configured as a remote authority."
   fi
 else

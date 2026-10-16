@@ -82,6 +82,73 @@ def canonical_url(value: str) -> str:
     return value
 
 
+def github_repository(value: str) -> tuple[str, str]:
+    """Parse one effective GitHub origin URL without accepting transport options."""
+    patterns = (
+        r"https://github\.com/([^/]+)/([^/]+)/?",
+        r"ssh://git@github\.com/([^/]+)/([^/]+)/?",
+        r"git@github\.com:([^/]+)/([^/]+)/?",
+    )
+    owner = repo = ""
+    for pattern in patterns:
+        match = re.fullmatch(pattern, value, re.IGNORECASE | re.ASCII)
+        if match:
+            owner, repo = match.groups()
+            break
+    else:
+        raise Stop("ORIGIN_URL_UNSAFE")
+    if repo.lower().endswith(".git"):
+        repo = repo[:-4]
+    component = r"[A-Za-z0-9_.-]+"
+    if (not re.fullmatch(component, owner) or owner in (".", "..") or
+            not re.fullmatch(component, repo) or repo in (".", "..")):
+        raise Stop("ORIGIN_URL_UNSAFE")
+    return owner.lower(), repo.lower()
+
+
+def validate_origin_urls(root: Path) -> tuple[str, str]:
+    """Require every expanded origin fetch/push URL to name the same GitHub repo."""
+    fetch = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                 "remote", "get-url", "--all", "origin"], check=False)
+    if fetch.returncode:
+        raise Stop("ORIGIN_REMOTE_MISSING")
+    push = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                "remote", "get-url", "--push", "--all", "origin"], check=False)
+    if push.returncode:
+        raise Stop("ORIGIN_URL_UNSAFE")
+    try:
+        fetch_urls = fetch.stdout.decode("utf-8", "strict").splitlines()
+        push_urls = push.stdout.decode("utf-8", "strict").splitlines()
+        urls = fetch_urls + push_urls
+        if (not fetch_urls or not push_urls or
+                any(not value for value in urls)):
+            raise Stop("ORIGIN_URL_UNSAFE")
+        # get-url prints one expanded URL per line. Cross-check raw config
+        # entry counts so an embedded newline cannot masquerade as multiple
+        # otherwise valid URLs.
+        def config_count(key: str) -> int:
+            result = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                          "config", "--null", "--get-all", key], check=False)
+            if result.returncode:
+                return 0
+            values = result.stdout.split(b"\0")
+            if values and values[-1] == b"":
+                values.pop()
+            return len(values)
+
+        fetch_count = config_count("remote.origin.url")
+        push_count = config_count("remote.origin.pushurl")
+        if (not fetch_count or len(fetch_urls) != fetch_count or
+                len(push_urls) != (push_count or fetch_count)):
+            raise Stop("ORIGIN_URL_UNSAFE")
+        repositories = {github_repository(value) for value in urls}
+    except (UnicodeError, Stop):
+        raise Stop("ORIGIN_URL_UNSAFE") from None
+    if len(repositories) != 1:
+        raise Stop("ORIGIN_URL_MISMATCH")
+    return next(iter(repositories))
+
+
 def sha_ok(value: str) -> bool:
     return bool(re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", value))
 
@@ -284,6 +351,7 @@ def clean_target(root: Path) -> tuple[str, str]:
 
 
 def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple[Optional[File], Optional[File]]]]:
+    validate_origin_urls(root)
     branch, head = clean_target(root)
     pin_file = read_target(root, ".agent-project-ops/PIN")
     if pin_file is None:

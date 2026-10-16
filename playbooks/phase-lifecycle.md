@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move a Phase from idea to **CLOSED** with a frozen contract, isolated implementation, independent evidence, and the disposer's final acceptance. Merge is not PASS. The disposer is asked only at the points in `PRINCIPLES.md` §1 (start confirmation for a §11 hit, final acceptance, exceptions), always with `templates/decision-request.md`; everything else is the lead Agent's call.
+Move a Phase from idea to **CLOSED** with a frozen contract, isolated implementation, replayable evidence, and the disposer's final acceptance. Merge is not PASS. The disposer is asked only at the points in `PRINCIPLES.md` §1 (start confirmation for a §11 hit, final acceptance, exceptions), always with `templates/decision-request.md`; everything else is the lead Agent's call.
 
 **Process mode** (`PRINCIPLES.md` §0; `process_mode` in `.agent-project-ops/project-config`, unrecorded = `standard`):
 

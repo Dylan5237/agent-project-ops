@@ -58,6 +58,7 @@ class UpgradeTests(unittest.TestCase):
         cmd(self.proj, 'config', 'core.autocrlf', 'false')
         cmd(self.proj, 'config', 'user.email', 'test@example.invalid')
         cmd(self.proj, 'config', 'user.name', 'Test')
+        cmd(self.proj, 'remote', 'add', 'origin', 'https://github.com/example/project')
         pin = {'url': 'https://github.com/example/method', 'sha': self.old,
                'ref': 'v0.1.2', 'fetched_at': '2026-01-01T00:00:00Z'}
         values = {'PROJECT_NAME': 'project', 'DISPOSER': '@Test',
@@ -129,6 +130,77 @@ class UpgradeTests(unittest.TestCase):
     def snapshot(self):
         return {str(p.relative_to(self.proj)): p.read_bytes() for p in self.proj.rglob('*')
                 if p.is_file() and '.git' not in p.relative_to(self.proj).parts}
+
+    def assert_origin_refusal_preserves_state(self, reason):
+        config = (self.proj / '.git/config').read_bytes()
+        files = self.snapshot()
+        status = cmd(self.proj, 'status', '--porcelain')
+        with self.assertRaisesRegex(u.Stop, reason):
+            self.preview()
+        self.assertEqual((self.proj / '.git/config').read_bytes(), config)
+        self.assertEqual(self.snapshot(), files)
+        self.assertEqual(cmd(self.proj, 'status', '--porcelain'), status)
+
+    def test_origin_missing_refused_without_modifying_config(self):
+        cmd(self.proj, 'remote', 'remove', 'origin')
+        self.assert_origin_refusal_preserves_state('ORIGIN_REMOTE_MISSING')
+
+    def test_non_github_pushurl_refused_without_modifying_config(self):
+        cmd(self.proj, 'remote', 'set-url', '--push', 'origin',
+            'https://gitlab.example/team/project.git')
+        self.assert_origin_refusal_preserves_state('ORIGIN_URL_UNSAFE')
+
+    def test_different_github_pushurl_refused_without_modifying_config(self):
+        cmd(self.proj, 'remote', 'set-url', '--push', 'origin',
+            'git@github.com:example/other-project.git')
+        self.assert_origin_refusal_preserves_state('ORIGIN_URL_MISMATCH')
+
+    def test_multiple_fetch_urls_must_name_same_repository(self):
+        cmd(self.proj, 'config', '--add', 'remote.origin.url',
+            'ssh://git@github.com/example/other-project.git')
+        self.assert_origin_refusal_preserves_state('ORIGIN_URL_MISMATCH')
+
+    def test_non_github_fetch_url_refused_without_modifying_config(self):
+        cmd(self.proj, 'config', '--add', 'remote.origin.url',
+            'https://gitlab.example/team/project.git')
+        self.assert_origin_refusal_preserves_state('ORIGIN_URL_UNSAFE')
+
+    def test_unsafe_origin_url_forms_refused_without_modifying_config(self):
+        unsafe_urls = (
+            'https://github.com:443/example/project',
+            'https://user:secret@github.com/example/project',
+            'https://github.com/example/project?token=secret',
+            'https://github.com/example/project/extra',
+            'ssh://user:secret@github.com/example/project',
+            'git@github.com:../project',
+            'git@github.com:example/..',
+            'https://github.com/example/project\nhttps://github.com/example/project',
+        )
+        for url in unsafe_urls:
+            with self.subTest(url=url):
+                cmd(self.proj, 'remote', 'set-url', '--push', 'origin', url)
+                self.assert_origin_refusal_preserves_state('ORIGIN_URL_UNSAFE')
+
+    def test_instead_of_rewrite_is_validated_after_expansion(self):
+        cmd(self.proj, 'config', 'url.https://evil.example/.insteadOf',
+            'https://github.com/')
+        self.assertEqual(
+            cmd(self.proj, 'remote', 'get-url', '--all', 'origin').decode().strip(),
+            'https://evil.example/example/project')
+        self.assert_origin_refusal_preserves_state('ORIGIN_URL_UNSAFE')
+
+    def test_equivalent_github_protocols_and_multiple_urls_are_allowed(self):
+        cmd(self.proj, 'remote', 'set-url', 'origin',
+            'https://GitHub.com/Example/Project.git/')
+        cmd(self.proj, 'config', '--add', 'remote.origin.url',
+            'ssh://git@github.com/example/project/')
+        cmd(self.proj, 'config', '--add', 'remote.origin.pushurl',
+            'git@github.com:EXAMPLE/PROJECT.GIT')
+        cmd(self.proj, 'config', '--add', 'remote.origin.pushurl',
+            'https://github.com/example/project/')
+        self.assertEqual(u.validate_origin_urls(self.proj), ('example', 'project'))
+        info, _ = self.preview()
+        self.assertEqual(info['status'], 'PREVIEW')
 
     def test_preview_and_patch_do_not_modify_project(self):
         initial = self.snapshot()
