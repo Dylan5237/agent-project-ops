@@ -12,7 +12,7 @@ Do not add product-domain labels in the methodology repo. Business repos may add
 | `status:in-progress` | `FBCA04` | Owner + worktree + branch |
 | `status:blocked` | `D93F0B` | Fail closed; gap on the issue |
 | `status:verification` | `5319E7` | Waiting evidence and/or Accept |
-| `status:done` | `0E8A16` | Disposer finished (Accept or explicit cancel) |
+| `status:done` | `0E8A16` | Accepted (task: lead Agent; Phase or release: disposer) or explicitly cancelled |
 
 ## Type (issues)
 
@@ -35,10 +35,10 @@ Do not add product-domain labels in the methodology repo. Business repos may add
 
 | Name | Meaning |
 | --- | --- |
-| `freeze:pending` | Phase body not ACK’d |
-| `freeze:acked` | `FREEZE ACK` present |
-| `accept:proposed` | Agent posted `EVIDENCE READY` |
-| `accept:returned` | `PHASE RETURN` |
+| `freeze:pending` | Contract not frozen, or its start confirmation is pending |
+| `freeze:acked` | Frozen; start confirmation approved when the §11 list was hit |
+| `accept:proposed` | Final-acceptance request posted |
+| `accept:returned` | Disposer replied `退回：…` (or `PHASE RETURN`) |
 
 ## `gh` example
 

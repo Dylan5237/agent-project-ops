@@ -36,7 +36,12 @@ git clone -q "$tmp/origin.git" "$tmp/project"
   [[ ! -e .worktrees/103-agent-third ]] || fail "created from missing ref"
 
   mkdir -p .agent-project-ops
-  printf 'task_base=origin/develop\n' > .agent-project-ops/project-config
+  # A recorded process mode (PRINCIPLES §0) is accepted, and only validated.
+  printf 'task_base=origin/develop\nprocess_mode=fast\n' > .agent-project-ops/project-config
+  if bash "$root/scripts/new-worktree.sh" 109 agent badmode feat > "$tmp/badmode" 2>&1; then fail "invalid process_mode accepted"; fi
+  grep -Fq 'process_mode must be light or standard' "$tmp/badmode" || fail "invalid process_mode not explained"
+  [[ ! -e .worktrees/109-agent-badmode ]] || fail "created despite invalid process_mode"
+  printf 'task_base=origin/develop\nprocess_mode=light\n' > .agent-project-ops/project-config
   bash "$root/scripts/new-worktree.sh" 104 agent fourth docs > "$tmp/configured"
   [[ "$(git -C .worktrees/104-agent-fourth rev-parse HEAD)" == "$develop_sha" ]] || fail "project default not honored"
 

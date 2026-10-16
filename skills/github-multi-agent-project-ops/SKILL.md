@@ -9,9 +9,9 @@ description: >
 
 # GitHub multi-agent project ops
 
-Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.1.3** first. Invariants beat this skill.
+Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.2.0** first. Invariants beat this skill.
 
-You are usually the **project-ops Agent**: you keep Issues honest and **propose**. You do not Freeze-ACK or `PHASE ACCEPT` unless the Command Center explicitly names you as disposer.
+You are usually the **lead Agent / 主 Agent**: you split work into tasks, dispatch them, review and merge task PRs once the required checks pass, accept tasks implemented by other Agents, handle blocks, retire branches and keep Issues honest. You go to the disposer only for the three things in PRINCIPLES §1 — start confirmation for a §11 hit, final acceptance, exceptions — always with [templates/decision-request.md](../../templates/decision-request.md). You never accept your own work and never write a disposer reply (`批准 A`, `PHASE ACCEPT`, `FREEZE ACK` or any other wording).
 
 ## 必读 / Required reading
 
@@ -29,12 +29,13 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 
 1. Find Command Center. If missing → start-project playbook. Stop implementation.
 2. Confirm disposer + roster. If missing → fail closed, comment on a new Command Center draft.
-3. One Phase = one core problem. No Freeze ACK → no `feat/` / `fix/` branch.
+3. Read the process mode (PRINCIPLES §0; unrecorded = `standard`). One Phase (`light`: one task) = one core problem. No `CONTRACT FREEZE` with a `大改动检查` line → no `feat/` / `fix/` branch. On a §11 hit, also wait for the approved start confirmation; work it does not cover keeps moving.
 4. Dispatch: Issue comment with owner, working directory, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
 5. Implement on one branch / one PR (single task: idle primary checkout; parallel: own worktree, capped). Verify with **separate** evidence. After each merge or close, `tidy-worktrees.sh --apply` retires finished work.
 6. Before requesting merge or review, inspect the project's actual required CI, code-review and acceptance gates for the current PR SHA. A provider-specific bot is never a generic requirement; passing checks does not imply `PHASE ACCEPT`.
-7. Propose PASS with evidence table plus the latest `apo-tidy:` line. Wait for `PHASE ACCEPT`.
-8. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
+7. Decide everything that is not on §11 yourself (task split, dispatch, review, merging task PRs, blocks, cleanup). Requests that are ready at the same time go out as **one** fixed-format request.
+8. At the end of a Phase (`light`: before a release), post one final-acceptance request: acceptance table, known problems, a 1–2 step check for the disposer, latest `apo-tidy:` line. The reply (or legacy `PHASE ACCEPT`) is the only PASS; record it with an `apo-decision-result` marker.
+9. Update Command Center **section 1** and the Phase index. Never treat merge as PASS. [ ] **CC §1 updated**
 
 
 ## Command Center hygiene / CC §1（mandatory agent duty）
@@ -43,7 +44,7 @@ Keeping Command Center **section 1** current is **Agent work on every gate flip*
 
 **On every** gate flip / phase status change / Freeze / blocked / verification / Accept event, in the **same turn**:
 
-1. Update Command Center **section 1** (one-glance): current phase, status word, open gates, evidence pointers, **single Next Action**.
+1. Update Command Center **section 1** (one-glance): current work, status word, pending decisions (“待你决定”), blockers, evidence pointers, **single Next Action**, latest `apo-tidy:` line.
 2. If this event is a Phase **status transition** (dispatch → `in-progress`, blocked, verification, Accept/`done`), update the Phase issue **status label** (`status:backlog` | `in-progress` | `blocked` | `verification` | `done`) and remove the previous status label. **Freeze ACK is not a status-label change** — leave the existing label (usually `status:backlog`) in place.
 3. Chat only pings humans to **look at GitHub**. Chat ≠ state.
 
@@ -67,6 +68,8 @@ Playbook copies: [phase-lifecycle.md](../../playbooks/phase-lifecycle.md), [staf
 
 - Add Notion, bots, CI bootstrap, or deploy stacks as part of this skill.
 - Copy business SOP into the methodology repository.
-- Self-label a Phase `status:done` without disposer Accept.
+- Self-label a Phase `status:done` without the disposer's final acceptance.
+- Ask the disposer about anything that is not on the §11 list, or send requests one by one when they could be one.
+- Post a decision request outside the fixed format, or record a decision the disposer did not give.
 - Ask the human to “remember to update CC §1” as the primary path.
 - Ask the disposer to merge when required checks are missing or treat automated review as Accept.

@@ -33,14 +33,13 @@ Agent 应根据当前目录与 APO 绑定情况选择 Bootstrap、Adoption 或�
 - 一份真实的 `agent-project-ops` git checkout
 - 一个明确的人类 disposer，例如 `@your-handle`
 
-Disposer 是有权做这些决定的人：
+Disposer（拍板人，一般就是你自己）只在三种时候需要出面：
 
-- `FREEZE ACK`
-- `PHASE ACCEPT`
-- `PHASE RETURN`
-- `EXCEPTION ACCEPT`
+- **开工确认**：改动命中“大改动清单”（共 8 条，比如改数据库、发布、动账号密钥，见 `PRINCIPLES.md` §11）时，开工前确认一次；
+- **最终验收**：标准档在每个阶段结束时、轻量档在每次发版前，确认一次；
+- **例外**：要改已经确认过的范围或验收标准时。
 
-Agent 可以准备材料并提出建议，但不能自己完成验收。
+每次 Agent 都会发一份固定格式的决策请求，写清推荐方案、为什么需要你、不决定会怎样。你只需回复 `批准 A`、`改用 B` 或 `退回：<原因>`（以前的 `FREEZE ACK`、`PHASE ACCEPT` 等写法仍然有效）。其余事情由主 Agent 自己处理；任何 Agent 都不能验收自己的工作。
 
 ---
 
@@ -310,14 +309,14 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 ```text
 1. 创建 Issue / Phase
 2. 冻结范围与验收标准
-3. Disposer：FREEZE ACK
+3. 主 Agent 对照大改动清单；命中时请 Disposer 开工确认（回复 `批准 A`），没命中就直接开工
 4. 为任务开分支（只有一个任务时直接用主文件夹，同时做几个才另建工作文件夹）
 5. 实现 + 测试
 6. 打开 PR + 运行 CI
 7. 请求合并前核对当前 PR 的必需 CI 与审查门禁
 8. 生成可复验证据
-9. Agent：EVIDENCE READY
-10. Disposer：PHASE ACCEPT 或 PHASE RETURN
+9. 主 Agent：发最终验收请求（对照表 + 已知问题 + 你能自己核实的 1–2 步）
+10. Disposer：回复 `批准 A` 或 `退回：<原因>`
 11. 关闭 Phase
 ```
 
@@ -327,8 +326,8 @@ Command Center 是项目的持久索引；聊天不是项目索引。
 - 一个任务 = 一个分支 / 一个 PR；PR 合并或关闭后，Agent 自动收拾对应的文件夹和分支，没合并的工作不会被删；
 - 日常禁止直接 push `main`；
 - Agent 可以自主实现、测试、检查 CI、整理证据；
-- 当真正需要产品、架构或 disposer 决策时，Agent 才暂停；
-- PR merge **不等于** `PHASE ACCEPT`；
+- 只有命中大改动清单、需要最终验收或例外时，Agent 才来找你，而且同时出现的几件事合成一次问；等你回复时，不受影响的任务照常推进；
+- PR 合并**不等于**最终验收（`PHASE ACCEPT`）；
 - 请求合并前核对当前 PR SHA 的必需 CI 和审查条件；它们通过并不等于 `PHASE ACCEPT`；
 - 验收证据必须在没有原始聊天的情况下仍可复验。
 

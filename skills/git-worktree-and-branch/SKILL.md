@@ -43,10 +43,10 @@ Follow **[PRINCIPLES.md](../../PRINCIPLES.md)** §8 (one task ≈ one branch ≈
 ## Agent checklist
 
 1. `git remote -v` → expect `origin` for this workflow. If a **projection** (or any non-origin) remote is configured, follow [git-authority-and-projection](../git-authority-and-projection/SKILL.md) and its playbook **before any non-origin push**. If that host is colleague share, follow [export-remote](../export-remote/SKILL.md) or [share-export](../share-export/SKILL.md) instead of projecting.
-2. Implementation requires Phase **Freeze ACK**. Else stop.
+2. Implementation requires a `CONTRACT FREEZE` with a `大改动检查` line and, on a PRINCIPLES §11 hit, the approved start confirmation. Else stop.
 3. Determine the task base from the approved Issue/Phase, reviewed `.agent-project-ops/project-config`, or the real GitHub origin default. If ambiguous, offer *verified* `origin/*` candidates via the host's native choice tool (or ordinary conversation); in headless mode require explicit `--base origin/BRANCH`. Use `scripts/new-worktree.sh <issue> <owner> <slug> [kind] [--base origin/BRANCH] [--save-base] [--here|--worktree]`; work where its `workdir:` / `worktree:` line says. Exit 3 = folder cap reached, nothing created: queue the task or park one; do not raise the cap or delete folders by hand.
 4. Comment mode + working directory + branch on the Issue.
 5. `git push -u origin HEAD`. Open PR to default branch. Never push topic branches to projection.
-6. After merge or close: `scripts/tidy-worktrees.sh --apply` (it also runs before every new task) and quote its `apo-tidy:` line. Pause = commit + push, then `--park <branch>`; abandon (disposer decision) = `--abandon <branch>`, which archives before deleting. Never `git worktree remove --force` or `git branch -D` by hand. Next task bases on the new authority tip.
+6. After merge or close: `scripts/tidy-worktrees.sh --apply` (it also runs before every new task) and quote its `apo-tidy:` line. Pause = commit + push, then `--park <branch>`; abandon (lead Agent's call; the disposer's when dropping the task changes a confirmed goal) = `--abandon <branch>`, which archives before deleting. Never `git worktree remove --force` or `git branch -D` by hand. Next task bases on the new authority tip.
 
 Ignore `.worktrees/` in the **business** repo. Do not vendor this methodology into app packages.

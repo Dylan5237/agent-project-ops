@@ -62,6 +62,7 @@ worktree_mode=auto
 seen_base=0
 seen_max=0
 seen_mode=0
+seen_process=0
 config="$root/.agent-project-ops/project-config"
 if [[ -f "$config" ]]; then
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -82,6 +83,12 @@ if [[ -f "$config" ]]; then
         seen_mode=1
         worktree_mode="${line#worktree_mode=}"
         case "$worktree_mode" in auto|always) ;; *) die "worktree_mode must be auto or always: $line" ;; esac ;;
+      process_mode=*)
+        # Disposer-chosen process mode (PRINCIPLES §0). Validated only; it does
+        # not change how this helper creates branches or folders.
+        [[ "$seen_process" -eq 0 ]] || die "duplicate process_mode in $config"
+        seen_process=1
+        case "${line#process_mode=}" in light|standard) ;; *) die "process_mode must be light or standard: $line" ;; esac ;;
       *) die "unknown project-config entry (not executed): $line" ;;
     esac
   done < "$config"

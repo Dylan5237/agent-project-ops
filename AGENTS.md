@@ -17,10 +17,10 @@ This repository is the **methodology repository itself**. It is running a bounde
 
 1. Read `PRINCIPLES.md` before changing repository state.
 2. Open Command Center #10 and follow its current Phase index/status.
-3. Do not create implementation work before that Phase has a disposer `FREEZE ACK`.
+3. Before implementation, post `CONTRACT FREEZE` with the major-change check (`PRINCIPLES.md` §11). On a hit, wait for the disposer's start confirmation (`批准 …`, or legacy `FREEZE ACK`). In this repository, changing `PRINCIPLES.md`, `playbooks/`, `skills/`, `templates/` or what the scripts enforce is item 7.
 4. One task/Phase uses one dedicated branch/PR. Locally, a single task may use the idle primary checkout; parallel tasks use `.worktrees/` (at most `max_worktrees`); finished work is retired with `scripts/tidy-worktrees.sh`, never by hand.
 5. Direct push to `main` is forbidden. Server-side GitHub protection is the real gate; client hooks are only an additional guard.
-6. Agent proposes evidence; Agent must never self-issue `PHASE ACCEPT`, `PHASE RETURN`, `FREEZE ACK`, or `EXCEPTION ACCEPT`.
+6. Agent proposes evidence; Agent must never self-issue `PHASE ACCEPT`, `PHASE RETURN`, `FREEZE ACK`, or `EXCEPTION ACCEPT`. Every request to the disposer uses `templates/decision-request.md`; the disposer's `批准 A` / `改用 B` / `退回：<原因>` counts the same as those words, and no Agent writes it.
 7. Merge is not Phase PASS. The disposer decision recorded on the Phase is authoritative.
 8. Unknown remotes are BLOCKED until the Command Center classifies them.
 

@@ -33,14 +33,13 @@ You need:
 - a real git checkout of `agent-project-ops`
 - a named human disposer, for example `@your-handle`
 
-The disposer is the person allowed to make decisions such as:
+The disposer is needed only for three things:
 
-- `FREEZE ACK`
-- `PHASE ACCEPT`
-- `PHASE RETURN`
-- `EXCEPTION ACCEPT`
+- **start confirmation** when a change hits the major-change list (8 items in `PRINCIPLES.md` §11);
+- **final acceptance**, at the end of each Phase (standard mode) or before each release (light mode);
+- **exceptions** to an already confirmed scope or acceptance test.
 
-The Agent may prepare and propose these decisions, but it does not self-Accept.
+Each time the Agent posts a fixed-format decision request; the disposer replies `批准 A` / `改用 B` / `退回：<原因>` (the older `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT` still count). Everything else is the lead Agent's call, and no Agent accepts its own work.
 
 ---
 
@@ -310,14 +309,14 @@ The normal lifecycle is:
 ```text
 1. Create Issue / Phase
 2. Freeze the scope and acceptance tests
-3. Disposer: FREEZE ACK
+3. Lead Agent checks the major-change list; on a hit the disposer confirms the start (`批准 A`), otherwise work starts
 4. Create the task branch (single task: main checkout; parallel tasks: own worktree)
 5. Implement + test
 6. Open PR + run CI
 7. Before requesting merge: inspect the project's required CI and review conditions.
 8. Produce replayable evidence
-9. Agent: EVIDENCE READY
-10. Disposer: PHASE ACCEPT or PHASE RETURN
+9. Lead Agent: final-acceptance request (table + known problems + a 1–2 step check)
+10. Disposer: `批准 A` or `退回：<原因>`
 11. Close Phase
 ```
 
@@ -327,8 +326,8 @@ Rules that matter most:
 - one task = one branch / PR; after the PR merges or closes, the Agent retires its folder and branch automatically, never unmerged work;
 - no routine direct push to `main`;
 - Agent may autonomously implement, test, inspect CI, and prepare evidence;
-- Agent pauses when a real product/architecture/disposer decision is required;
-- PR merge does **not** equal `PHASE ACCEPT`;
+- Agent asks the disposer only for a major-change hit, final acceptance or an exception, batching what is ready together; unaffected tasks keep moving while it waits;
+- PR merge does **not** equal final acceptance (`PHASE ACCEPT`);
 - check mandatory CI/reviewer gates for the current PR SHA before asking for merge; neither CI nor code review replaces `PHASE ACCEPT`;
 - acceptance evidence must be replayable without the original chat.
 

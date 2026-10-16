@@ -78,7 +78,7 @@ Only after step 1 is clean:
 
 ### 3. Control plane / 控制面
 
-Follow [start-project.md](./start-project.md): labels, Command Center, honest A/B/C protection, and the first Phase. No product implementation before that Phase has `FREEZE ACK`.
+Follow [start-project.md](./start-project.md): labels, Command Center, honest A/B/C protection, and the first Phase. No product implementation before that Phase's contract is frozen (and start-confirmed if it hits the PRINCIPLES §11 list).
 
 Do not claim adoption complete because the PIN file exists while `AGENTS.md` still inverts authority.
 
