@@ -18,7 +18,7 @@ Treat `使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目�
 The prompt authorizes **discovery and read-only preview**, not applying a patch, silently changing PIN, modifying other repositories or merging a PR. First inspect the current project's real binding, classify project state, use its approved task base, and obtain a separate human confirmation for the resulting exact `plan_id`. Bootstrap/Adoption is different from upgrading a previously bound project.
 
 Use when the user asks to update a project's old APO mechanism/rules. This is
-an upgrade of the **selected project only**, not authorization to migrate a fleet,
+an upgrade of the **selected project only**, not authorization to migrate other projects,
 change business behavior, deploy, or accept unrelated Phases.
 
 ## Preconditions and source
@@ -33,6 +33,7 @@ change business behavior, deploy, or accept unrelated Phases.
 3. Use Git + Python 3.10 or newer (Windows: Python and Git Bash for shell steps).
    The release clone contains `scripts/prepare-upgrade.py`. Do not infer that
    a copied `.agent-project-ops` snapshot is itself a full methodology clone.
+   Active legacy remote roles or extra remotes are unsupported by the new rules: stop for an explicit project migration review, without changing remote configuration. Known old adapter and script paths remain legacy descriptors so unmodified retired files can be removed and restored by the reviewed patch. A custom retired adapter must conflict rather than be deleted.
 4. Stop on dirty work, an unresolvable old PIN, changed upstream identity,
    symlinks, custom snapshot changes or uncertain ownership. Do not auto-stash,
    reset, run destructive cleanup, rewrite the old PIN or bypass a conflict.
@@ -83,7 +84,7 @@ change business behavior, deploy, or accept unrelated Phases.
 
 11. The tool explicitly returns `PENDING_RECONCILIATION` for the GitHub control
     plane. Review the **selected project's** existing CC/Phase/ADR and root
-    project-specific text for inherited Fleet/box/Bugbot instructions. Propose
+    project-specific text for obsolete inherited instructions. Propose
     replacing only obsolete **generic inherited requirements**, preserve actual
     project-approved checks, owners, active work and history. Obtain the needed
     project decision and update CC to reference the upgrade PR/new PIN.
@@ -122,4 +123,4 @@ by the patch generator. Do not remove a worktree containing unrelated work.
 
 Custom hand-maintained bindings that cannot be reconstructed safely are **not**
 automatically supported. Provide a manual three-way review plan; do not offer
-an overwrite-all escape hatch. See `docs/UPGRADE.zh-CN.md` in the release clone.
+an overwrite-all escape hatch. See `docs/UPGRADE.md` in the release clone.

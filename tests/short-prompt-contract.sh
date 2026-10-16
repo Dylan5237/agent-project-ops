@@ -10,7 +10,7 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 
 # Both exact user prompts must remain first-class, including the upgrade guide
 # that an existing pinned v0.1.x project will use.
-for path in README.zh-CN.md docs/GETTING_STARTED.zh-CN.md docs/UPGRADE.zh-CN.md README.md docs/GETTING_STARTED.md docs/UPGRADE.md; do
+for path in README.md docs/GETTING_STARTED.md docs/UPGRADE.md; do
   [[ -f "$root/$path" ]] || fail "missing $path"
   grep -Fq "$init" "$root/$path" || fail "$path lost original initialization short prompt"
   grep -Fq "$upgrade" "$root/$path" || fail "$path lost original update short prompt"

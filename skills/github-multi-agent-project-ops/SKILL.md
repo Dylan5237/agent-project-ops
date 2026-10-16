@@ -9,7 +9,7 @@ description: >
 
 # GitHub multi-agent project ops
 
-Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.2.0** first. Invariants beat this skill.
+Load **[PRINCIPLES.md](../../PRINCIPLES.md) v0.3.0** first. Invariants beat this skill.
 
 You are usually the **lead Agent / 主 Agent**: you split work into tasks, dispatch them, review and merge task PRs once the required checks pass, accept tasks implemented by other Agents, handle blocks, retire branches and keep Issues honest. You go to the disposer only for the three things in PRINCIPLES §1 — start confirmation for a §11 hit, final acceptance, exceptions — always with [templates/decision-request.md](../../templates/decision-request.md). You never accept your own work and never write a disposer reply (`批准 A`, `PHASE ACCEPT`, `FREEZE ACK` or any other wording).
 
@@ -21,9 +21,9 @@ You are usually the **lead Agent / 主 Agent**: you split work into tasks, dispa
 4. [playbooks/staff-and-dispatch.md](../../playbooks/staff-and-dispatch.md)
 5. [playbooks/blocked-and-exceptions.md](../../playbooks/blocked-and-exceptions.md)
 
-Companion skills: `git-worktree-and-branch`, `git-authority-and-projection`, `export-remote`, `share-export`, `issues-prs-and-evidence`.
+Companion skills: `git-worktree-and-branch`, `issues-prs-and-evidence`, `project-diagnostics`.
 
-Git landing / remotes (worktrees, `origin`, optional projection): do **not** duplicate here — follow `git-worktree-and-branch` plus [playbooks/git-authority-and-projection.md](../../playbooks/git-authority-and-projection.md) when a second remote exists. Colleague GitLab: [export-remote](../export-remote/SKILL.md) (`export=`) or [share-export](../share-export/SKILL.md).
+Git landing and worktrees follow [git-worktree-and-branch](../git-worktree-and-branch/SKILL.md). Only GitHub `origin` is supported. Preserve unexpected old remote settings and stop affected writes; no alternative publishing workflow is supplied.
 
 ## 工作循环 / Loop
 
@@ -31,7 +31,7 @@ Git landing / remotes (worktrees, `origin`, optional projection): do **not** dup
 2. Confirm disposer + roster. If missing → fail closed, comment on a new Command Center draft.
 3. Read the process mode (PRINCIPLES §0; unrecorded = `standard`). One Phase (`light`: one task) = one core problem. No `CONTRACT FREEZE` with a `大改动检查` line → no `feat/` / `fix/` branch. On a §11 hit, also wait for the approved start confirmation; work it does not cover keeps moving.
 4. Dispatch: Issue comment with owner, working directory, branch; `status:in-progress`. Then **CC §1** + Phase status label (see hygiene).
-5. Implement on one branch / one PR (single task: idle primary checkout; parallel: own worktree, capped). Verify with **separate** evidence. After each merge or close, `tidy-worktrees.sh --apply` retires finished work.
+5. Implement on one branch / one PR (single task: idle primary checkout; parallel: own worktree, capped). Attach replayable evidence to this PR or Issue; a separate evidence PR is optional. After each merge or close, `tidy-worktrees.sh --apply` retires finished work.
 6. Before requesting merge or review, inspect the project's actual required CI, code-review and acceptance gates for the current PR SHA. A provider-specific bot is never a generic requirement; passing checks does not imply `PHASE ACCEPT`.
 7. Decide everything that is not on §11 yourself (task split, dispatch, review, merging task PRs, blocks, cleanup). Requests that are ready at the same time go out as **one** fixed-format request.
 8. At the end of a Phase (`light`: before a release), post one final-acceptance request: acceptance table, known problems, a 1–2 step check for the disposer, latest `apo-tidy:` line. The reply (or legacy `PHASE ACCEPT`) is the only PASS; record it with an `apo-decision-result` marker.

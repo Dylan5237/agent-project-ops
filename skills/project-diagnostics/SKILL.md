@@ -35,6 +35,4 @@ A tool that reports A/B/C or independent reviewer guarantees must inspect
 the server's actual policy and identity context. This local doctor does not.
 A task base/PR status is not inferred from `origin/main` by default.
 
-For a creator-facing "continue" or "check the result" request, pair this
-diagnostic with `apo-project-assistant` and the Command Center/Phase evidence;
-do not create a second database or substitute the report for `PHASE ACCEPT`.
+Use the Command Center and frozen Phase evidence for project progress; do not substitute this local report for `PHASE ACCEPT`. Additional remotes or active legacy role settings are unsupported: report them without modifying them.

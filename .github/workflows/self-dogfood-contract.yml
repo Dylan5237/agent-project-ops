@@ -5,8 +5,6 @@ on:
     paths:
       - 'AGENTS.md'
       - 'CLAUDE.md'
-      - '.cursor/rules/agent-project-ops-self.mdc'
-      - '.github/copilot-instructions.md'
       - '.agent-project-ops/remotes'
       - '.githooks/pre-push'
       - 'scripts/install-hooks.sh'
@@ -18,8 +16,6 @@ on:
     paths:
       - 'AGENTS.md'
       - 'CLAUDE.md'
-      - '.cursor/rules/agent-project-ops-self.mdc'
-      - '.github/copilot-instructions.md'
       - '.agent-project-ops/remotes'
       - '.githooks/pre-push'
       - 'scripts/install-hooks.sh'

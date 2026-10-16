@@ -7,8 +7,6 @@ on:
       - 'skills/bootstrap-project/**'
       - 'templates/ISSUE_TEMPLATE/command-center.md'
       - 'templates/AGENTS.md'
-      - 'templates/github/copilot-instructions.md'
-      - 'templates/cursor-rules/agent-project-ops.mdc'
       - 'tests/bootstrap-default-config.sh'
       - '.github/workflows/bootstrap-config-contract.yml'
   push:

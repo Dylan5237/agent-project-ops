@@ -33,48 +33,36 @@ dry_run=0
 assume_yes=0
 skip_github=0
 visibility="private"
-no_projection=0
 require_codeowner_review=0
 name=""
 dest=""
 owner=""
 disposer=""
-projection_url=""
 github_repo=""
 methodology_url=""
 methodology_ref=""
 
 usage() {
   cat <<'EOF'
-bootstrap-project.sh — scaffold a generic repo bound to agent-project-ops
+bootstrap-project.sh — 为 GitHub 仓库创建 APO 规则绑定
 
-  --name NAME                 Project directory / repo slug
-  --dir PATH                  Destination directory (default: ./NAME)
-  --disposer @HANDLE          Required real GitHub disposer handle
-  --owner OWNER               GitHub user/org (default: authenticated gh user)
-  --github-repo OWNER/NAME    Override GitHub repository name
-  --private | --public        Visibility (default: private)
-  --projection-url URL        Optional credential-free same-history projection git URL
-                              (not colleague-share GitLab; that is export / share-export)
-  --no-projection             Compatibility flag: origin-only is already the default
-  --require-codeowner-review  Request protection level A (independent review)
-  --skip-github               Local scaffold only; do not create GitHub repo
-  --methodology-url URL       Override canonical methodology URL written to PIN
-  --methodology-ref REF       Informational ref written to PIN
-  --dry-run                   Print the plan only
-  --yes                       Non-interactive; required values must be flags
-  -h, --help                  Show this help
+  --name NAME                 项目目录名/仓库名
+  --dir PATH                  目标目录（默认 ./NAME）
+  --disposer @HANDLE          GitHub 拍板人账号，必填
+  --owner OWNER               GitHub 用户或组织（默认当前 gh 账号）
+  --github-repo OWNER/NAME    指定 GitHub 仓库名
+  --private | --public        仓库可见性（默认 private）
+  --require-codeowner-review  请求 A 级保护（要求 Code Owner 审查）
+  --skip-github               只生成本地骨架，不创建 GitHub 仓库
+  --methodology-url URL       覆盖写入 PIN 的方法论来源
+  --methodology-ref REF       写入 PIN 的参考版本
+  --dry-run                   只输出计划
+  --yes                       非交互模式；必填值须通过参数提供
+  -h, --help                  显示帮助
 
-Supported bootstrap requires a real methodology git SHA. It never writes
-`sha=unknown`. Client hooks are bypassable; server policy is reported as
-capability A/B/C and is never overstated. Capability C on GitHub Free
-private is expected: warn, record on Command Center, and continue
-(do not hard-abort the scaffold; never claim B/A). Colleague GitLab is
-export / share-export (scripts/export-sync.sh, scripts/share-export.sh),
-not --projection-url.
-Existing (non-empty) destinations are adoption, not this script:
-playbooks/adopt-existing-project.md. Inverted AGENTS.md SoT fail-closes
-before PIN binding is considered complete.
+初始化只使用 GitHub origin 作为唯一写入权威。来源必须是 Git 仓库并含真实提交 SHA；
+非空目标目录必须走现有项目接入流程。客户端 Hook 可绕过；服务端保护能力按实际
+结果报告 A/B/C，不夸大保证。GitHub 免费私有仓库可能只能得到 C：如实记录并继续。
 EOF
 }
 
@@ -92,8 +80,6 @@ while [[ $# -gt 0 ]]; do
     --github-repo) github_repo="${2:-}"; shift 2 ;;
     --private) visibility="private"; shift ;;
     --public) visibility="public"; shift ;;
-    --projection-url) projection_url="${2:-}"; shift 2 ;;
-    --no-projection) no_projection=1; shift ;;
     --require-codeowner-review) require_codeowner_review=1; shift ;;
     --skip-github) skip_github=1; shift ;;
     --methodology-url) methodology_url="${2:-}"; shift 2 ;;
@@ -104,9 +90,6 @@ while [[ $# -gt 0 ]]; do
     *) die "unknown flag: $1 (see --help)" ;;
   esac
 done
-
-[[ ! ( -n "${projection_url}" && "${no_projection}" -eq 1 ) ]] || \
-  die "use either --projection-url or --no-projection"
 
 if [[ -z "${name}" && -n "${dest}" ]]; then name="$(basename "${dest}")"; fi
 if [[ -z "${name}" ]]; then
@@ -126,12 +109,6 @@ fi
 [[ "${disposer}" == @* ]] || disposer="@${disposer}"
 [[ "${disposer}" != '@DISPOSER' && "${disposer}" != '@example' ]] || die "placeholder disposer is not allowed"
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
-
-# Default is origin-only. Do not prompt every user for an unrelated second remote.
-# A projection is configured only through an explicit --projection-url.
-if [[ -n "${projection_url}" ]]; then
-  url_has_secrets "${projection_url}" && die "projection URL is unsafe; credentials/query strings are forbidden"
-fi
 
 # Supported provenance: methodology must be a real git checkout.
 methodology_sha="$(git -C "${METHODOLOGY_ROOT}" rev-parse --verify HEAD 2>/dev/null || true)"
@@ -164,23 +141,15 @@ if [[ -z "${methodology_ref}" ]]; then
 fi
 fetched_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
-projection_name="(none)"
-projection_record_url=""
-if [[ -n "${projection_url}" ]]; then
-  projection_name="projection"
-  projection_record_url="${projection_url}"
-fi
-
 log "methodology: ${methodology_url} @ ${methodology_sha} (${methodology_ref})"
 log "destination: ${dest}"
 log "disposer: ${disposer}"
 log "authority: origin"
-log "projection: ${projection_name}"
 log "GitHub protection target: $([[ "${require_codeowner_review}" -eq 1 ]] && printf 'A' || printf 'B')"
 
 if [[ "${dry_run}" -eq 1 ]]; then
   log "plan: create git repo + durable Agent binding + pinned methodology snapshot"
-  log "plan: write clone-portable remotes registry and install .githooks/pre-push"
+  log "plan: write origin-only authority registry and install .githooks/pre-push"
   log "plan: create .worktrees/ and ignore nested worktrees"
   log "plan: retire finished task folders/branches automatically (tidy-worktrees.sh; GitHub deletes merged PR branches)"
   if [[ "${skip_github}" -eq 1 ]]; then
@@ -215,12 +184,10 @@ cd "${dest}"
 git init -q -b main
 
 mkdir -p \
-  .cursor/rules \
   .agents/skills \
   .claude/skills \
   .github/ISSUE_TEMPLATE \
   .github/PULL_REQUEST_TEMPLATE \
-  .continue/rules \
   .githooks \
   .worktrees \
   .agent-project-ops/scripts/lib
@@ -235,17 +202,13 @@ cp -a "${METHODOLOGY_ROOT}/templates" .agent-project-ops/templates
 cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-worktree.sh
 cp "${METHODOLOGY_ROOT}/scripts/tidy-worktrees.sh" .agent-project-ops/scripts/tidy-worktrees.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
-cp "${METHODOLOGY_ROOT}/scripts/share-export.sh" .agent-project-ops/scripts/share-export.sh
-cp "${METHODOLOGY_ROOT}/scripts/export-sync.sh" .agent-project-ops/scripts/export-sync.sh
 cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts/scan-inverted-sot.py
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
-cp "${METHODOLOGY_ROOT}/scripts/lib/share-export-denylist.sh" .agent-project-ops/scripts/lib/share-export-denylist.sh
-cp "${METHODOLOGY_ROOT}/scripts/lib/export-strip-list.sh" .agent-project-ops/scripts/lib/export-strip-list.sh
 # Remove transient Python bytecode that may have been produced by prior tests.
 # Only touch the new snapshot; never delete files from the method checkout.
 find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
 find .agent-project-ops -type f -name '*.pyc' -delete
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/share-export.sh .agent-project-ops/scripts/export-sync.sh .agent-project-ops/scripts/scan-inverted-sot.py
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/scan-inverted-sot.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -256,12 +219,6 @@ EOF
 
 cat > .agent-project-ops/remotes <<EOF
 authority=origin
-projection=${projection_name}
-projection_url=${projection_record_url}
-export=(none)
-export_url=
-share_export=(none)
-share_export_url=
 EOF
 
 subst() {
@@ -273,7 +230,6 @@ subst() {
     -e "s|{{METHODOLOGY_REF}}|${methodology_ref}|g" \
     -e "s|{{FETCHED_AT}}|${fetched_at}|g" \
     -e "s|{{DISPOSER}}|${disposer}|g" \
-    -e "s|{{PROJECTION_REMOTE}}|${projection_name}|g" \
     "${src}" > "${dst}"
 }
 
@@ -282,13 +238,9 @@ if ! scan_inverted_sot "$(pwd)"; then
   die "generated AGENTS.md failed the inverted-SoT scan; templates/AGENTS.md is not a valid authority contract"
 fi
 cp "${METHODOLOGY_ROOT}/templates/CLAUDE.md" CLAUDE.md
-cp "${METHODOLOGY_ROOT}/templates/cursor-rules/agent-project-ops.mdc" .cursor/rules/agent-project-ops.mdc
-cp "${METHODOLOGY_ROOT}/templates/github/copilot-instructions.md" .github/copilot-instructions.md
 subst "${METHODOLOGY_ROOT}/templates/github/CODEOWNERS" .github/CODEOWNERS
 cp "${METHODOLOGY_ROOT}/templates/gitignore-agent-ops" .gitignore
 cp "${METHODOLOGY_ROOT}/templates/gitattributes-agent-ops" .gitattributes
-cp "${METHODOLOGY_ROOT}/templates/aider.conf.yml" .aider.conf.yml
-cp "${METHODOLOGY_ROOT}/templates/continue-rules/agent-project-ops.md" .continue/rules/agent-project-ops.md
 cp "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/"*.md .github/ISSUE_TEMPLATE/
 # Command Center provenance must match the actual PIN, not a hardcoded author/tag.
 subst "${METHODOLOGY_ROOT}/templates/ISSUE_TEMPLATE/command-center.md" .github/ISSUE_TEMPLATE/command-center.md
@@ -349,12 +301,6 @@ if gh repo edit "${github_repo}" --delete-branch-on-merge >/dev/null 2>&1; then
   log "GitHub deletes merged PR head branches automatically (restorable from the PR page)"
 else
   warn "could not enable automatic deletion of merged PR branches; run: gh repo edit ${github_repo} --delete-branch-on-merge (Settings > General > Pull Requests)"
-fi
-
-if [[ -n "${projection_url}" ]]; then
-  git remote add projection "${projection_url}"
-  log "added local projection remote; committed registry remains the clone-portable classification"
-  log "NOTE: colleague-share GitLab is export / share-export, not this remote; use export-sync.sh or share-export.sh"
 fi
 
 protection_level='C'

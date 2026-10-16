@@ -1,129 +1,67 @@
-# Upgrade an existing project's APO rules to v0.2.1
+# 升级已有项目的 APO 规则
 
-[简体中文与可直接转交 Agent 的指令](./UPGRADE.zh-CN.md)
+本指南面向已经固定 APO 版本、需要更新项目内规则的仓库。只更新全局 Skill 或只修改 PIN，都不等于升级项目规则。
 
-A project contains a **pinned snapshot**. Updating a global Skill or changing only
-PIN does not update that snapshot, its generated Agent rules, or live GitHub
-Command Center policies. This workflow treats those as separate responsibilities.
+## 版本状态
 
-## One-line URL-first entry
+- 最近的正式稳定版是 **v0.2.1**，发行页有 6 个附件。已发布版本和其提交 SHA 是当前正式使用依据。
+- 当前主线规则计划版本为 **v0.3.0**，尚未正式发布。本指南随主线整理，不构成 v0.3.0 已发布、CI 已通过或用户已验收的证明。
+- 下一次正式发行计划提供 5 个附件，并只保留中文 `docs/UPGRADE.md` 作为升级指南。该计划尚未完成发行，不要把它写成已验证结果。
 
-Use the following instruction in the current project:
+稳定发行版：[v0.2.1 发布页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.2.1)。短提示词会要求 Agent 先查找最新的已发布稳定版；不要让它把未发布的主线当成发行版。
+
+## 最简入口
+
+新项目初始化和已有项目升级分别使用对应提示词：
 
 ```text
+使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
 ```
 
-For an unbound project, use `使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。`. The user should not need to remember a Skill or CLI command. With the right GitHub/local Git access, the Agent locates the latest **published stable Release** and exact SHA, then loads the safe upgrade procedure below; with insufficient tools it reports a limitation. The selected upgrade `plan_id` still requires explicit approval.
+在**需要升级的项目**中使用第二句。Agent 应只处理当前项目，并先给出升级预览。预览中需列出来源版本、目标正式版本、受影响文件、项目自有规则冲突和稳定的 `plan_id`。你明确批准该 `plan_id` 后，Agent 才能应用补丁；短提示词本身不代表你批准具体补丁。
 
-## Supported path
+## 升级前检查
 
-The automatic generator supports the known v0.1.x bootstrap layout with a valid
-four-field `.agent-project-ops/PIN` and reconstructable generated root `AGENTS.md`.
-Project-specific, nonconflicting bridge text is preserved. Modified snapshot
-files, an unknown source commit, hand-written unrecognizable root bindings,
-symlinks, dirty work or conflicting changes **stop for manual three-way review**.
-There is no overwrite-all escape hatch.
+升级只针对一个明确选定的项目，不代表批量迁移其他仓库，也不授权部署、发布或推送。开始前应：
 
-Use Git and Python 3.10+. Shell examples require Bash (Git Bash on Windows).
-In a separate trusted directory, clone the release **with history**:
+1. 查看工作区状态、当前分支和未提交改动；先保存已有工作，不要自动 stash、reset 或覆盖。
+2. 核实项目 PIN、GitHub `origin`、真实默认分支、总控台、活动 Phase 和项目专属规则。
+3. 使用包含 PIN 对应提交的可信 Git 历史来源。发行压缩包没有完整提交历史，不能单独用作安全升级来源。
+4. 如果存在非 `origin` 远端、来源冲突或规则归属不明，暂停并说明；不要自行删除或重定向远端。
+5. 在隔离的升级任务分支或工作区操作，保留原提交作为回退基线。
 
-```bash
-git clone --branch v0.2.1 https://github.com/Dylan5237/agent-project-ops.git ../apo-v0.2.1
-```
+旧版升级工具要求 Git、Python 3.10+；shell 流程需要 Bash（Windows 可用 Git Bash）。工具和命令应以批准的正式发行包为准。
 
-Do not use `--depth 1`: the exact old PIN commit must exist locally. A trusted
-old clone can be supplied as `--old-source`. Do not edit the old PIN to fake
-compatibility. Source archives are useful for inspection, but have no `.git`
-history and cannot be used directly as the upgrade source.
+## 预览、批准和应用
 
-## Recommended Agent entrypoint
+升级工具应先只读扫描项目，输出旧 PIN、目标提交、项目基线、逐文件变化、冲突、`plan_id` 和控制面待办。预览期间不得改写项目文件、Git 配置、远端或 GitHub 控制面。
 
-The short prompt above is enough to express intent. Internally the Agent should read
-`skills/upgrade-project/SKILL.md` **from the verified release clone**, inspect the
-selected project's real binding/CC/Phase, and follow its preview-first process. Scope this to one chosen project. No fleet-wide migration,
-repository visibility change, automatic merge, deployment or Phase acceptance
-is implied.
+审阅预览时，重点确认：
 
-## Preview and export
+- 哪些规则由 APO 管理，哪些是项目自行维护；
+- 是否保留项目特有条款和未完成任务；
+- 是否有需要你决定的范围变化或接口变化；
+- 回退基线和预览 `plan_id` 是否仍有效。
 
-1. Preserve the current project and its exact approved baseline commit. Create a
-   dedicated upgrade topic branch/worktree using that baseline; do not guess
-   `main`/`develop` and do not share this worktree with another writer.
-2. Run the readonly preview, storing output outside both worktrees:
+批准后，Agent 按预览导出补丁，检查补丁 SHA、目标基线及文件路径，再使用 Git 原生补丁检查和应用。若 `plan_id`、基线或文件内容发生变化，应停止并重新预览；不得强制覆盖冲突。
 
-   ```bash
-   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
-     --project /path/project-upgrade > /safe/upgrade-plan.json
-   ```
+## 升级后的核对
 
-3. Review old/new SHA, baseline, changed paths, preserved rules and the exact
-   `plan_id`. Only after approval export the patch:
+核对 PIN 与选定正式版本的提交一致，项目规则仍保留，工作区差异仅包含批准内容。随后运行该发行包规定的项目检查并准备普通 PR。PR 合并后还要单独协调 GitHub 总控台和活动 Phase 的规则引用；本地文件更新不代表远端控制面已经更新。
 
-   ```bash
-   python3 /path/apo-v0.2.1/scripts/prepare-upgrade.py \
-     --project /path/project-upgrade --patch --expect-plan APPROVED_PLAN_ID \
-     > /safe/upgrade.patch
-   ```
+CI 结果、PR 合并和版本发布都不能替代拍板人的最终验收。历史 Issue、ADR、验证记录和决策回复应保留，不能倒签或改写过去的冻结与验收。
 
-   Check exit status before proceeding. JSON errors go to stderr, never into
-   a patch stream. Stderr receipt includes the patch checksum and baseline SHA.
-   Do not blindly pipe generator output to `git apply`. On Windows use Git Bash
-   byte-preserving redirection rather than legacy PowerShell UTF-16 redirection.
+## 回退
 
-4. Verify the project is still clean at the recorded baseline, inspect the patch,
-   then use Git's ordinary operations with the same absolute patch path:
+未提交时，只能在核对没有新增无关改动后，检查并应用同一补丁的反向版本。若项目规则已变化或反向检查失败，停止并人工审阅；不要强制覆盖。已提交或合并的变化按正常审查流程提交回退 PR。回退文件也不自动回退 GitHub 总控台或 Phase 状态。
 
-   ```bash
-   git -C /path/project-upgrade apply --stat /safe/upgrade.patch
-   git -C /path/project-upgrade apply --check /safe/upgrade.patch
-   # Only following successful checking and your explicit approval:
-   git -C /path/project-upgrade apply /safe/upgrade.patch
-   git -C /path/project-upgrade diff --check
-   ```
+## 常见结果
 
-The generator reads Git objects and does not modify the target, fetch, update
-Git configuration, commit or push. Git performs the approved local application.
-Never add `--reject`, `--unsafe-paths` or force-like fallbacks. The original
-worktree/base commit and saved patch are your recovery material.
-
-## Verify and reconcile the project control plane
-
-Verify the new PIN SHA, custom AGENTS rules, business files, remotes,
-`project-config`, export settings and original checkout. Run project checks and
-prepare the normal reviewed upgrade PR. After committing the identical new
-version, preview returns `UP_TO_DATE` (local PIN identity, not cloud acceptance).
-
-**`PENDING_RECONCILIATION` is intentional.** The generator does not edit GitHub
-Issues. The Agent/user must inspect the selected project's active CC/Phase/ADR
-and identify inherited old Fleet/box/Bugbot requirements. Propose changing only
-obsolete generic defaults, preserving explicitly approved project review policy,
-owners, active tasks and historical evidence. Obtain the project-level decision
-and reference the upgrade PR/new PIN in the control plane. Without GitHub access,
-report **LOCAL PATCH READY, CONTROL PLANE PENDING**, not "project upgraded".
-
-Do not backdate Freeze/Accept. The release itself never automatically changes
-existing business projects or grants deployment authority.
-
-## Rollback
-
-Before committing, inspect subsequent work and run:
-
-```bash
-git -C /path/project-upgrade apply --reverse --check /safe/upgrade.patch
-# Only if the check succeeds and rollback is authorized:
-git -C /path/project-upgrade apply --reverse /safe/upgrade.patch
-```
-
-Conflicting later edits stop rollback. Do not overwrite them. After a commit or
-merge, use a normal reviewed `git revert` and separately reconcile effective CC
-policy. Do not discard unrelated work or delete its worktree.
-
-## Evidence boundary
-
-The release gate exercises local Git positive/negative fixtures and a project
-created by the **real v0.1.2 bootstrap**, then upgrade, reverse, reapply and
-idempotence. Platform results belong to the exact release Actions SHA. This is
-not proof of arbitrary Agent-host behavior, live independent-human authorization
-or business-level user acceptance. The general natural-language user-journey
-feature in #75 remains outside this release pending real UX validation.
+| 结果 | 处理方式 |
+| --- | --- |
+| 工作区或方法论来源有未提交改动 | 先由负责人保存或处理，不自动丢弃 |
+| 找不到旧 PIN 对应提交 | 在可信完整历史中核实；不要伪造或修改旧 PIN |
+| 项目自有规则与模板冲突 | 停止自动应用，逐条审阅并保留项目决定 |
+| 预览计划或基线改变 | 重新生成预览并重新批准新的 `plan_id` |
+| 本地规则已更新、控制面未核对 | 记录为待协调，不宣布项目升级完成 |

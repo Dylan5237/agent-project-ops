@@ -13,7 +13,7 @@ One task = one branch = one PR, and Agents never share an index. A single task r
 
 ## Preconditions
 
-- Business repo clone exists; `origin` is configured (`playbooks/git-branch-and-remote.md`). If a projection remote exists, also load `playbooks/git-authority-and-projection.md`. Colleague GitLab is `playbooks/share-export.md`, not a worktree base.
+- Business repo clone exists; only GitHub `origin` is supported (`playbooks/git-branch-and-remote.md`). Additional remotes must be reviewed separately, never used as task bases or write targets.
 - Target Issue exists; for implementation, its contract is frozen (and start-confirmed if it hit the PRINCIPLES §11 list).
 - `.worktrees/` is gitignored in the business repo (add it if missing). Do **not** commit worktree contents as a nested repo.
 - `gh` authenticated for the GitHub origin (recommended). Without it, tidy retires only branches whose `origin/<branch>` was deleted after landing in the default branch, and keeps everything else.
@@ -57,7 +57,7 @@ One task = one branch = one PR, and Agents never share an index. A single task r
    | `process_mode=light\|standard` | `standard` | process mode (PRINCIPLES §0), chosen by the disposer; the helper only validates it |
 
 5. **Bind.** Comment on the Issue: `mode`, working directory (the `workdir:` or `worktree:` line), branch, selected origin base, its source, and HEAD SHA. With `--save-base`, review/commit the generated `.agent-project-ops/project-config` through the task PR. In `worktree` mode the primary checkout must remain unchanged.
-6. **Work only in that directory.** `cd` into it for commits and `git push -u origin <branch>` (never to a projection remote).
+6. **Work only in that directory.** `cd` into it for commits and `git push -u origin <branch>` (never to another remote).
 7. **Retire (automatic, evidence-based).** `scripts/tidy-worktrees.sh` decides per folder and branch:
 
    | Situation | With `--apply` |
@@ -119,7 +119,7 @@ One task = one branch = one PR, and Agents never share an index. A single task r
 - Deleting folders or branches by hand (`git worktree remove --force`, `git branch -D`, `git push --delete`) — use tidy, which proves the work landed or archives it first.
 - Raising `max_worktrees` or removing another task's folder to get past exit 3.
 - Parking with `git stash` or with unpushed commits (`--park` refuses both).
-- Basing a worktree on projection or on a superseded transitional branch after the authority tip has merged.
+- Basing a worktree on another remote or on a superseded transitional branch after the authority tip has merged.
 - Two issues, one worktree.
 - Committing `.worktrees/` into git.
 - Creating a worktree before Freeze on an implementation task.

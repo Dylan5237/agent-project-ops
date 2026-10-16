@@ -1,19 +1,7 @@
-# Examples / 示例（外链 only）
+# 示例说明
 
-This directory **does not** vendor business code, SOP, or stage graphs.
+本目录用于放置简短说明或外部参考链接，不复制业务代码、业务流程、部署配置或项目阶段图。
 
-Use public/external repositories as **pattern illustrations**: Command Center issue, Phase issues, split implementation vs evidence PRs. The methodology in the parent repo stays generic.
+APO 的原则、流程和模板以仓库内的 `PRINCIPLES.md`、`playbooks/`、`skills/` 和 `templates/` 为准。示例只帮助理解，不是接入条件，也不会取代项目自己的合同和验收办法。
 
-## Illustration: req-to-page
-
-- Repository: [https://github.com/Dylan5237/req-to-page](https://github.com/Dylan5237/req-to-page)
-- Look there for a **Project Command Center** issue (title along the lines of `Command Center` / `项目指挥中心`) and Phase issues that freeze a contract before implementation.
-
-Treat that repo as **someone else’s product**. Do not copy its domain docs, runtime, or application tree into `agent-project-ops`. If the link is private or missing, ignore it — playbooks still apply to any business git repo.
-
-## What to copy vs not
-
-| Copy into a business repo | Never copy into this methodology repo |
-| --- | --- |
-| Issue/PR **habits** (index issue, freeze comments, evidence table) | Product SOP, domain models, vendor/runtime docs |
-| Optional `.github` templates from `templates/` | Application source or `package.json` from examples |
+当前目录没有需要跟随的业务项目示例。需要了解操作入口时，请从[快速上手](../docs/GETTING_STARTED.md)开始。

@@ -5,22 +5,20 @@ on:
     paths:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
-      - 'scripts/share-export.sh'
-      - 'scripts/export-sync.sh'
-      - 'scripts/lib/share-export-denylist.sh'
-      - 'scripts/lib/export-strip-list.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
-      - 'playbooks/share-export.md'
-      - 'playbooks/export-remote.md'
       - 'skills/bootstrap-project/**'
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
       - 'tests/inverted-sot.sh'
       - 'tests/no-fleet-contract.sh'
+      - 'tests/slim-contract.sh'
+      - 'README.md'
+      - 'docs/GETTING_STARTED.md'
+      - 'docs/UPGRADE.md'
       - 'skills/github-multi-agent-project-ops/**'
       - '.github/workflows/bootstrap-contract.yml'
   push:
@@ -28,22 +26,20 @@ on:
     paths:
       - '.gitattributes'
       - 'scripts/bootstrap-project.sh'
-      - 'scripts/share-export.sh'
-      - 'scripts/export-sync.sh'
-      - 'scripts/lib/share-export-denylist.sh'
-      - 'scripts/lib/export-strip-list.sh'
       - 'templates/**'
       - 'playbooks/bootstrap-project.md'
       - 'playbooks/adopt-existing-project.md'
       - 'playbooks/start-project.md'
-      - 'playbooks/share-export.md'
-      - 'playbooks/export-remote.md'
       - 'skills/bootstrap-project/**'
       - 'skills/repo-reconciliation-cleanup/**'
       - 'scripts/scan-inverted-sot.py'
       - 'tests/bootstrap-local.sh'
       - 'tests/inverted-sot.sh'
       - 'tests/no-fleet-contract.sh'
+      - 'tests/slim-contract.sh'
+      - 'README.md'
+      - 'docs/GETTING_STARTED.md'
+      - 'docs/UPGRADE.md'
       - 'skills/github-multi-agent-project-ops/**'
       - '.github/workflows/bootstrap-contract.yml'
 
@@ -61,8 +57,6 @@ jobs:
           bash -n tests/bootstrap-local.sh
           bash -n tests/inverted-sot.sh
           bash -n tests/no-fleet-contract.sh
-          bash -n scripts/share-export.sh
-          bash -n scripts/export-sync.sh
       - name: Inverted-SoT wording contract
         run: bash tests/inverted-sot.sh
       - name: Dry-run contract
@@ -71,10 +65,11 @@ jobs:
             --name smoke-project \
             --dir /tmp/smoke-project \
             --disposer @apo-test \
-            --no-projection \
             --skip-github \
             --yes
-      - name: Generic bootstrap without personal Fleet
+      - name: Retired feature and documentation contract
+        run: bash tests/slim-contract.sh
+      - name: Bootstrap without personal registry dependencies
         run: bash tests/no-fleet-contract.sh
       - name: Local scaffold and fresh-clone contract
         run: bash tests/bootstrap-local.sh

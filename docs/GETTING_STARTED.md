@@ -1,85 +1,40 @@
-<p align="right">
-  <strong>English</strong> · <a href="./GETTING_STARTED.zh-CN.md">简体中文</a>
-</p>
+# 快速上手
 
-# Getting Started
+本指南介绍如何把 APO 接入一个项目，以及日常改动如何记录、验证和验收。
 
-This guide is the shortest path from **“I want AI Agents to work on a real project”** to a repository with durable project governance.
+## 先看版本状态
 
-`agent-project-ops` is a methodology and control layer. It does not replace your application architecture, runtime, deployment stack, or product process.
+最近的正式稳定版是 **v0.2.1**，发行页有 6 个附件。当前主线规则计划版本为 **v0.3.0**，尚未正式发布；主线文件不能当作稳定发行包使用。下一次发行计划提供 5 个附件，并统一使用中文升级指南 `docs/UPGRADE.md`，目前尚无新版本发行结果可报告。
 
----
+新项目初始化或升级时，Agent 应先核实最新的正式稳定版和精确提交，不要默认使用主线。
 
-## Preferred: one-line URL prompts
+## 推荐入口
 
-From a Coding Agent working in the intended project, send one of these instructions:
+在目标项目中发送对应指令：
 
 ```text
 使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 使用 https://github.com/Dylan5237/agent-project-ops 更新当前项目的apo规则。
 ```
 
-The Agent should discover the repository's latest **published stable Release** and verify its exact SHA (unless a version was specified), then choose Bootstrap, Adoption or Upgrade according to observed project state. The user does not have to load a named Skill or enter CLI commands. Tool/network/permission gaps must be reported; consequential operations and the upgrade `plan_id` still require explicit authorization.
+Agent 应先检查项目目录和 APO 绑定，再选择操作：
 
----
+- 空的新项目：初始化。
+- 已有业务代码、尚未接入 APO：按已有项目接入流程处理，不要覆盖现有规则。
+- 已固定旧版 APO：走升级预览流程，不要只改 PIN。
 
-## 1. Before you start
+## 开始前需要
 
-You need:
+- 一个 GitHub 项目仓库，用于 Issue、PR 和代码提交。
+- 本机可运行 Git；命令行初始化时需要 Python 3.10+（规则扫描）和 Bash（Windows 可用 Git Bash）。
+- 如果希望脚本创建 GitHub 仓库或检查权限，需要已登录的 GitHub CLI（`gh`）。
+- 明确的拍板人账号，例如 `@your-handle`。
 
-- Git
-- Bash / Git Bash
-- GitHub CLI (`gh`) if bootstrap should create or configure the GitHub repository
-- a real git checkout of `agent-project-ops`
-- a named human disposer, for example `@your-handle`
+拍板人只在三种情况下作决定：大改动开工确认、阶段或发布最终验收、已冻结合同的例外。其他拆分、派发和常规审查由主 Agent 处理。
 
-The disposer is needed only for three things:
+## 初始化新项目
 
-- **start confirmation** when a change hits the major-change list (8 items in `PRINCIPLES.md` §11);
-- **final acceptance**, at the end of each Phase (standard mode) or before each release (light mode);
-- **exceptions** to an already confirmed scope or acceptance test.
-
-Each time the Agent posts a fixed-format decision request; the disposer replies `批准 A` / `改用 B` / `退回：<原因>` (the older `FREEZE ACK` / `PHASE ACCEPT` / `EXCEPTION ACCEPT` still count). Everything else is the lead Agent's call, and no Agent accepts its own work.
-
----
-
-## 2. Choose your protection posture first
-
-The methodology reports what GitHub can actually enforce.
-
-| Capability | Meaning | Can proceed? |
-| --- | --- | --- |
-| **A** | PR + independently enforceable reviewer / code-owner gate | Yes — strongest |
-| **B** | PR required + admins enforced, but no independently guaranteed human identity | Yes — controlled use |
-| **C** | required server protection is unavailable or cannot be verified | **Yes — record C and continue** (expected on GitHub Free private; never claim B/A) |
-
-Important:
-
-- client hooks can be bypassed with `--no-verify`;
-- client hooks are therefore an early local guard, **not** the final security boundary;
-- server-side GitHub protection is the real gate when it is available;
-- GitHub Free private repositories do not provide the required protection here, so they correctly fall to **Capability C**. That is expected. Record C on Command Center and continue. Do not require GitHub Pro to finish init;
-- GitHub Free public repositories can provide the PR-only protection used for Capability B. Use public (or Pro) when a real server-side gate is required — not as a condition of finishing init.
-
-If the same GitHub account is used by both the human disposer and Agent automation, do **not** describe that setup as an independently enforced human-review boundary.
-
----
-
-## 3. Bootstrap a new project
-
-### Preferred: ask a compatible Agent
-
-Use this instruction:
-
-```text
-使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
-```
-
-A compatible Agent should read the methodology, inspect the environment, and invoke the bootstrap flow rather than improvising its own project rules.
-
-### Direct CLI
-
-From a real checkout of this methodology:
+推荐先使用上面的短提示词，让 Agent 核实正式发行版和目标目录，再按初始化流程执行。也可以从可信的 APO 仓库副本运行脚本：
 
 ```bash
 bash scripts/bootstrap-project.sh \
@@ -87,337 +42,60 @@ bash scripts/bootstrap-project.sh \
   --dir ../my-project \
   --github-repo OWNER/my-project \
   --disposer @OWNER \
-  --no-projection \
   --private \
   --yes
 ```
 
-On GitHub Free, `--private` is valid and typically reports **Capability C**. That is expected: record C and continue. Use `--public` (or a paid plan) only when you need a real server-side B gate and public visibility is acceptable:
+如果只需要本地脚手架、不创建 GitHub 仓库，可加 `--skip-github`。首次执行前也可以加 `--dry-run` 查看计划。不要把已有项目目录交给新项目初始化脚本；已有项目应使用接入流程。
 
-```bash
-bash scripts/bootstrap-project.sh \
-  --name my-project \
-  --dir ../my-project \
-  --github-repo OWNER/my-project \
-  --disposer @OWNER \
-  --no-projection \
-  --public \
-  --yes
-```
-
-Before creating anything, you can inspect the intended plan:
-
-```bash
-bash scripts/bootstrap-project.sh \
-  --name my-project \
-  --dir ../my-project \
-  --github-repo OWNER/my-project \
-  --disposer @OWNER \
-  --no-projection \
-  --dry-run
-```
-
-### Advanced: explicitly configured projection or filtered export
-
-Bootstrap defaults to **origin only** and does not ask for a second remote. A **projection** is a same-history fast-forward mirror of GitHub (full tree, including ops), added **only when explicitly requested** and classified by the Command Center — **not** for colleague GitLab.
-
-```bash
-bash scripts/bootstrap-project.sh \
-  --name my-project \
-  --dir ../my-project \
-  --github-repo OWNER/my-project \
-  --disposer @OWNER \
-  --projection-url git@git.internal.example:group/my-project.git \
-  --yes
-```
-
-That second remote never becomes a second source of truth.
-
-**Colleague GitLab** is an [export remote](../playbooks/export-remote.md) (`export=`; tree = authority − strip list) or a [share-export](../playbooks/share-export.md) snapshot. Do not pass its URL as `--projection-url`. It is **not** a second write authority. After GitHub `origin` exists:
-
-```bash
-bash scripts/export-sync.sh \
-  --dir ../my-project \
-  --ref origin/main \
-  --export-url git@gitlab.example:group/my-project.git \
-  --authorized --yes
-# snapshot alternative (ADR 0003; keeps .github/workflows/ by default):
-bash scripts/share-export.sh \
-  --dir ../my-project \
-  --ref origin/main \
-  --push git@gitlab.example:group/my-project.git \
-  --yes
-```
-
-Contracts: [ADR 0005](./adr/0005-export-remote-role.md) (export role + default strip list, including all of `.github/`) and [ADR 0003](./adr/0003-share-export-vs-projection.md) (snapshot helper). Helpers refuse to publish if strip/denylist paths would be included. Export sync is FF only and requires disposer `--authorized`.
-
-That bootstrap is once per project; each later task repeats the daily path in [§9](#9-daily-phase-workflow) (Issue or Phase, Freeze, worktree, PR and CI, evidence, disposer decision).
-
----
-
-## 4. What bootstrap writes
-
-Bootstrap creates a small durable control surface so later Agents can recover the project without the original chat.
-
-```text
-your-project/
-├── AGENTS.md
-├── CLAUDE.md
-├── .agent-project-ops/
-│   ├── PIN
-│   ├── remotes
-│   ├── PRINCIPLES.md
-│   ├── playbooks/
-│   └── scripts/
-├── .agents/skills/
-├── .githooks/pre-push
-├── .github/
-│   ├── CODEOWNERS
-│   └── copilot-instructions.md
-├── .cursor/rules/
-├── .continue/rules/
-└── ... your product code
-```
-
-Key files:
-
-- `AGENTS.md` — canonical project instructions for Agents;
-- `.agent-project-ops/PIN` — exact methodology repo/ref/SHA used by this project;
-- `.agent-project-ops/remotes` — explicit authority/projection/export/share-export registry;
-- `.githooks/pre-push` — local guard that fails closed on unregistered remotes and forbidden pushes;
-- repo-specific adapter files — Claude, Cursor, Copilot, Continue, Aider, etc. converge toward the same durable rules.
-
-The project pins a real methodology SHA. It does not silently float with methodology `main`.
-
----
-
-## 5. Verify bootstrap output
-
-At minimum, check:
+初始化后核对项目绑定、GitHub `origin` 和本地 Hook：
 
 ```bash
 cat .agent-project-ops/PIN
-cat .agent-project-ops/remotes
 git remote -v
 git config --get core.hooksPath
 ```
 
-Expected local hook configuration:
+当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端时先停止并查明用途，不要自行推送、删除或改写远端。
 
-```text
-.githooks
-```
+## 接入已有项目
 
-Also confirm that bootstrap reports protection capability **A**, **B**, or **C** explicitly.
+已有代码、规则或 GitHub 控制面的项目应按 [接入已有项目流程](../playbooks/adopt-existing-project.md) 处理。Agent 应先核实默认分支、当前规则、未完成任务和实际远端，再提出最小接入改动。不得覆盖项目自有规则，也不得把生产部署所用提交自动当成开发写入权威。
 
-If protection is **C**, record **C** on Command Center and continue. Do not reinterpret it as B or A. On GitHub Free private, C is expected.
+接入前发现规则冲突、来源不明或无法核实的改动时，应说明缺口并暂停相关操作；不要通过重置、强推或删除文件来“整理干净”。
 
----
+## 日常改动和验收
 
-## 6. Fresh clone recovery
+1. 在 GitHub Issue 中写清要解决的问题和不做的事。
+2. `standard` 标准档按阶段组织工作：在 Phase Issue 中写合同（范围、接口、验收办法和风险），并记录 `CONTRACT FREEZE` 及大改动检查结果。`light` 轻量档不要求创建 Phase Issue；每个任务 Issue 自带自己的合同和验收办法。
+3. 对应 Phase 或任务命中大改动清单时，等拍板人的开工确认。已获书面提前批准的后续阶段，仍须冻结各自合同并确认没有超出批准方案。
+4. 按一个任务、一条分支、一个 PR 实施；并行任务各用自己的工作区。不要直接推送默认分支。
+5. 在 Phase Issue、任务 Issue 或实现 PR 中记录验证命令、结果和可复核材料链接。证据 PR 可选；只有材料确实需要单独存放时才开，不得因此把功能改动混入证据 PR。
+6. 检查当前 PR 提交对应的必需 CI 和审查条件。检查通过后可以按仓库规则合并；合并不代表最终验收。
+7. `standard` 标准档在每个阶段结束时提交固定格式的最终验收请求。`light` 轻量档在每次发布前与发布确认一并请求最终验收；项目没有发布时，在所有已确认目标完成后统一请求。拍板人回复后，Agent 如实记录结果；Agent 不得自行写 `批准 A` 或宣布 Phase PASS。
 
-Git does **not** clone local `core.hooksPath` configuration.
+## GitHub 保护能力
 
-A fresh clone contains the tracked hook files but does not automatically activate them.
+只报告实际核实的服务端保护能力：
 
-Check:
+| 等级 | 含义 |
+| --- | --- |
+| A | PR 必需，并核实了独立审查或代码所有者门禁 |
+| B | PR 必需，但不能保证审查人身份独立于 Agent |
+| C | 必需的服务端保护不可用或无法核实 |
+
+C 可以是实际环境的结果；应在总控台如实记录，不要把 C 写成 A 或 B。客户端 Hook 可以帮助发现错误，但不能代替 GitHub 服务端保护。
+
+## 新克隆后的 Hook
+
+Git 克隆不会复制本机 `core.hooksPath` 设置。新克隆后检查：
 
 ```bash
 git config --get core.hooksPath
 ```
 
-If it is not `.githooks`, run:
+如果不是 `.githooks`，按项目绑定的安装脚本安装 Hook，并再次核对。缺少 Hook 不是直接推默认分支的理由。
 
-```bash
-bash .agent-project-ops/scripts/install-hooks.sh
-```
+## 适用边界
 
-Then verify again:
-
-```bash
-git config --get core.hooksPath
-```
-
-This behavior is intentional and tested. The methodology fails closed rather than pretending clone-local Git config is portable.
-
----
-
-## 7. Authority, projection, and export
-
-Default recommendation: **use only `origin`**.
-
-When a second git host is a **same-history projection** (Command Center must name it as such):
-
-```text
-GitHub origin
-   │
-   │ sole write authority (full ops tree)
-   ▼
-accepted main
-   │
-   └────────────► internal git host / deployment projection
-                  same commits, FF only
-```
-
-When the second host is **colleague GitLab**, it is **not** that diagram:
-
-```text
-GitHub origin  (SoT + ops)
-   │
-   │ export-sync.sh (merge + replay strip + FF)
-   │ or share-export.sh (ADR 0003 snapshot)
-   ▼
-colleague GitLab export  (tree = authority − strip list; not SoT)
-```
-
-Rules:
-
-1. `origin` is the sole write authority;
-2. unknown remotes are blocked until classified;
-3. topic branches go to authority;
-4. projection accepts only the authority-approved default branch state **and the same history**;
-5. first projection seed must match the current authority tip;
-6. non-fast-forward projection updates are rejected;
-7. projection never becomes a second control plane;
-8. colleague GitLab uses [export-remote](../playbooks/export-remote.md) or [share-export](../playbooks/share-export.md), never `git push --mirror` of the bound clone.
-
-See [git-authority-and-projection](../playbooks/git-authority-and-projection.md), [export-remote](../playbooks/export-remote.md), and [share-export](../playbooks/share-export.md).
-
----
-
-## 8. Start the project control plane
-
-Bootstrap creates the durable repository binding. The next step is to establish the project operating state.
-
-Follow [start-project](../playbooks/start-project.md) to create:
-
-- Command Center
-- disposer record
-- authority / projection / export record
-- protection capability record
-- project labels
-- first Phase
-
-The Command Center is the durable index for the project. Chat is not the project index.
-
----
-
-## 9. Daily Phase workflow
-
-The normal lifecycle is:
-
-```text
-1. Create Issue / Phase
-2. Freeze the scope and acceptance tests
-3. Lead Agent checks the major-change list; on a hit the disposer confirms the start (`批准 A`), otherwise work starts
-4. Create the task branch (single task: main checkout; parallel tasks: own worktree)
-5. Implement + test
-6. Open PR + run CI
-7. Before requesting merge: inspect the project's required CI and review conditions.
-8. Produce replayable evidence
-9. Lead Agent: final-acceptance request (table + known problems + a 1–2 step check)
-10. Disposer: `批准 A` or `退回：<原因>`
-11. Close Phase
-```
-
-Rules that matter most:
-
-- no implementation before Freeze when the Phase contract requires it;
-- one task = one branch / PR; after the PR merges or closes, the Agent retires its folder and branch automatically, never unmerged work;
-- no routine direct push to `main`;
-- Agent may autonomously implement, test, inspect CI, and prepare evidence;
-- Agent asks the disposer only for a major-change hit, final acceptance or an exception, batching what is ready together; unaffected tasks keep moving while it waits;
-- PR merge does **not** equal final acceptance (`PHASE ACCEPT`);
-- check mandatory CI/reviewer gates for the current PR SHA before asking for merge; neither CI nor code review replaces `PHASE ACCEPT`;
-- acceptance evidence must be replayable without the original chat.
-
-See:
-
-- [phase-lifecycle](../playbooks/phase-lifecycle.md)
-- [git-worktree](../playbooks/git-worktree.md)
-- [issues-and-prs](../playbooks/issues-and-prs.md)
-- [verification-and-evidence](../playbooks/verification-and-evidence.md)
-
----
-
-## 10. What a fresh Agent should recover
-
-A fresh compatible Agent entering the repository should be able to determine, from durable state:
-
-- who the disposer is;
-- which remote is the authority;
-- whether any projection exists;
-- whether colleague GitLab is export / share-export rather than projection;
-- where the Command Center is;
-- which Phase is active;
-- whether direct `main` pushes are forbidden;
-- whether local hooks need installation;
-- which methodology SHA the project is pinned to;
-- that the Agent cannot self-Accept.
-
-If that information only exists in an old chat, the project is not durably governed yet.
-
----
-
-## 11. Existing repository adoption
-
-Existing repos are **adoption**, not greenfield bootstrap. Follow **[adopt-existing-project](../playbooks/adopt-existing-project.md)**. Do not run `scripts/bootstrap-project.sh` on a non-empty tree — the helper refuse-closes after an inverted-SoT scan.
-
-**Step 1** (before PIN): audit and rewrite local `AGENTS.md` (and Claude / Cursor / Copilot adapters) so the remote contract matches [templates/AGENTS.md](../templates/AGENTS.md):
-
-- GitHub `origin` = sole write authority;
-- projection optional (same-history FF);
-- colleague GitLab = export / share-export, **not** projection and **not** a second write authority.
-
-**Inverted contract is an anti-pattern (must-fix):** GitLab, or any host that is not the GitHub Issues authority, written as the sole production / write SoT, with GitHub demoted to “mirror only”. If a release skill still consumes a projection default-branch tip, `AGENTS.md` must distinguish the **write authority tip** from the **deploy/manifest tip** and must not call the latter write SoT.
-
-```bash
-python3 scripts/scan-inverted-sot.py --root /path/to/business-repo
-```
-
-Exit `1` fail-closes PIN binding. Hits are not optional nits.
-
-A one-time chat instruction can help an Agent find the playbook:
-
-```text
-Load https://github.com/Dylan5237/agent-project-ops,
-read PRINCIPLES.md and playbooks/adopt-existing-project.md,
-and follow adoption — do not treat this chat as the binding.
-```
-
-That is session guidance only. Durable binding is the rewritten rule files + PIN + Command Center. Do not assume later Agents will remember the adoption conversation.
-
----
-
-## 12. Operational boundaries
-
-`agent-project-ops` intentionally does not promise:
-
-- a secure enclave;
-- universal compliance from every third-party Agent;
-- a business/domain framework;
-- a deployment platform;
-- GitLab as co-authority;
-- GitLab as a full-tree projection of `agent-project-ops` bindings;
-- that hooks cannot be bypassed;
-- that a merged PR means accepted work;
-- automatic trust when server-side protection is missing.
-
-The model is simple:
-
-> **Durable rules in the repo. Explicit authority in git. Critical enforcement at the server. Replayable evidence before human acceptance.**
-
----
-
-## Next reads
-
-- [PRINCIPLES.md](../PRINCIPLES.md) — the non-negotiable design rules
-- [ADR 0004](./adr/0004-free-private-capability-c.md) — Free-private capability C is expected
-- [bootstrap-project playbook](../playbooks/bootstrap-project.md) — bootstrap contract in detail
-- [adopt-existing-project playbook](../playbooks/adopt-existing-project.md) — existing repos: rewrite AGENTS.md first; inverted SoT fail-closes
-- [export-remote playbook](../playbooks/export-remote.md) — colleague GitLab = `authority − strip list`
-- [share-export playbook](../playbooks/share-export.md) — ADR 0003 snapshot helper
-- [start-project playbook](../playbooks/start-project.md) — establish the control plane
-- [phase-lifecycle](../playbooks/phase-lifecycle.md) — run a Phase end to end
-- [Agent skills](../skills/) — executable entrypoints for compatible Agents
-- [Self-dogfood evidence](./evidence/phase-11-self-dogfood.md) — verified v0.1 lifecycle evidence
+APO 管理代码协作、阶段合同、项目状态和验收记录；不替代业务需求、部署操作或业务验收。不要据本指南修改其他项目、发布版本或推送到其他仓库。

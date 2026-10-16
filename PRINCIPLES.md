@@ -1,8 +1,8 @@
-# PRINCIPLES — v0.2.0
+# PRINCIPLES — v0.3.0
 
 These invariants are **binding**. A local Agent that owns a project must load this file with the skills in `skills/` before proposing work. If a playbook step conflicts with an invariant, the invariant wins.
 
-Version: **v0.2.0**  
+Version: **v0.3.0**  
 Scope: Git + GitHub Issues/PRs + local coding Agents. No business domain.
 
 ---
@@ -72,7 +72,7 @@ Process modes (`process_mode=light|standard`):
 - Unknown architecture → exception request (§12), not a speculative refactor.
 - Waiting for a disposer reply is not `blocked`: only the work that request covers waits (it keeps its status label; the request is listed under “待你决定” on Command Center §1), and unaffected tasks keep moving.
 - Cannot verify → no PASS proposal.
-- Cannot reach `origin` or protected `main` rules → do not invent a second remote as a workaround. A **projection** remote (Principle 10) is not that workaround.
+- Cannot reach `origin` or protected `main` rules → do not invent a second remote as a workaround. Non-origin remotes are unsupported (Principle 10).
 
 ## 6. One phase one core problem
 
@@ -99,23 +99,23 @@ Process modes (`process_mode=light|standard`):
 - Abandoned work (PR closed unmerged, or `--abandon` decided by the lead Agent — by the disposer when dropping it changes a confirmed goal, §11 item 8) is pushed as tag `archive/<branch>-<sha7>` before its branch is deleted. Deleting an archived branch is not deleting unmerged work.
 - Park = commit + push, then `tidy-worktrees.sh --park <branch>`: the folder goes, the branch stays.
 
-## 9. Evidence PRs ≠ implementation PRs
+## 9. Evidence follows the acceptance tests / 证据对应验收标准
 
-实现 PR 改产品/库代码。证据 PR 只提交可复核的验证材料（日志节选、截图路径、测试输出、复现步骤），**不夹带功能改动**。
+证据可以放在实现 PR 或 Issue 中，不要求单独开分支或 PR。必须说明每项验收标准如何复验，不得用测试通过代替人的最终验收。
 
-- Branch prefix `evidence/` is reserved for evidence PRs.
-- Mixing them makes Phase Accept unverifiable. Fail closed and split.
+- Put tests, fixtures, concise proof excerpts and evidence links in the task PR or Issue.
+- A separate evidence PR is **optional** when artifact size or independent verification makes it useful. The `evidence/` prefix remains available for that purpose; it is not a mandatory second PR.
+- Never add unrelated feature work under an evidence-only label. Redact secrets and keep proof replayable from the frozen acceptance tests.
 
-## 10. One write authority / 至多一个可写权威
+## 10. GitHub origin only / 只写 GitHub 主仓
 
-Git **写入权威**只有一个：承载 Issues/PR 的 GitHub 仓库（通常 `origin`）上的约定分支 tip。投影远端（镜像、内部 Git 宿主等）只允许 **读** 或从权威 **快进**；本地与 Cloud Agent 工作区是草稿，不是第三套 SoT。
+GitHub `origin` 是唯一支持的远端和写入权威。任务分支和 PR 都围绕它推进；本地工作区是草稿，不能替代远端项目状态。
 
-- Inventing a second source of truth (pushing day-to-day features to the projection, or treating a sandbox `main` as landed history) is forbidden.
-- Projection outage or reject → fail closed (stop release); do not retarget workflow to the mirror.
-- **Export** is a third remote **role**, not a second write authority. `export tree = authority main − strip list`. Content must not lag authority; strip commits may make the export tip legitimately ahead. Sync is merge + replay strip + fast-forward only; reject → stop; **no force**. Export remotes are not on the auto-push whitelist: each sync needs disposer explicit authorization. The methodology strip list may be extended by a business repo and must not be shrunk at business discretion.
-- **PR merge ≠ Phase PASS** remains Principle 3: landing on the authority default branch is not Accept.
-
-Playbooks: `playbooks/git-branch-and-remote.md` (origin-only default), `playbooks/git-authority-and-projection.md` (optional same-history second remote), `playbooks/export-remote.md` (colleague export remote = authority − strip list), `playbooks/share-export.md` (ADR 0003 snapshot helper; related, not a second SoT).
+- Push only to `origin`; never push directly to the default branch after repository initialization.
+- Additional remotes and legacy remote-role settings are unsupported. Stop affected writes; preserve the old configuration for an explicit migration review, never silently remove it or use it as a fallback.
+- An unavailable authority is a blocker, not permission to invent another write target.
+- Release/deployment identity is separate from write authority. This methodology currently supplies no second-host publishing channel. Any later publishing channel requires its own confirmed scope (§11 item 4).
+- **PR merge ≠ Phase PASS** remains Principle 3. See [git-branch-and-remote](playbooks/git-branch-and-remote.md).
 
 ## 11. Major-change list / 大改动清单
 
@@ -165,6 +165,8 @@ APO 对人只输出两种东西：固定格式的状态，和固定格式的决�
 - Changing this file, the playbooks, skills, templates or script-enforced behaviour is §11 item 7 and needs the disposer's start confirmation.
 
 ### Changelog
+
+- **v0.3.0** — GitHub origin is the only supported remote; remove multi-remote/export workflows and unused Agent adapters; evidence may accompany the implementation PR or Issue. Historical records and legacy upgrade descriptors remain evidence, not current capabilities. Package release is separate.
 
 - **v0.2.0** — §0: three layers (fixed floor / project settings / per-change judgment) and two process modes (`light`, `standard`; unrecorded = `standard`). §1: the disposer decides only start confirmations for major changes, final acceptance and exceptions; the lead Agent decides everything else; no Agent accepts its own work. §3/§4: final acceptance per Phase (`standard`) or per release (`light`); every freeze carries a major-change check and waits for a human only on a hit; a start confirmation may pre-approve later Phases of a linked plan. §8: abandoning is a lead-Agent decision unless it changes a confirmed goal. New §11 major-change list, §12 fixed decision and status formats (`templates/decision-request.md`), §13 writing rules.
 - **v0.1.3** — Principle 8: automatic retirement (after merge, before each new task, before Accept); idle primary checkout hosts a single task; task-folder cap; archive-before-delete for abandoned branches; park = push + remove folder.

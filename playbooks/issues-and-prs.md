@@ -34,7 +34,7 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    - Title: `{type}(#{issue}): short slug`
    - Body: links Issue, Freeze permalink, test plan, NON-GOALS respected.
    - Label PR `pr:implementation`. Do not add product-only labels from a business SOP pack.
-5. **Open evidence PR** (if artifacts are in git) with `templates/PULL_REQUEST_TEMPLATE/evidence.md`, label `pr:evidence`, branch `evidence/{issue}-{slug}`.
+5. **Attach evidence** to the task PR or Issue. A separate `evidence/{issue}-{slug}` PR with the optional evidence template/label is available when useful; it is not required.
 6. **Comments are the log.** Status changes get a one-line reason. Paste command output **summaries** that matter; do not dump secrets.
 7. **CC §1 on every status/gate change.** Same turn: rewrite Command Center section 1 and keep exactly one Phase `status:*` label. [ ] **CC §1 updated**. If CC cannot be edited → `BLOCKED:` on GitHub, not chat-only.
 8. **Required checks before merge-ask.** Inspect the project's actual mandatory CI, code-review and acceptance conditions for the current PR SHA.
@@ -47,7 +47,7 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
 
 - [ ] Every in-flight branch has a linked open Issue.
 - [ ] Exactly one `status:*` label on each tracked Issue.
-- [ ] PRs declare implementation vs evidence.
+- [ ] Each PR explains its scope and links replayable evidence; a separate evidence PR is optional.
 - [ ] Command Center table lists open Phases.
 - [ ] **CC §1 updated** for the latest status/gate flip (or `BLOCKED:` recorded on GitHub).
 - [ ] Merge-ask checked required CI/review conditions for the current SHA; missing gates were disclosed.

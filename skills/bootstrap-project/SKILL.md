@@ -3,9 +3,7 @@ name: bootstrap-project
 description: >
   Initialize a new generic git project using Dylan5237/agent-project-ops:
   create a local folder, durable Agent binding files, a pinned methodology
-  snapshot, .worktrees/, a GitHub origin as the single write authority, and an
-  optional explicitly requested same-history projection remote. Defaults to
-  GitHub origin only; use for one-shot initialization, not business-domain setup.
+  snapshot, .worktrees/ and GitHub origin as the only supported remote; use for one-shot initialization, not business-domain setup.
   Also triggered by the URL-first Chinese request:
   使用 https://github.com/Dylan5237/agent-project-ops 初始化当前项目。
 ---
@@ -24,11 +22,11 @@ Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post
 
 ## Required path
 
-1. Confirm the destination is new/empty. Existing repositories are **adoption**, not this greenfield path — follow [adopt-existing-project](../../playbooks/adopt-existing-project.md). Adoption **step 1** is a must-fix rewrite of local `AGENTS.md` (and adapters) to GitHub `origin` = write authority; inverted contract (GitLab/non-GitHub Issues host as production/write SoT, GitHub as “mirror only”) fail-closes **before PIN binding is complete**. The helper refuses a non-empty dest after running that scan.
+1. Confirm the destination is new/empty. Existing repositories are adoption, not greenfield bootstrap: follow [adopt-existing-project](../../playbooks/adopt-existing-project.md). Audit inherited rule files and fix an inverted authority contract before PIN binding.
 2. Collect a real project slug and real disposer GitHub handle. Do not emit placeholder `@DISPOSER`.
-3. Default to **GitHub `origin` only**, without asking every user about projection. If a user explicitly needs a second same-history mirror, take a credential-free `--projection-url` and verify its role. A filtered colleague export is a separate advanced path, **not** a projection; see [export-remote](../export-remote/SKILL.md) and [share-export](../share-export/SKILL.md).
+3. Support GitHub `origin` only. Additional remote roles are not generated or supported. Stop if an existing project needs a separate migration decision.
 4. Run `scripts/bootstrap-project.sh --dry-run ...` first when environment behavior is uncertain, then the real command.
-5. After scaffold, verify `.agent-project-ops/PIN` contains a real SHA and `.agent-project-ops/remotes` classifies authority/projection.
+5. After scaffold, verify `.agent-project-ops/PIN` contains a real SHA and `.agent-project-ops/remotes` records `authority=origin`.
 6. Verify `git config --get core.hooksPath` is `.githooks` in the bootstrap checkout. Remember a later clone will not inherit it; root `AGENTS.md` instructs the next Agent to run the installer.
 7. If GitHub creation is enabled, read the reported protection capability: A (code-owner review enforced), B (PR-only), or C (unprotected/unverifiable). Never upgrade the wording beyond what was verified. On GitHub Free **private** repos, C is **expected**: record C on Command Center and continue. Do not treat C as init failure or “do not start feature work.” Do not require Pro to finish init.
 8. Run `playbooks/start-project.md` next (labels, Command Center, first Phase). No `feat/` / `fix/` implementation before Freeze.
@@ -48,7 +46,5 @@ If the local Agent and the human disposer use the **same GitHub identity**, GitH
 - Methodology source is not a git checkout / SHA cannot be determined → stop; supported bootstrap never writes silent `sha=unknown`.
 - GitHub creation requested but `gh` is unavailable/unauthenticated → stop.
 - Unknown remote → no push.
-- Projection candidate is not current authority tip → no projection push.
-- Colleague GitLab URL used as `--projection-url` → stop; that is export / share-export, not projection.
 - Destination exists and is not empty → stop; that is [adoption](../../playbooks/adopt-existing-project.md). Inverted `AGENTS.md` SoT → fail closed (PIN not complete).
 - Do not use `--no-verify` as a workflow shortcut.

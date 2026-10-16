@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides only start confirmations for §11 hits, final acceptance and exceptions; the lead Agent decides the rest) and **which Agent owns which working directory** (the primary checkout or a worktree), without a second product or a shop-floor bot.
+Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides only start confirmations for §11 hits, final acceptance and exceptions; the lead Agent decides the rest) and **which Agent owns which working directory** (the primary checkout or a worktree), without a second control plane.
 
 ## When
 
@@ -59,4 +59,4 @@ Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides 
 - Treating CC §1 refresh as the human’s habit instead of the lead Agent’s duty.
 - Any Agent accepting its own work because “I am the project owner.”
 - Sending the disposer questions that are not on the §11 list.
-- Staffing a Notion workflow or Grok bot as part of this methodology (out of scope).
+- Staffing an unrelated external workflow as part of this methodology (out of scope).

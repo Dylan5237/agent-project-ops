@@ -23,6 +23,9 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 STAMP = "__APO_UPGRADE_TIME__"
+# Legacy descriptors are intentionally retained: render(old PIN) needs them to
+# remove unmodified retired bindings and restore them with the reverse patch.
+# render(new) emits only files actually present in the selected source tree.
 ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.conf.yml",
               ".github/CODEOWNERS", ".github/copilot-instructions.md",
               ".cursor/rules/agent-project-ops.mdc", ".continue/rules/agent-project-ops.md",
@@ -77,6 +80,73 @@ def canonical_url(value: str) -> str:
             raise Stop("SOURCE_URL_UNSAFE")
         return parsed.hostname.lower() + "/" + parsed.path.lstrip("/")
     return value
+
+
+def github_repository(value: str) -> tuple[str, str]:
+    """Parse one effective GitHub origin URL without accepting transport options."""
+    patterns = (
+        r"https://github\.com/([^/]+)/([^/]+)/?",
+        r"ssh://git@github\.com/([^/]+)/([^/]+)/?",
+        r"git@github\.com:([^/]+)/([^/]+)/?",
+    )
+    owner = repo = ""
+    for pattern in patterns:
+        match = re.fullmatch(pattern, value, re.IGNORECASE | re.ASCII)
+        if match:
+            owner, repo = match.groups()
+            break
+    else:
+        raise Stop("ORIGIN_URL_UNSAFE")
+    if repo.lower().endswith(".git"):
+        repo = repo[:-4]
+    component = r"[A-Za-z0-9_.-]+"
+    if (not re.fullmatch(component, owner) or owner in (".", "..") or
+            not re.fullmatch(component, repo) or repo in (".", "..")):
+        raise Stop("ORIGIN_URL_UNSAFE")
+    return owner.lower(), repo.lower()
+
+
+def validate_origin_urls(root: Path) -> tuple[str, str]:
+    """Require every expanded origin fetch/push URL to name the same GitHub repo."""
+    fetch = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                 "remote", "get-url", "--all", "origin"], check=False)
+    if fetch.returncode:
+        raise Stop("ORIGIN_REMOTE_MISSING")
+    push = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                "remote", "get-url", "--push", "--all", "origin"], check=False)
+    if push.returncode:
+        raise Stop("ORIGIN_URL_UNSAFE")
+    try:
+        fetch_urls = fetch.stdout.decode("utf-8", "strict").splitlines()
+        push_urls = push.stdout.decode("utf-8", "strict").splitlines()
+        urls = fetch_urls + push_urls
+        if (not fetch_urls or not push_urls or
+                any(not value for value in urls)):
+            raise Stop("ORIGIN_URL_UNSAFE")
+        # get-url prints one expanded URL per line. Cross-check raw config
+        # entry counts so an embedded newline cannot masquerade as multiple
+        # otherwise valid URLs.
+        def config_count(key: str) -> int:
+            result = run(["git", "-c", "core.fsmonitor=false", "-C", str(root),
+                          "config", "--null", "--get-all", key], check=False)
+            if result.returncode:
+                return 0
+            values = result.stdout.split(b"\0")
+            if values and values[-1] == b"":
+                values.pop()
+            return len(values)
+
+        fetch_count = config_count("remote.origin.url")
+        push_count = config_count("remote.origin.pushurl")
+        if (not fetch_count or len(fetch_urls) != fetch_count or
+                len(push_urls) != (push_count or fetch_count)):
+            raise Stop("ORIGIN_URL_UNSAFE")
+        repositories = {github_repository(value) for value in urls}
+    except (UnicodeError, Stop):
+        raise Stop("ORIGIN_URL_UNSAFE") from None
+    if len(repositories) != 1:
+        raise Stop("ORIGIN_URL_MISMATCH")
+    return next(iter(repositories))
 
 
 def sha_ok(value: str) -> bool:
@@ -281,6 +351,7 @@ def clean_target(root: Path) -> tuple[str, str]:
 
 
 def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple[Optional[File], Optional[File]]]]:
+    validate_origin_urls(root)
     branch, head = clean_target(root)
     pin_file = read_target(root, ".agent-project-ops/PIN")
     if pin_file is None:
@@ -290,6 +361,20 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
         raise Stop("PIN_UNSUPPORTED: expected v0.1.x PIN fields url/sha/ref/fetched_at")
     if not pin["url"] or re.search(r"https?://[^/]*@|[?#]", pin["url"]):
         raise Stop("PIN_URL_UNSAFE")
+    # A matching PIN does not make unsupported remote configuration valid.
+    reg = read_target(root, ".agent-project-ops/remotes")
+    if reg is None or kv(reg.data).get("authority") != "origin":
+        raise Stop("AUTHORITY_UNSUPPORTED: preserve and reconcile project authority before upgrade")
+    registry = kv(reg.data)
+    for role in ("projection", "export", "share_export"):
+        value = registry.get(role, "")
+        if value and value != "(none)":
+            raise Stop("LEGACY_REMOTE_ROLE_ACTIVE: reconcile " + role + " before upgrade")
+        if registry.get(role + "_url", ""):
+            raise Stop("LEGACY_REMOTE_ROLE_ACTIVE: reconcile " + role + "_url before upgrade")
+    extra_remotes = [name for name in git(root, "remote").decode().splitlines() if name != "origin"]
+    if extra_remotes:
+        raise Stop("EXTRA_REMOTE_UNSUPPORTED: reconcile additional remotes before upgrade: " + ", ".join(extra_remotes))
     if pin["sha"] == new.sha:
         return {"status": "UP_TO_DATE", "source_sha": new.sha, "project": str(root), "changes": []}, {}
     source_url = git(new.root, "remote", "get-url", "origin", check=False).decode().strip()
@@ -298,9 +383,6 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     old = Source(old_root, pin["sha"])
     if old.sha != pin["sha"]:
         raise Stop("OLD_PIN_NOT_FOUND")
-    reg = read_target(root, ".agent-project-ops/remotes")
-    if reg is None or kv(reg.data).get("authority") != "origin":
-        raise Stop("AUTHORITY_UNSUPPORTED: preserve and reconcile project authority before upgrade")
     binding = read_target(root, "AGENTS.md")
     if binding is None:
         raise Stop("AGENTS_MISSING")
@@ -311,7 +393,7 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
         raise Stop("CUSTOM_BINDING_NEEDS_REVIEW: cannot safely reconstruct original project name/disposer")
     values = {"PROJECT_NAME": title[1], "DISPOSER": disposer[1], "METHODOLOGY_URL": pin["url"],
               "METHODOLOGY_SHA": pin["sha"], "METHODOLOGY_REF": pin["ref"],
-              "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": kv(reg.data).get("projection", "(none)")}
+              "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": registry.get("projection", "(none)")}
     fresh = dict(values, METHODOLOGY_SHA=new.sha, METHODOLOGY_REF=new.sha, FETCHED_AT=STAMP)
     # A source clone is supplied explicitly; do not silently change a fork's canonical URL.
     old_files, new_files = render(old, values), render(new, fresh)
@@ -360,7 +442,7 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     summary = {k: v for k, v in payload.items() if k != "inputs"}
     summary.update(status="PREVIEW", plan_id=ident,
                    preserved=["business files", "project custom bridge text", "remotes", "project-config", "Git config", "GitHub Issues"],
-                   policy_change="Inherited generic Fleet/Bugbot requirements removed; explicit project policies are NOT implicitly revoked.",
+                   policy_change="Retired generic rules and adapters removed; explicit project policies are NOT implicitly revoked.",
                    control_plane="PENDING_RECONCILIATION: review active GitHub CC/Phase/project-specific rules separately; no API calls performed.")
     return summary, changes
 

@@ -1,8 +1,7 @@
 ---
 name: issues-prs-and-evidence
 description: >
-  Keep GitHub Issues as canonical state, use status labels, split implementation
-  PRs from evidence PRs, and fail closed when blocked or the freeze must change.
+  Keep GitHub Issues as canonical state, use status labels, attach replayable evidence to task PRs or Issues, and fail closed when blocked or the freeze must change.
   Use when filing phases, Command Center, Architecture Exception, verification,
   or PR templates.
 ---
@@ -22,12 +21,9 @@ description: >
 
 `status:backlog` | `status:in-progress` | `status:blocked` | `status:verification` | `status:done`
 
-## PR split (Principle 9)
+## Evidence location (Principle 9)
 
-| PR kind | Branch prefix | Template | Contains |
-| --- | --- | --- | --- |
-| Implementation | `feat/` `fix/` `docs/` | `templates/PULL_REQUEST_TEMPLATE/implementation.md` | product/library/test **code** |
-| Evidence | `evidence/` | `templates/PULL_REQUEST_TEMPLATE/evidence.md` | replayable proofs only |
+Implementation PRs may contain tests, fixtures, proof excerpts and evidence links. An Issue comment may hold the evidence table and logs. Use a separate `evidence/` PR only when useful; it is optional and contains proofs rather than unrelated implementation work. Each frozen acceptance test still needs replayable evidence.
 
 PR merge ≠ Phase PASS. The lead Agent posts one final-acceptance request ([templates/decision-request.md](../../templates/decision-request.md)); the disposer's reply (or legacy `PHASE ACCEPT`) is the PASS.
 

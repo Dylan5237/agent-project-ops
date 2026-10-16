@@ -11,14 +11,15 @@ pass() { echo "PASS: $*"; }
 for path in \
   AGENTS.md \
   CLAUDE.md \
-  .cursor/rules/agent-project-ops-self.mdc \
-  .github/copilot-instructions.md \
   .agent-project-ops/remotes \
   .githooks/pre-push
  do
   [[ -f "${root}/${path}" ]] || fail "missing self-binding file: ${path}"
 done
-pass 'self-binding adapters and hook entrypoint exist'
+pass 'self-binding files and hook entrypoint exist'
+for retired in .cursor/rules/agent-project-ops-self.mdc .github/copilot-instructions.md; do
+  [[ ! -e "${root}/${retired}" ]] || fail "retired adapter remains: ${retired}"
+done
 
 # Self-dogfood must not recursively vendor this methodology repository.
 [[ ! -e "${root}/.agent-project-ops/PRINCIPLES.md" ]] || fail 'recursive PRINCIPLES snapshot detected'
@@ -29,7 +30,6 @@ pass 'self-binding contains no recursive methodology snapshot'
 agents="${root}/AGENTS.md"
 grep -Fq 'https://github.com/Dylan5237/agent-project-ops/issues/10' "${agents}" || fail 'Command Center #10 pointer missing'
 grep -Fq 'GitHub `origin` is the sole write authority' "${agents}" || fail 'origin authority missing'
-grep -Fq 'Projection remotes: `(none)`' "${agents}" || fail 'projection none missing'
 grep -Fq 'Direct push to `main` is forbidden' "${agents}" || fail 'direct-main prohibition missing'
 grep -Fq 'PHASE ACCEPT' "${agents}" || fail 'Accept separation missing'
 grep -Fq 'scripts/install-hooks.sh' "${agents}" || fail 'fresh-clone hook installer pointer missing'
@@ -37,15 +37,10 @@ grep -Fq 'current Phase is discovered from the Command Center Phase index' "${ag
 pass 'AGENTS.md contains takeover-critical control-plane facts'
 
 grep -Fq '@AGENTS.md' "${root}/CLAUDE.md" || fail 'Claude bridge does not load AGENTS.md'
-grep -Fq 'AGENTS.md' "${root}/.cursor/rules/agent-project-ops-self.mdc" || fail 'Cursor adapter does not load AGENTS.md'
-grep -Fq 'AGENTS.md' "${root}/.github/copilot-instructions.md" || fail 'Copilot adapter does not load AGENTS.md'
-pass 'supported adapters converge on one binding'
+pass 'Claude bridge loads the canonical AGENTS.md binding'
 
-[[ "$(sed -n 's/^authority=//p' "${root}/.agent-project-ops/remotes")" == 'origin' ]] || fail 'self remote authority is not origin'
-[[ "$(sed -n 's/^projection=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self projection is not none'
-[[ "$(sed -n 's/^export=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self export is not none'
-[[ "$(sed -n 's/^share_export=//p' "${root}/.agent-project-ops/remotes")" == '(none)' ]] || fail 'self share_export is not none'
-pass 'self remote registry is explicit'
+[[ "$(cat "${root}/.agent-project-ops/remotes")" == 'authority=origin' ]] || fail 'self remote registry is not origin-only'
+pass 'self remote registry names only origin'
 
 bash -n "${root}/.githooks/pre-push"
 bash -n "${root}/scripts/install-hooks.sh"
