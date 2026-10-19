@@ -11,6 +11,7 @@ import argparse
 import dataclasses
 import difflib
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -30,13 +31,17 @@ ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.
               ".github/CODEOWNERS", ".github/copilot-instructions.md",
               ".cursor/rules/agent-project-ops.mdc", ".continue/rules/agent-project-ops.md",
               ".githooks/pre-push"}
-PREFIXES = (".agent-project-ops/", ".agents/skills/", ".claude/skills/",
+PREFIXES = (".agent-project-ops/", ".agents/skills/", ".claude/skills/", ".codebuddy/skills/",
             ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE/")
 SCRIPT_FILES = ("new-worktree.sh", "tidy-worktrees.sh", "install-hooks.sh", "share-export.sh", "export-sync.sh",
-                "scan-inverted-sot.py", "lib/url-guard.sh",
+                "scan-inverted-sot.py", "project-settings.py", "lib/url-guard.sh",
                 "lib/share-export-denylist.sh", "lib/export-strip-list.sh")
 
 INDEX_MODES: dict[str, int] = {}
+
+_settings_spec = importlib.util.spec_from_file_location("apo_project_settings", Path(__file__).with_name("project-settings.py"))
+settings_helper = importlib.util.module_from_spec(_settings_spec)
+_settings_spec.loader.exec_module(settings_helper)
 
 class Stop(Exception):
     pass
@@ -235,7 +240,7 @@ class Source:
         return self.cache[name]
 
 
-def render(source: Source, values: dict[str, str]) -> dict[str, File]:
+def render_legacy(source: Source, values: dict[str, str]) -> dict[str, File]:
     """Known v0.1.x/v0.2 bootstrap layout, reconstructed without executing it."""
     out: dict[str, File] = {}
     def put(src: str, dest: str, subst: bool = False, executable: bool = False):
@@ -288,6 +293,71 @@ def render(source: Source, values: dict[str, str]) -> dict[str, File]:
             for prefix in (".agents/skills/", ".claude/skills/"):
                 out[prefix + name + "/SKILL.md"] = File(wrapper.encode())
     return out
+
+
+def render(source: Source, values: dict[str, str]) -> dict[str, File]:
+    """Versioned layout dispatch; never change the historical reconstruction."""
+    out = render_legacy(source, values)
+    descriptor = "templates/project-options.json"
+    if descriptor not in source.files:
+        return out
+    data = json.loads(source.get(descriptor).data)
+    if data.get("layout_version") != 1:
+        raise Stop("SOURCE_LAYOUT_UNSUPPORTED: project options")
+    try:
+        selected = settings_helper.normalize(data, *(values[k.upper()] for k in settings_helper.KEYS))
+    except KeyError as exc:
+        raise Stop("PROJECT_SETTINGS_REQUIRED: explicitly select all three project settings") from exc
+    for key, item in data["agent_tools"].items():
+        prefix = item["skills_dir"] + "/"
+        if prefix == ".agents/skills/":
+            continue
+        for path in list(out):
+            if path.startswith(prefix):
+                del out[path]
+        if key in selected["agent_tools"].split(","):
+            for path, file in list(out.items()):
+                if path.startswith(".agents/skills/"):
+                    out[prefix + path[len(".agents/skills/"):]] = file
+    for key, item in data["external_tools"].items():
+        if key in selected["external_tools"].split(","):
+            out[".agent-project-ops/integrations/" + item["guide"]] = source.get("integrations/" + item["guide"])
+    out[".agent-project-ops/project-config"] = File(values.get("PROJECT_CONFIG", settings_helper.settings_text(selected)).encode())
+    return out
+
+
+def project_choices(root: Path, source: Source, explicit: dict[str, str]) -> tuple[dict[str, str], bytes, bytes]:
+    descriptor = "templates/project-options.json"
+    if descriptor not in source.files:
+        if explicit:
+            raise Stop("SOURCE_LAYOUT_UNSUPPORTED: project choices")
+        return {}, b"", b""
+    data = json.loads(source.get(descriptor).data)
+    if data.get("layout_version") != 1:
+        raise Stop("SOURCE_LAYOUT_UNSUPPORTED: project options")
+    config = read_target(root, ".agent-project-ops/project-config")
+    before = config.data if config else b""
+    try:
+        values = settings_helper.config_values(before.decode("utf-8"))
+    except ValueError as exc:
+        raise Stop("PROJECT_CONFIG_REVIEW_REQUIRED: " + str(exc)) from exc
+    present = [key in values for key in settings_helper.KEYS]
+    if all(present):
+        selected = settings_helper.normalize(data, *(values[k] for k in settings_helper.KEYS))
+        if explicit and settings_helper.normalize(data, *(explicit.get(k, "") for k in settings_helper.KEYS)) != selected:
+            raise Stop("PROJECT_SETTINGS_CONFLICT: review settings on a project task first")
+        return selected, before, before
+    if set(explicit) != set(settings_helper.KEYS):
+        if any(present):
+            raise Stop("PROJECT_SETTINGS_PARTIAL: provide all three explicit choices to complete reviewed settings")
+        raise Stop("PROJECT_SETTINGS_REQUIRED: provide --process-mode, --agent-tools and --external-tools")
+    selected = settings_helper.normalize(data, *(explicit[k] for k in settings_helper.KEYS))
+    existing = settings_helper.normalize(data, *(values.get(k, selected[k]) for k in settings_helper.KEYS))
+    if existing != selected:
+        raise Stop("PROJECT_SETTINGS_CONFLICT: explicit choices conflict with recorded settings")
+    missing = "".join(k + "=" + selected[k] + "\n" for k in settings_helper.KEYS if k not in values)
+    after = before + (b"\n" if before and not before.endswith(b"\n") else b"") + missing.encode()
+    return selected, before, after
 
 
 def same(a: Optional[File], b: Optional[File], *, legacy_filemode: bool = False) -> bool:
@@ -350,7 +420,7 @@ def clean_target(root: Path) -> tuple[str, str]:
     return branch, head
 
 
-def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple[Optional[File], Optional[File]]]]:
+def plan(root: Path, new: Source, old_root: Path, explicit_choices: Optional[dict[str, str]] = None) -> tuple[dict, dict[str, tuple[Optional[File], Optional[File]]]]:
     validate_origin_urls(root)
     branch, head = clean_target(root)
     pin_file = read_target(root, ".agent-project-ops/PIN")
@@ -376,6 +446,11 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     if extra_remotes:
         raise Stop("EXTRA_REMOTE_UNSUPPORTED: reconcile additional remotes before upgrade: " + ", ".join(extra_remotes))
     if pin["sha"] == new.sha:
+        choices, before_config, after_config = project_choices(root, new, explicit_choices or {})
+        if choices:
+            if before_config != after_config:
+                raise Stop("PROJECT_SETTINGS_REQUIRED: matching PIN has no recorded initialization choices")
+            settings_helper.verify_bridge(root / "CLAUDE.md")
         return {"status": "UP_TO_DATE", "source_sha": new.sha, "project": str(root), "changes": []}, {}
     source_url = git(new.root, "remote", "get-url", "origin", check=False).decode().strip()
     if not source_url or canonical_url(source_url) != canonical_url(pin["url"]):
@@ -395,8 +470,20 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
               "METHODOLOGY_SHA": pin["sha"], "METHODOLOGY_REF": pin["ref"],
               "FETCHED_AT": pin["fetched_at"], "PROJECTION_REMOTE": registry.get("projection", "(none)")}
     fresh = dict(values, METHODOLOGY_SHA=new.sha, METHODOLOGY_REF=new.sha, FETCHED_AT=STAMP)
+    choices, config_before, config_after = project_choices(root, new, explicit_choices or {})
+    if choices:
+        values.update({k.upper(): v for k, v in choices.items()})
+        fresh.update({k.upper(): v for k, v in choices.items()})
+        values["PROJECT_CONFIG"] = config_before.decode("utf-8")
+        fresh["PROJECT_CONFIG"] = config_after.decode("utf-8")
     # A source clone is supplied explicitly; do not silently change a fork's canonical URL.
     old_files, new_files = render(old, values), render(new, fresh)
+    if choices:
+        current_claude = read_target(root, "CLAUDE.md")
+        old_claude = old_files.get("CLAUDE.md")
+        if (current_claude is not None and not same(current_claude, old_claude) and
+                current_claude.data.replace(b"\r\n", b"\n") not in (b"@AGENTS.md", b"@AGENTS.md\n")):
+            raise Stop("CLAUDE_RULE_MIGRATION_REQUIRED: review and preserve CLAUDE.md in AGENTS.md using migrate-claude first")
     changes: dict[str, tuple[Optional[File], Optional[File]]] = {}
     conflicts = []
     # core.filemode=false is an explicit Git guarantee that executable bits
@@ -404,6 +491,8 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     # to APO-owned snapshot paths, never arbitrary user-owned bridge files.
     no_filemode = git(root, "config", "--bool", "--get", "core.filemode", check=False).strip() == b"false"
     for name in sorted(set(old_files) | set(new_files)):
+        if choices and name == ".agent-project-ops/project-config":
+            continue  # Explicit reviewed choices append to existing project settings below.
         current, before, after = read_target(root, name), old_files.get(name), new_files.get(name)
         mode_drift = no_filemode and name.startswith(".agent-project-ops/")
         if name.startswith(".agent-project-ops/") and not same(current, before, legacy_filemode=mode_drift):
@@ -428,6 +517,9 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
             changes[name] = (current, resolved)
     if conflicts:
         raise Stop("UPGRADE_CONFLICTS:\n" + "\n".join(conflicts))
+    if choices and config_before != config_after:
+        current_config = read_target(root, ".agent-project-ops/project-config")
+        changes[".agent-project-ops/project-config"] = (current_config, File(config_after))
     new_pin = (f"url={pin['url']}\nsha={new.sha}\nref={new.sha}\nfetched_at={STAMP}\n").encode()
     changes[".agent-project-ops/PIN"] = (pin_file, File(new_pin))
     # Hash before/after states of EVERY owned path, including unchanged bridges.
@@ -438,10 +530,12 @@ def plan(root: Path, new: Source, old_root: Path) -> tuple[dict, dict[str, tuple
     rows = [{"path": p, "before": describe(a), "after": describe(b)} for p, (a, b) in sorted(changes.items())]
     payload = {"project": str(root), "branch": branch, "head": head, "old_sha": old.sha,
                "source_sha": new.sha, "inputs": inputs, "changes": rows}
+    if choices:
+        payload["project_settings"] = choices
     ident = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
     summary = {k: v for k, v in payload.items() if k != "inputs"}
     summary.update(status="PREVIEW", plan_id=ident,
-                   preserved=["business files", "project custom bridge text", "remotes", "project-config", "Git config", "GitHub Issues"],
+                   preserved=["business files", "project custom bridge text", "remotes", "existing project-config entries", "Git config", "GitHub Issues"],
                    policy_change="Retired generic rules and adapters removed; explicit project policies are NOT implicitly revoked.",
                    control_plane="PENDING_RECONCILIATION: review active GitHub CC/Phase/project-specific rules separately; no API calls performed.")
     return summary, changes
@@ -485,13 +579,17 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--old-source", type=Path, help="Trusted Git clone containing the old PIN commit; default: --source")
     parser.add_argument("--patch", action="store_true", help="Emit a Git patch to stdout; does not apply it")
     parser.add_argument("--expect-plan", help="Preview plan_id; required for --patch")
+    parser.add_argument("--process-mode")
+    parser.add_argument("--agent-tools")
+    parser.add_argument("--external-tools")
     args = parser.parse_args(argv)
     try:
         root = args.project.resolve(strict=True)
         source = Source(args.source, "HEAD", clean=True)
         if root == source.root or root in source.root.parents or source.root in root.parents:
             raise Stop("SOURCE_PROJECT_OVERLAP: keep the methodology clone separate")
-        info, changes = plan(root, source, args.old_source or args.source)
+        explicit = {key: getattr(args, key) for key in settings_helper.KEYS if getattr(args, key) is not None}
+        info, changes = plan(root, source, args.old_source or args.source, explicit)
         if args.patch:
             if not args.expect_plan or info.get("plan_id") != args.expect_plan:
                 raise Stop("PLAN_CHANGED: preview and review its exact plan_id before exporting")

@@ -63,6 +63,7 @@ seen_base=0
 seen_max=0
 seen_mode=0
 seen_process=0
+seen_selections=0
 config="$root/.agent-project-ops/project-config"
 if [[ -f "$config" ]]; then
   while IFS= read -r line || [[ -n "$line" ]]; do
@@ -89,9 +90,14 @@ if [[ -f "$config" ]]; then
         [[ "$seen_process" -eq 0 ]] || die "duplicate process_mode in $config"
         seen_process=1
         case "${line#process_mode=}" in light|standard) ;; *) die "process_mode must be light or standard: $line" ;; esac ;;
+      agent_tools=*|external_tools=*) seen_selections=1 ;;
       *) die "unknown project-config entry (not executed): $line" ;;
     esac
   done < "$config"
+  if [[ "$seen_selections" -eq 1 ]]; then
+    python3 "$script_dir/project-settings.py" validate-config --root "$root" --source "$script_dir/.." \
+      || die "invalid project selections in $config"
+  fi
 fi
 
 base=""

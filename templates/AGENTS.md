@@ -24,6 +24,16 @@ Core rules:
 
 ## Before your first push in this clone
 
+Project choices are recorded in .agent-project-ops/project-config. The canonical
+skill tree is .agents/skills; selected hosts receive checked copies. WorkBuddy's
+project rules and .codebuddy/skills were verified in Craft mode; Ask is not a
+verified project-governance entry. CLAUDE.md contains only the AGENTS.md import.
+
+Run python3 .agent-project-ops/scripts/project-settings.py check --root . after
+changing bindings. The generated pre-push hook also verifies choices, the one-line
+import, copied skills and the core-name boundary. Preserve custom files when a
+check fails; resolve the reviewed source/copy difference instead of deleting it.
+
 `git clone` does **not** inherit `core.hooksPath`.
 
 Run:

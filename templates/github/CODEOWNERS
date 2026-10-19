@@ -4,5 +4,6 @@
 /.agent-project-ops/ {{DISPOSER}}
 /.agents/ {{DISPOSER}}
 /.claude/ {{DISPOSER}}
+/.codebuddy/ {{DISPOSER}}
 /.github/CODEOWNERS {{DISPOSER}}
 /.githooks/ {{DISPOSER}}

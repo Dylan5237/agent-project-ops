@@ -55,6 +55,8 @@ One task = one branch = one PR, and Agents never share an index. A single task r
    | `max_worktrees=N` | `3` | cap on folders under `.worktrees/`; `0` = unlimited |
    | `worktree_mode=auto\|always` | `auto` | `always` = never put a task on the primary checkout |
    | `process_mode=light\|standard` | `standard` | process mode (PRINCIPLES §0), chosen by the disposer; the helper only validates it |
+   | agent_tools=comma-separated IDs | required at new initialization | nonempty selection from templates/project-options.json; validated together with the other initialization choices |
+   | external_tools=none or comma-separated IDs | none when explicitly chosen | optional instructions only; validated together with process_mode and agent_tools |
 
 5. **Bind.** Comment on the Issue: `mode`, working directory (the `workdir:` or `worktree:` line), branch, selected origin base, its source, and HEAD SHA. With `--save-base`, review/commit the generated `.agent-project-ops/project-config` through the task PR. In `worktree` mode the primary checkout must remain unchanged.
 6. **Work only in that directory.** `cd` into it for commits and `git push -u origin <branch>` (never to another remote).

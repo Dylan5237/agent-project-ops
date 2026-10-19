@@ -14,7 +14,10 @@ Adoption binds an existing nonempty repository without replacing its business fi
 
 - Obtain the project's scope/owner decision, preserve a clean baseline and work on its task branch or isolated worktree.
 - Use an exact, clean, complete-history methodology source. Record canonical URL, full SHA, ref and fetch date in PIN; never bind an unverified moving source.
-- Install the approved snapshot, AGENTS binding, existing CLAUDE bridge, Skill wrappers and hooks without replacing business files or custom rules. The single remote registry records `authority=origin`.
+- Collect all three project choices as in bootstrap, using the declaration in templates/project-options.json; no unattended defaults for missing choices. Existing settings and conflicting owned directories require review, never overwrite.
+- Preserve CLAUDE.md project text in AGENTS.md BEFORE replacing it with the single @AGENTS.md import line. On the approved task branch, preview with python3 scripts/project-settings.py migrate-claude --root /project from the trusted methodology source. Review the preserved text and any rule contradictions; only then use the same command with --apply. The command writes preserved AGENTS content first, supports repeat execution, and refuses symlink/binary rule files. Commit and review the diff before running a clean-target upgrade preview.
+- Install the approved snapshot, AGENTS binding, one-line CLAUDE bridge, canonical .agents/skills, selected host copies and hooks without replacing business files or custom rules. The single remote registry records authority=origin. Copy external integration instructions only when selected; do not connect services.
+- Run the installed project-settings.py check and check-core. Selected copies must match every canonical file; WorkBuddy uses .codebuddy/skills in Craft mode. Missing or extra files stop the binding rather than triggering a cleanup.
 - Check the configured hook in this clone; cloning does not inherit core.hooksPath.
 - Re-run the rule scan, inspect all diffs and run project checks. Follow [start-project.md](start-project.md) for the live GitHub Command Center and actual protection capability.
 - Local files do not update GitHub Issues. Reconcile current tasks, owners, decisions and actual evidence; missing access leaves control-plane work pending.

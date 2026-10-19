@@ -20,7 +20,7 @@ bash "${root}/scripts/bootstrap-project.sh" \
   --name sample-project \
   --dir "${dest}" \
   --disposer @apo-test \
-  --skip-github \
+  --process-mode standard --agent-tools codex,claude --external-tools none --skip-github \
   --yes >"${bootstrap_out}" 2>&1
 
 if grep -Fq '.agent-project-ops/PRINCIPLES.md:' "${bootstrap_out}"; then
@@ -131,7 +131,7 @@ fi
 pass 'fresh-clone hook installation path works'
 
 # Placeholder disposer must fail.
-if bash "${root}/scripts/bootstrap-project.sh" --name bad-disposer --dir "${tmp}/bad-disposer" --disposer @DISPOSER --skip-github --yes >/dev/null 2>&1; then
+if bash "${root}/scripts/bootstrap-project.sh" --name bad-disposer --dir "${tmp}/bad-disposer" --disposer @DISPOSER --process-mode standard --agent-tools codex,claude --external-tools none --skip-github --yes >/dev/null 2>&1; then
   fail 'placeholder disposer was accepted'
 fi
 pass 'placeholder disposer fails closed'
@@ -139,7 +139,7 @@ pass 'placeholder disposer fails closed'
 # Retired multi-remote options are rejected during argument parsing, before any destination is created.
 for retired in --projection-url --no-projection; do
   rejected="${tmp}/rejected-${retired#--}"
-  if bash "${root}/scripts/bootstrap-project.sh" --name rejected --dir "${rejected}" --disposer @apo-test "${retired}" --skip-github --yes >/dev/null 2>&1; then
+  if bash "${root}/scripts/bootstrap-project.sh" --name rejected --dir "${rejected}" --disposer @apo-test "${retired}" --process-mode standard --agent-tools codex,claude --external-tools none --skip-github --yes >/dev/null 2>&1; then
     fail "retired option was accepted: ${retired}"
   fi
   [[ ! -e "${rejected}" ]] || fail "retired option wrote a destination before failing: ${retired}"
@@ -150,7 +150,7 @@ pass 'retired projection options fail before any destination write'
 mkdir -p "${tmp}/nongit/scripts/lib"
 cp "${root}/scripts/bootstrap-project.sh" "${tmp}/nongit/scripts/bootstrap-project.sh"
 cp "${root}/scripts/lib/url-guard.sh" "${tmp}/nongit/scripts/lib/url-guard.sh"
-if bash "${tmp}/nongit/scripts/bootstrap-project.sh" --name nongit --dir "${tmp}/nongit-output" --disposer @apo-test --skip-github --yes >/dev/null 2>&1; then
+if bash "${tmp}/nongit/scripts/bootstrap-project.sh" --name nongit --dir "${tmp}/nongit-output" --disposer @apo-test --process-mode standard --agent-tools codex,claude --external-tools none --skip-github --yes >/dev/null 2>&1; then
   fail 'non-git methodology source was accepted'
 fi
 pass 'non-git methodology source fails closed instead of sha=unknown'

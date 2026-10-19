@@ -9,6 +9,8 @@ on:
       - '.githooks/pre-push'
       - 'scripts/install-hooks.sh'
       - 'scripts/hooks/pre-push-authority.sh'
+      - 'scripts/project-settings.py'
+      - 'templates/project-options.json'
       - 'tests/self-dogfood-binding.sh'
       - '.github/workflows/self-dogfood-contract.yml'
   push:
@@ -20,6 +22,8 @@ on:
       - '.githooks/pre-push'
       - 'scripts/install-hooks.sh'
       - 'scripts/hooks/pre-push-authority.sh'
+      - 'scripts/project-settings.py'
+      - 'templates/project-options.json'
       - 'tests/self-dogfood-binding.sh'
       - '.github/workflows/self-dogfood-contract.yml'
 
@@ -39,3 +43,5 @@ jobs:
           bash -n tests/self-dogfood-binding.sh
       - name: Self-binding and fresh-takeover contract
         run: bash tests/self-dogfood-binding.sh
+      - name: Core-name boundary and exact one-line Claude entry
+        run: python3 scripts/project-settings.py check-core --root .

@@ -86,6 +86,7 @@ jobs:
           python-version: '3.12'
       - name: Upgrade safety and actual legacy project
         run: |
+          python3 tests/test_project_settings.py -v
           python3 tests/test_prepare_upgrade.py -v
           bash tests/upgrade-from-v012.sh
 

@@ -65,7 +65,7 @@ jobs:
             --name smoke-project \
             --dir /tmp/smoke-project \
             --disposer @apo-test \
-            --skip-github \
+            --process-mode standard --agent-tools codex,claude --external-tools none --skip-github \
             --yes
       - name: Retired feature and documentation contract
         run: bash tests/slim-contract.sh
