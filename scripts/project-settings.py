@@ -99,21 +99,24 @@ def regular(path: Path) -> bytes:
     return path.read_bytes()
 
 
-def tree(path: Path) -> dict[str, bytes]:
+def files_below(path: Path):
     no_links(path)
     if not path.is_dir():
-        raise Invalid("expected a real skill directory: " + str(path))
-    result = {}
+        raise Invalid("expected a real directory: " + str(path))
     pending = [path]
     while pending:
         for entry in pending.pop().iterdir():
             no_links(entry)
             if entry.is_file():
-                result[entry.relative_to(path).as_posix()] = regular(entry)
+                yield entry
             elif entry.is_dir():
                 pending.append(entry)
             else:
-                raise Invalid("special skill entry: " + str(entry))
+                raise Invalid("special directory entry: " + str(entry))
+
+
+def tree(path: Path) -> dict[str, bytes]:
+    result = {entry.relative_to(path).as_posix(): regular(entry) for entry in files_below(path)}
     if not result or not any(p.endswith("/SKILL.md") for p in result):
         raise Invalid("no skill manifests: " + str(path))
     return result
@@ -212,9 +215,14 @@ def check_core(root: Path) -> None:
     source = methodology(root)
     data = catalog(source)
     files = {source / "PRINCIPLES.md", source / "templates/AGENTS.md", source / "templates/CLAUDE.md"}
-    files.update(source.glob("playbooks/**/*.md"))
-    files.update(source.glob("skills/**/SKILL.md"))
-    files.update(p for p in source.glob("scripts/**/*") if p.suffix in (".sh", ".py"))
+    for directory in ("playbooks", "skills", "scripts"):
+        folder = source / directory
+        no_links(folder)
+        if folder.exists():
+            files.update(p for p in files_below(folder)
+                         if (directory == "playbooks" and p.suffix == ".md")
+                         or (directory == "skills" and p.name == "SKILL.md")
+                         or (directory == "scripts" and p.suffix in (".sh", ".py")))
     for name in ("AGENTS.md", "CLAUDE.md"):
         if (root / name).exists():
             files.add(root / name)

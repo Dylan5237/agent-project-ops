@@ -285,6 +285,13 @@ class SettingsTests(unittest.TestCase):
         self.assertFalse((root / ".codebuddy/skills/fixture/references/policy.md").exists())
         self.assertFalse((root / ".agent-project-ops/project-config").exists())
 
+    def test_core_scan_rejects_junction_before_descending(self):
+        outside = self.base / "outside-core"
+        outside.mkdir()
+        self.put(outside, "external.md", "external-only text\n")
+        self.directory_link(self.source / "playbooks", outside)
+        self.cli("check-core", "--root", self.source, ok=False)
+
 
 if __name__ == "__main__":
     unittest.main()
