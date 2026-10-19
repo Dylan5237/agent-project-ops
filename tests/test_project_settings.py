@@ -3,6 +3,7 @@ import hashlib
 import importlib.util
 import itertools
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -27,6 +28,7 @@ class SettingsTests(unittest.TestCase):
         self.base = Path(self.tmp.name).resolve()
         self.source = self.base / "source"
         self.put(self.source, "templates/project-options.json", (ROOT / "templates/project-options.json").read_text(encoding="utf-8"))
+        self.put(self.source, "scripts/project-settings.py", SCRIPT.read_text(encoding="utf-8"))
         for file in ("PRINCIPLES.md", "templates/AGENTS.md"):
             self.put(self.source, file, "Generic project rules\n")
         self.put(self.source, "templates/CLAUDE.md", "@AGENTS.md\n")
@@ -38,6 +40,32 @@ class SettingsTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8", newline="\n")
         return path
+
+    def command_center(self, mode, agents, external):
+        return ("## 项目设置\n\n"
+                f"- 流程档位：process_mode={mode}（未记录时按 standard）\n"
+                f"- Agent 工具：agent_tools={agents}\n"
+                f"- 外部工具：external_tools={external}（none 表示不接入）\n")
+
+    def directory_link(self, link, target):
+        """Create a directory symlink on Unix and a real junction on Windows."""
+        if os.name == "nt":
+            powershell = shutil.which("powershell") or shutil.which("powershell.exe")
+            if not powershell:
+                self.skipTest("PowerShell is required to create a Windows directory junction")
+            quote = lambda value: "'" + str(value).replace("'", "''") + "'"
+            command = ("$ErrorActionPreference = 'Stop'; "
+                       f"New-Item -ItemType Junction -Path {quote(link)} "
+                       f"-Target {quote(target)} -ErrorAction Stop | Out-Null")
+            result = subprocess.run([powershell, "-NoProfile", "-NonInteractive", "-Command", command],
+                                    capture_output=True, text=True)
+            if result.returncode:
+                self.fail("could not create a temporary Windows junction: " + result.stderr.strip())
+        else:
+            try:
+                link.symlink_to(target, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest("directory symlinks are unavailable: " + str(exc))
 
     def cli(self, *args, ok=True):
         result = subprocess.run([sys.executable, str(SCRIPT), *map(str, args)],
@@ -56,7 +84,8 @@ class SettingsTests(unittest.TestCase):
         self.put(root, ".agents/skills/fixture/references/policy.md", "Preserve all Unicode rules.\n")
         self.put(root, ".agents/skills/fixture/scripts/probe.py", "print('fixture')\n")
         self.put(root, ".agent-project-ops/templates/project-options.json", (ROOT / "templates/project-options.json").read_text(encoding="utf-8"))
-        self.put(root, ".github/ISSUE_TEMPLATE/command-center.md", f"process_mode={mode}\nagent_tools={agents}\nexternal_tools={external}\n")
+        self.put(root, ".agent-project-ops/scripts/project-settings.py", SCRIPT.read_text(encoding="utf-8"))
+        self.put(root, ".github/ISSUE_TEMPLATE/command-center.md", self.command_center(mode, agents, external))
         return root
 
     def generate(self, root, mode="standard", agents="codex,claude,workbuddy", external="none", ok=True):
@@ -122,6 +151,29 @@ class SettingsTests(unittest.TestCase):
         self.generate(other)
         self.put(other, ".github/ISSUE_TEMPLATE/command-center.md", "process_mode=light\n")
         self.cli("check", "--root", other, ok=False)
+
+    def test_command_center_rejects_superset_duplicate_and_missing_settings(self):
+        root = self.fixture("cc-exact", agents="codex", external="arckeep")
+        self.generate(root, agents="codex", external="arckeep")
+
+        invalid_documents = {
+            "superset": self.command_center("standard", "codex,workbuddy", "arckeep,grok-bot"),
+            "duplicate": self.command_center("standard", "codex", "arckeep")
+                         + "- Agent 工具：agent_tools=codex\n",
+            "missing": "## 项目设置\n\n"
+                       "- 流程档位：process_mode=standard（未记录时按 standard）\n"
+                       "- Agent 工具：agent_tools=codex\n",
+        }
+        for name, document in invalid_documents.items():
+            with self.subTest(name=name):
+                self.put(root, ".github/ISSUE_TEMPLATE/command-center.md", document)
+                self.cli("check", "--root", root, ok=False)
+
+    def test_project_root_principles_does_not_hide_snapshot_layout(self):
+        root = self.fixture("root-principles", agents="codex")
+        self.generate(root, agents="codex")
+        self.put(root, "PRINCIPLES.md", "Business architecture principles\n")
+        self.cli("check", "--root", root)
 
     def test_unselected_adapter_and_guide_fail(self):
         root = self.fixture("unselected", agents="codex")
@@ -190,16 +242,48 @@ class SettingsTests(unittest.TestCase):
         self.cli("migrate-claude", "--root", root, "--apply")
         self.assertIn("```text\n@AGENTS.md\n```", (root / "AGENTS.md").read_text())
 
-    def test_symlink_parent_refused_without_outside_writes(self):
-        root = self.fixture("link")
-        outside = self.base / "outside"
+    @unittest.skipUnless(os.name == "posix", "POSIX ownership contract")
+    def test_migration_preserves_owner_mode_and_stops_before_replace_on_chown_failure(self):
+        root = self.fixture("metadata")
+        agents = root / "AGENTS.md"
+        agents.chmod(0o640)
+        before = agents.stat()
+        s.replace_text(agents, "Updated rule\n")
+        after = agents.stat()
+        self.assertEqual((after.st_uid, after.st_gid, after.st_mode),
+                         (before.st_uid, before.st_gid, before.st_mode))
+        with mock.patch.object(os, "chown", side_effect=PermissionError("cannot preserve ownership")):
+            with self.assertRaises(PermissionError):
+                s.replace_text(agents, "Must not replace\n")
+        self.assertEqual(agents.read_text(), "Updated rule\n")
+        self.assertEqual(list(root.glob(".apo-rule-*")), [])
+
+    def test_generation_rejects_junction_parent_without_outside_writes(self):
+        root = self.fixture("link-parent", agents="codex,workbuddy")
+        outside = self.base / "outside-adapter"
         outside.mkdir()
-        try:
-            (root / ".codebuddy").symlink_to(outside, target_is_directory=True)
-        except OSError:
-            self.skipTest("symlink creation not permitted")
-        self.generate(root, ok=False)
+        self.directory_link(root / ".codebuddy", outside)
+
+        self.cli("generate", "--source", self.source, "--root", root,
+                 "--process-mode", "standard", "--agent-tools", "codex,workbuddy",
+                 "--external-tools", "none", "--non-interactive", ok=False)
         self.assertEqual(list(outside.iterdir()), [])
+
+    def test_canonical_skills_rejects_nested_junction_without_copying_external_files(self):
+        root = self.fixture("link-canonical", agents="codex,workbuddy")
+        outside = self.base / "outside-skill"
+        outside.mkdir()
+        external_file = self.put(outside, "policy.md", "outside-only rule\n")
+        link = root / ".agents/skills/fixture/references"
+        shutil.rmtree(link)
+        self.directory_link(link, outside)
+
+        self.cli("generate", "--source", self.source, "--root", root,
+                 "--process-mode", "standard", "--agent-tools", "codex,workbuddy",
+                 "--external-tools", "none", "--non-interactive", ok=False)
+        self.assertEqual(external_file.read_text(encoding="utf-8"), "outside-only rule\n")
+        self.assertFalse((root / ".codebuddy/skills/fixture/references/policy.md").exists())
+        self.assertFalse((root / ".agent-project-ops/project-config").exists())
 
 
 if __name__ == "__main__":

@@ -90,9 +90,9 @@ while [[ $# -gt 0 ]]; do
     --skip-github) skip_github=1; shift ;;
     --methodology-url) methodology_url="${2:-}"; shift 2 ;;
     --methodology-ref) methodology_ref="${2:-}"; shift 2 ;;
-    --process-mode) [[ -z "$process_mode" ]] || die "duplicate --process-mode"; process_mode="${2:-}"; shift 2 ;;
-    --agent-tools) [[ -z "$agent_tools" ]] || die "duplicate --agent-tools"; agent_tools="${2:-}"; shift 2 ;;
-    --external-tools) [[ -z "$external_tools" ]] || die "duplicate --external-tools"; external_tools="${2:-}"; shift 2 ;;
+    --process-mode) [[ -n "${2:-}" ]] || die "empty --process-mode"; [[ -z "$process_mode" ]] || die "duplicate --process-mode"; process_mode="$2"; shift 2 ;;
+    --agent-tools) [[ -n "${2:-}" ]] || die "empty --agent-tools"; [[ -z "$agent_tools" ]] || die "duplicate --agent-tools"; agent_tools="$2"; shift 2 ;;
+    --external-tools) [[ -n "${2:-}" ]] || die "empty --external-tools"; [[ -z "$external_tools" ]] || die "duplicate --external-tools"; external_tools="$2"; shift 2 ;;
     --dry-run) dry_run=1; shift ;;
     --yes) assume_yes=1; shift ;;
     -h|--help) usage; exit 0 ;;

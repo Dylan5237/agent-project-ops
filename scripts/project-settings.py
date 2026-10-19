@@ -22,7 +22,7 @@ class Invalid(ValueError):
 
 
 def catalog(source: Path) -> dict:
-    data = json.loads((source / "templates/project-options.json").read_text(encoding="utf-8"))
+    data = json.loads(regular(source / "templates/project-options.json").decode("utf-8"))
     if data.get("layout_version") != 1:
         raise Invalid("unsupported project options layout")
     for group in ("agent_tools", "external_tools"):
@@ -72,26 +72,48 @@ def settings_text(settings: dict[str, str]) -> str:
 
 
 def methodology(root: Path) -> Path:
-    return root if (root / "PRINCIPLES.md").is_file() else root / ".agent-project-ops"
+    snapshot = root / ".agent-project-ops"
+    no_links(snapshot)
+    if (snapshot / "templates/project-options.json").exists() or (snapshot / "PIN").exists():
+        return snapshot
+    if (root / "templates/project-options.json").is_file() and (root / "scripts/project-settings.py").is_file():
+        return root
+    return snapshot
+
+
+def no_links(path: Path) -> None:
+    """Reject links at every existing component, including Windows junctions."""
+    for item in (path, *path.parents):
+        try:
+            info = item.lstat()
+        except FileNotFoundError:
+            continue
+        if stat.S_ISLNK(info.st_mode) or getattr(info, "st_file_attributes", 0) & 0x400:
+            raise Invalid("links/reparse points are unsupported: " + str(item))
 
 
 def regular(path: Path) -> bytes:
-    if path.is_symlink() or not path.is_file():
+    no_links(path)
+    if not path.is_file():
         raise Invalid("expected a regular file: " + str(path))
     return path.read_bytes()
 
 
 def tree(path: Path) -> dict[str, bytes]:
-    if path.parent.is_symlink() or path.is_symlink() or not path.is_dir():
+    no_links(path)
+    if not path.is_dir():
         raise Invalid("expected a real skill directory: " + str(path))
     result = {}
-    for entry in path.rglob("*"):
-        if entry.is_symlink():
-            raise Invalid("skill symlinks are unsupported: " + str(entry))
-        if entry.is_file():
-            result[entry.relative_to(path).as_posix()] = regular(entry)
-        elif not entry.is_dir():
-            raise Invalid("special skill entry: " + str(entry))
+    pending = [path]
+    while pending:
+        for entry in pending.pop().iterdir():
+            no_links(entry)
+            if entry.is_file():
+                result[entry.relative_to(path).as_posix()] = regular(entry)
+            elif entry.is_dir():
+                pending.append(entry)
+            else:
+                raise Invalid("special skill entry: " + str(entry))
     if not result or not any(p.endswith("/SKILL.md") for p in result):
         raise Invalid("no skill manifests: " + str(path))
     return result
@@ -113,8 +135,7 @@ def checked_settings(root: Path, data: dict) -> dict[str, str]:
 def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
     data = catalog(source)
     verify_bridge(root / "CLAUDE.md")
-    if (root / ".agent-project-ops").is_symlink():
-        raise Invalid("methodology snapshot must not be a symlink")
+    no_links(root / ".agent-project-ops")
     source_tree = tree(root / ".agents/skills")
     selected = settings["agent_tools"].split(",")
     destinations = []
@@ -122,9 +143,8 @@ def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
         target = root / item["skills_dir"]
         if item["skills_dir"] == ".agents/skills":
             continue
-        if target.parent.is_symlink():
-            raise Invalid("skill parent must not be a symlink")
-        if target.exists() or target.is_symlink():
+        no_links(target)
+        if target.exists():
             raise Invalid("refusing to replace existing skill directory: " + str(target))
         if key in selected:
             destinations.append(target)
@@ -134,11 +154,13 @@ def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
         if key in selected_external:
             raw = regular(source / "integrations" / item["guide"])
             dest = root / ".agent-project-ops/integrations" / item["guide"]
-            if dest.parent.is_symlink() or dest.exists() or dest.is_symlink():
+            no_links(dest)
+            if dest.exists():
                 raise Invalid("refusing to replace guide: " + str(dest))
             guides.append((dest, raw))
     config = root / ".agent-project-ops/project-config"
-    if config.exists() or config.is_symlink():
+    no_links(config)
+    if config.exists():
         raise Invalid("refusing to replace project-config")
     for dest in destinations:
         dest.mkdir(parents=True)
@@ -154,8 +176,7 @@ def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
 
 def check(root: Path) -> None:
     source = methodology(root)
-    if source.is_symlink():
-        raise Invalid("methodology snapshot must not be a symlink")
+    no_links(source)
     data = catalog(source)
     settings = checked_settings(root, data)
     verify_bridge(root / "CLAUDE.md")
@@ -164,16 +185,16 @@ def check(root: Path) -> None:
         if item["skills_dir"] == ".agents/skills":
             continue
         dest = root / item["skills_dir"]
+        no_links(dest)
         if key in settings["agent_tools"].split(","):
             if tree(dest) != original:
                 raise Invalid("skill copy drift: " + str(dest))
-        elif dest.parent.is_symlink() or dest.exists() or dest.is_symlink():
+        elif dest.exists():
             raise Invalid("unselected skill adapter exists: " + str(dest))
     selected = settings["external_tools"].split(",")
     expected = {item["guide"] for key, item in data["external_tools"].items() if key in selected}
     guide_dir = root / ".agent-project-ops/integrations"
-    if guide_dir.is_symlink():
-        raise Invalid("integration directory must not be a symlink")
+    no_links(guide_dir)
     actual = {p.name for p in guide_dir.iterdir()} if guide_dir.exists() else set()
     if actual != expected:
         raise Invalid("selected integration guide set differs")
@@ -182,7 +203,8 @@ def check(root: Path) -> None:
             raise Invalid("empty integration guide")
     cc = regular(root / ".github/ISSUE_TEMPLATE/command-center.md").decode("utf-8")
     for key in KEYS:
-        if key + "=" + settings[key] not in cc:
+        values = re.findall(r"(?<![\w])" + key + r"=([^\s（`]*)", cc)
+        if values != [settings[key]]:
             raise Invalid("Command Center setting differs: " + key)
 
 
@@ -208,11 +230,14 @@ def check_core(root: Path) -> None:
 
 
 def replace_text(path: Path, text: str) -> None:
+    info = path.stat()
     fd, name = tempfile.mkstemp(prefix=".apo-rule-", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
             stream.write(text)
-        os.chmod(name, stat.S_IMODE(path.stat().st_mode))
+        if os.name == "posix":
+            os.chown(name, info.st_uid, info.st_gid)
+        os.chmod(name, stat.S_IMODE(info.st_mode))
         os.replace(name, path)
     finally:
         if os.path.exists(name):

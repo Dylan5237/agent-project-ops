@@ -20,6 +20,11 @@ for choice in --process-mode --agent-tools --external-tools; do
     echo "FAIL: headless choice accepted missing $choice" >&2; exit 1
   fi
   test ! -e "$tmp/missing"
+  if bash "$boot" --name empty --dir "$tmp/empty" --disposer @tester --skip-github --yes \
+      "$choice" '' --process-mode standard --agent-tools codex --external-tools none >"$tmp/empty.out" 2>&1; then
+    echo "FAIL: empty first $choice bypassed duplicate validation" >&2; exit 1
+  fi
+  test ! -e "$tmp/empty"
 done
 bash "$boot" --name dry --dir "$tmp/dry" --disposer @tester --skip-github --yes --dry-run \
   --process-mode light --agent-tools workbuddy --external-tools none >"$tmp/dry.out"
