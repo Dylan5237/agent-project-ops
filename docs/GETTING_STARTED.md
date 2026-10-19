@@ -34,6 +34,8 @@ Agent 应先检查项目目录和 APO 绑定，再选择操作：
 
 ## 初始化新项目
 
+当前主线已增加三项选择：流程档位（轻量或标准）、Agent 工具（可多选）、外部工具（默认不接）。Agent 会用可用的选项界面或普通对话收集选择，再按选择生成文件。非交互命令必须把三项都写明；下面示例选择标准档、Codex 和 Claude Code，不接外部工具。已发布的旧版接口以其实际帮助为准，这项主线改造尚未发布。
+
 推荐先使用上面的短提示词，让 Agent 核实正式发行版和目标目录，再按初始化流程执行。也可以从可信的 APO 仓库副本运行脚本：
 
 ```bash
@@ -43,6 +45,9 @@ bash scripts/bootstrap-project.sh \
   --github-repo OWNER/my-project \
   --disposer @OWNER \
   --private \
+  --process-mode standard \
+  --agent-tools codex,claude \
+  --external-tools none \
   --yes
 ```
 
@@ -54,9 +59,12 @@ bash scripts/bootstrap-project.sh \
 cat .agent-project-ops/PIN
 git remote -v
 git config --get core.hooksPath
+python3 .agent-project-ops/scripts/project-settings.py check --root .
 ```
 
 当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端时先停止并查明用途，不要自行推送、删除或改写远端。
+
+规则正文只维护在 AGENTS.md，CLAUDE.md 保留一行导入。选中 Claude Code 或 WorkBuddy 时，脚本分别复制到对应技能目录并自动校验。WorkBuddy 的项目读取入口已在 Craft（做一做）模式实测；Ask（问一问）不在本次保证范围内。未选中的外部工具不会获得接入说明，也不会自动连接任何服务。
 
 ## 接入已有项目
 

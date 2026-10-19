@@ -11,20 +11,20 @@ git -C "$tmp/source" checkout -q --detach "$(git -C "$root" rev-parse HEAD)"
 sha="$(git -C "$tmp/source" rev-parse HEAD)"
 
 # No remote-selection option or --yes is needed: origin-only is the only mode.
-bash "$tmp/source/scripts/bootstrap-project.sh" --name default --dir "$tmp/default" --disposer @config-tester --skip-github </dev/null >"$tmp/default.out" 2>&1 || { cat "$tmp/default.out" >&2; fail "default bootstrap"; }
+bash "$tmp/source/scripts/bootstrap-project.sh" --name default --dir "$tmp/default" --disposer @config-tester --process-mode standard --agent-tools codex,claude --external-tools none --skip-github </dev/null >"$tmp/default.out" 2>&1 || { cat "$tmp/default.out" >&2; fail "default bootstrap"; }
 [[ "$(cat "$tmp/default/.agent-project-ops/remotes")" == 'authority=origin' ]] || fail 'authority registry is not origin-only'
 grep -Fq "$sha" "$tmp/default/.github/ISSUE_TEMPLATE/command-center.md" || fail 'CC missing real PIN SHA'
 grep -Fxq "sha=$sha" "$tmp/default/.agent-project-ops/PIN" || fail 'PIN mismatch'
 
 custom='https://example.org/other/methodology'
-bash "$tmp/source/scripts/bootstrap-project.sh" --name custom --dir "$tmp/custom" --disposer @config-tester --skip-github --yes --methodology-url "$custom" --methodology-ref topic >/dev/null
+bash "$tmp/source/scripts/bootstrap-project.sh" --name custom --dir "$tmp/custom" --disposer @config-tester --process-mode standard --agent-tools codex,claude --external-tools none --skip-github --yes --methodology-url "$custom" --methodology-ref topic >/dev/null
 grep -Fxq "url=$custom" "$tmp/custom/.agent-project-ops/PIN" || fail 'custom URL missing from PIN'
 grep -Fq "$custom" "$tmp/custom/.github/ISSUE_TEMPLATE/command-center.md" || fail 'CC did not render custom source URL'
 grep -Fq 'PIN 分支或标签：topic' "$tmp/custom/.github/ISSUE_TEMPLATE/command-center.md" || fail 'CC did not render method ref'
 
 for retired in --projection-url --no-projection; do
   rejected="$tmp/rejected-${retired#--}"
-  if bash "$tmp/source/scripts/bootstrap-project.sh" --name rejected --dir "$rejected" --disposer @config-tester "$retired" --skip-github --yes >/dev/null 2>&1; then
+  if bash "$tmp/source/scripts/bootstrap-project.sh" --name rejected --dir "$rejected" --disposer @config-tester "$retired" --process-mode standard --agent-tools codex,claude --external-tools none --skip-github --yes >/dev/null 2>&1; then
     fail "retired option accepted: $retired"
   fi
   [[ ! -e "$rejected" ]] || fail "retired option created files before rejection: $retired"

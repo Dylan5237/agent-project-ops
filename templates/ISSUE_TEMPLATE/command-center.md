@@ -30,9 +30,9 @@ labels: "type:command-center, status:in-progress"
 
 ## 项目设置
 
-- 流程档位：`standard` / `light`（`.agent-project-ops/project-config` 中的 `process_mode=standard|light`；未记录时按 `standard`）
-- Agent 工具：
-- 外部工具：
+- 流程档位：process_mode={{PROCESS_MODE}}（未记录时按 standard）
+- Agent 工具：agent_tools={{AGENT_TOOLS}}
+- 外部工具：external_tools={{EXTERNAL_TOOLS}}（none 表示不接入）
 
 ## 拍板人
 

@@ -4,6 +4,13 @@ on:
   pull_request:
     paths:
       - 'scripts/bootstrap-project.sh'
+      - 'scripts/project-settings.py'
+      - 'scripts/prepare-upgrade.py'
+      - 'scripts/hooks/**'
+      - 'templates/project-options.json'
+      - 'integrations/**'
+      - 'tests/init-settings.sh'
+      - 'tests/test_project_settings.py'
       - 'skills/bootstrap-project/**'
       - 'templates/ISSUE_TEMPLATE/command-center.md'
       - 'templates/AGENTS.md'
@@ -13,6 +20,12 @@ on:
     branches: [main]
     paths:
       - 'scripts/bootstrap-project.sh'
+      - 'scripts/project-settings.py'
+      - 'scripts/prepare-upgrade.py'
+      - 'scripts/hooks/**'
+      - 'integrations/**'
+      - 'tests/init-settings.sh'
+      - 'tests/test_project_settings.py'
       - 'templates/**'
       - 'tests/bootstrap-default-config.sh'
       - '.github/workflows/bootstrap-config-contract.yml'
@@ -33,3 +46,5 @@ jobs:
           bash -n tests/bootstrap-default-config.sh
       - name: Bootstrap configuration and real provenance
         run: bash tests/bootstrap-default-config.sh
+      - name: Selected bindings and exact one-line import
+        run: bash tests/init-settings.sh

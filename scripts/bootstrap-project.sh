@@ -41,6 +41,9 @@ disposer=""
 github_repo=""
 methodology_url=""
 methodology_ref=""
+process_mode=""
+agent_tools=""
+external_tools=""
 
 usage() {
   cat <<'EOF'
@@ -56,6 +59,9 @@ bootstrap-project.sh — 为 GitHub 仓库创建 APO 规则绑定
   --skip-github               只生成本地骨架，不创建 GitHub 仓库
   --methodology-url URL       覆盖写入 PIN 的方法论来源
   --methodology-ref REF       写入 PIN 的参考版本
+  --process-mode MODE         流程档位 light / standard
+  --agent-tools IDS           Agent 工具 ID，逗号分隔（见选项注册表）
+  --external-tools IDS        外部工具 ID，逗号分隔；不接入写 none
   --dry-run                   只输出计划
   --yes                       非交互模式；必填值须通过参数提供
   -h, --help                  显示帮助
@@ -84,6 +90,9 @@ while [[ $# -gt 0 ]]; do
     --skip-github) skip_github=1; shift ;;
     --methodology-url) methodology_url="${2:-}"; shift 2 ;;
     --methodology-ref) methodology_ref="${2:-}"; shift 2 ;;
+    --process-mode) [[ -z "$process_mode" ]] || die "duplicate --process-mode"; process_mode="${2:-}"; shift 2 ;;
+    --agent-tools) [[ -z "$agent_tools" ]] || die "duplicate --agent-tools"; agent_tools="${2:-}"; shift 2 ;;
+    --external-tools) [[ -z "$external_tools" ]] || die "duplicate --external-tools"; external_tools="${2:-}"; shift 2 ;;
     --dry-run) dry_run=1; shift ;;
     --yes) assume_yes=1; shift ;;
     -h|--help) usage; exit 0 ;;
@@ -109,6 +118,21 @@ fi
 [[ "${disposer}" == @* ]] || disposer="@${disposer}"
 [[ "${disposer}" != '@DISPOSER' && "${disposer}" != '@example' ]] || die "placeholder disposer is not allowed"
 [[ "${disposer}" =~ ^@[A-Za-z0-9-]+$ ]] || die "invalid disposer GitHub handle: ${disposer}"
+
+command -v python3 >/dev/null || die "python3 is required"
+selection_args=()
+[[ "$assume_yes" -eq 0 ]] || selection_args+=(--non-interactive)
+settings="$(python3 "${SCRIPT_DIR}/project-settings.py" select --source "$METHODOLOGY_ROOT" \
+  --process-mode "$process_mode" --agent-tools "$agent_tools" --external-tools "$external_tools" "${selection_args[@]}")" || die "project choices are missing or invalid"
+while IFS='=' read -r key value; do
+  value="${value%$'\r'}"
+  case "$key" in
+    process_mode) process_mode="$value" ;;
+    agent_tools) agent_tools="$value" ;;
+    external_tools) external_tools="$value" ;;
+    *) die "invalid project selection output" ;;
+  esac
+done <<< "$settings"
 
 # Supported provenance: methodology must be a real git checkout.
 methodology_sha="$(git -C "${METHODOLOGY_ROOT}" rev-parse --verify HEAD 2>/dev/null || true)"
@@ -145,6 +169,7 @@ log "methodology: ${methodology_url} @ ${methodology_sha} (${methodology_ref})"
 log "destination: ${dest}"
 log "disposer: ${disposer}"
 log "authority: origin"
+log "settings: process_mode=$process_mode agent_tools=$agent_tools external_tools=$external_tools"
 log "GitHub protection target: $([[ "${require_codeowner_review}" -eq 1 ]] && printf 'A' || printf 'B')"
 
 if [[ "${dry_run}" -eq 1 ]]; then
@@ -176,8 +201,9 @@ fi
 
 # PIN identifies committed HEAD, but the snapshot copies working-tree files.
 # Ignore interpreter bytecode caches (never ship them); reject real source drift.
-methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all -- PRINCIPLES.md LICENSE playbooks skills templates scripts | grep -Ev '(/__pycache__/|\.pyc$)' || true)"
+methodology_dirty="$(git -C "${METHODOLOGY_ROOT}" status --porcelain --untracked-files=all -- PRINCIPLES.md LICENSE playbooks skills templates scripts integrations | grep -Ev '(/__pycache__/|\.pyc$)' || true)"
 [[ -z "${methodology_dirty}" ]] || die "methodology checkout has uncommitted or untracked source files: snapshot would not match PIN SHA. Commit or clean the source checkout first."
+python3 "${SCRIPT_DIR}/project-settings.py" check-core --root "$METHODOLOGY_ROOT" || die "methodology core contract failed"
 
 mkdir -p "${dest}"
 cd "${dest}"
@@ -185,7 +211,6 @@ git init -q -b main
 
 mkdir -p \
   .agents/skills \
-  .claude/skills \
   .github/ISSUE_TEMPLATE \
   .github/PULL_REQUEST_TEMPLATE \
   .githooks \
@@ -203,12 +228,13 @@ cp "${METHODOLOGY_ROOT}/scripts/new-worktree.sh" .agent-project-ops/scripts/new-
 cp "${METHODOLOGY_ROOT}/scripts/tidy-worktrees.sh" .agent-project-ops/scripts/tidy-worktrees.sh
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts/scan-inverted-sot.py
+cp "${METHODOLOGY_ROOT}/scripts/project-settings.py" .agent-project-ops/scripts/project-settings.py
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 # Remove transient Python bytecode that may have been produced by prior tests.
 # Only touch the new snapshot; never delete files from the method checkout.
 find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
 find .agent-project-ops -type f -name '*.pyc' -delete
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/scan-inverted-sot.py
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/scan-inverted-sot.py .agent-project-ops/scripts/project-settings.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}
@@ -230,6 +256,9 @@ subst() {
     -e "s|{{METHODOLOGY_REF}}|${methodology_ref}|g" \
     -e "s|{{FETCHED_AT}}|${fetched_at}|g" \
     -e "s|{{DISPOSER}}|${disposer}|g" \
+    -e "s|{{PROCESS_MODE}}|${process_mode}|g" \
+    -e "s|{{AGENT_TOOLS}}|${agent_tools}|g" \
+    -e "s|{{EXTERNAL_TOOLS}}|${external_tools}|g" \
     "${src}" > "${dst}"
 }
 
@@ -252,14 +281,13 @@ write_wrapper() {
   src="${skill_dir}/SKILL.md"
   [[ -f "${src}" ]] || return 0
   fm="$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; print; if(n==2) exit; next} n==1{print}' "${src}")"
-  mkdir -p ".agents/skills/${skill_name}" ".claude/skills/${skill_name}"
+  mkdir -p ".agents/skills/${skill_name}"
   {
     printf '%s\n\n' "${fm}"
     printf '# %s (pinned wrapper)\n\n' "${skill_name}"
     printf 'Follow the full pinned skill at [../../../.agent-project-ops/skills/%s/SKILL.md](../../../.agent-project-ops/skills/%s/SKILL.md).\n\n' "${skill_name}" "${skill_name}"
     printf '%s\n' 'Do not invent a parallel process. `.agent-project-ops/PRINCIPLES.md` wins.'
   } > ".agents/skills/${skill_name}/SKILL.md"
-  cp ".agents/skills/${skill_name}/SKILL.md" ".claude/skills/${skill_name}/SKILL.md"
 }
 
 shopt -s nullglob
@@ -267,6 +295,9 @@ for d in "${METHODOLOGY_ROOT}/skills"/*; do
   [[ -d "${d}" ]] && write_wrapper "${d}"
 done
 shopt -u nullglob
+
+python3 "${SCRIPT_DIR}/project-settings.py" generate --source "$METHODOLOGY_ROOT" --root "$(pwd)" \
+  --process-mode "$process_mode" --agent-tools "$agent_tools" --external-tools "$external_tools" --non-interactive
 
 cp "${METHODOLOGY_ROOT}/scripts/hooks/pre-push-authority.sh" .githooks/pre-push
 chmod +x .githooks/pre-push

@@ -129,6 +129,62 @@ class UpgradeTests(unittest.TestCase):
     def preview(self):
         return u.plan(self.proj, self.new, self.src)
 
+    def enable_choices(self):
+        source_root = SCRIPT.parents[1]
+        self.put('templates/project-options.json', (source_root / 'templates/project-options.json').read_text(encoding='utf-8'))
+        self.put('scripts/project-settings.py', (source_root / 'scripts/project-settings.py').read_text(encoding='utf-8'))
+        for guide in (source_root / 'integrations').glob('*.md'):
+            self.put('integrations/' + guide.name, guide.read_text(encoding='utf-8'))
+        self.put('templates/ISSUE_TEMPLATE/command-center.md', 'process_mode={{PROCESS_MODE}}\nagent_tools={{AGENT_TOOLS}}\nexternal_tools={{EXTERNAL_TOOLS}}\n')
+        self.commit()
+        self.new = u.Source(self.src, 'HEAD', clean=True)
+
+    def test_new_layout_requires_choices_without_target_writes(self):
+        self.enable_choices()
+        with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_REQUIRED'):
+            self.preview()
+        self.assertEqual(cmd(self.proj, 'status', '--porcelain'), b'')
+
+    def test_new_layout_copies_only_selected_hosts_and_guides(self):
+        self.enable_choices()
+        selected = dict(process_mode='light', agent_tools='workbuddy', external_tools='arckeep')
+        info, changes = u.plan(self.proj, self.new, self.src, selected)
+        self.assertEqual(info['project_settings'], selected)
+        self.assertTrue(changes['.agent-project-ops/project-config'][1].data.startswith((self.proj / '.agent-project-ops/project-config').read_bytes()))
+        self.assertIn(b'agent_tools=workbuddy\n', changes['.agent-project-ops/project-config'][1].data)
+        self.assertIn('.codebuddy/skills/upgrade-project/SKILL.md', changes)
+        self.assertIsNone(changes['.claude/skills/bootstrap-project/SKILL.md'][1])
+        self.assertIn('.agent-project-ops/integrations/arckeep.md', changes)
+        self.assertNotIn('.agent-project-ops/integrations/grok-bot.md', changes)
+        other = dict(selected, agent_tools='codex')
+        info2, _ = u.plan(self.proj, self.new, self.src, other)
+        self.assertNotEqual(info['plan_id'], info2['plan_id'])
+        self.assertEqual(cmd(self.proj, 'status', '--porcelain'), b'')
+
+    def test_partial_or_conflicting_project_choices_stop(self):
+        self.enable_choices()
+        self.pput('.agent-project-ops/project-config', 'process_mode=standard\n')
+        self.pcommit()
+        with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_PARTIAL'):
+            self.preview()
+        self.pput('.agent-project-ops/project-config', 'process_mode=standard\nagent_tools=codex\nexternal_tools=none\n')
+        self.pcommit()
+        with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_CONFLICT'):
+            u.plan(self.proj, self.new, self.src, dict(process_mode='light', agent_tools='codex', external_tools='none'))
+
+    def test_custom_claude_requires_preservation_migration(self):
+        self.enable_choices()
+        self.pput('CLAUDE.md', '@AGENTS.md\nKeep this custom project boundary.\n')
+        self.pcommit()
+        choices = dict(process_mode='standard', agent_tools='claude', external_tools='none')
+        with self.assertRaisesRegex(u.Stop, 'CLAUDE_RULE_MIGRATION_REQUIRED'):
+            u.plan(self.proj, self.new, self.src, choices)
+        u.settings_helper.migrate(self.proj, True)
+        self.pcommit()
+        _, changes = u.plan(self.proj, self.new, self.src, choices)
+        self.assertIn(b'Keep this custom project boundary.', changes['AGENTS.md'][1].data)
+        self.assertNotIn('CLAUDE.md', changes)
+
     def make_patch(self):
         info, changes = self.preview()
         patch = self.base / 'upgrade.patch'

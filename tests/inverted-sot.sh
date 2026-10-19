@@ -69,7 +69,7 @@ bash "${root}/scripts/bootstrap-project.sh" \
   --dir "${existing}" \
   --disposer @apo-test \
   \
-  --skip-github \
+  --process-mode standard --agent-tools codex,claude --external-tools none --skip-github \
   --yes >"${tmp}/bootstrap-existing.out" 2>&1
 boot_rc=$?
 set -e

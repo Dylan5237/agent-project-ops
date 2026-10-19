@@ -43,7 +43,11 @@ change business behavior, deploy, or accept unrelated Phases.
 5. Create or select a **dedicated upgrade worktree and topic branch** using the
    project's approved baseline. The original checkout and commit remain the
    backup; record the baseline SHA. Do not work on the default branch.
-6. From the trusted release clone, run:
+6. For selected-layout releases, read all three initialization choices from the reviewed project-config. If a legacy project has none, collect explicit process_mode, agent_tools and external_tools choices and pass all three flags to both preview and patch export. Partial settings, invalid choices or conflict with existing choices stop. Existing config entries are preserved; new reviewed choices are appended in the patch and bound to plan_id. Never infer choices from installed folders.
+
+   If CLAUDE.md contains custom text, review and migrate it into AGENTS.md first using project-settings.py migrate-claude (preview, then explicit --apply under project authorization). Commit that separately reviewed target baseline before the clean-target preview. The upgrade planner refuses unmigrated custom CLAUDE text instead of preserving a multiline import or dropping rules. An unmodified historical bridge is normalized by the upgrade patch.
+
+   From the trusted release clone, run:
 
    ```bash
    python3 scripts/prepare-upgrade.py --project /absolute/upgrade-worktree
@@ -52,7 +56,7 @@ change business behavior, deploy, or accept unrelated Phases.
    It reads Git objects from the old PIN and new release, reconstructs known
    bootstrap-owned files, merges nonconflicting project bridge changes, and
    emits a JSON plan. It does **not** write the target, contact GitHub, commit,
-   push, or change Git configuration. It preserves remotes, `project-config`,
+   push, or change Git configuration. It preserves remotes, existing project-config entries,
    business files and project-specific appended/prefixed rules.
 7. Show the old/new SHA, exact changed paths, policy changes, preserved data,
    conflicts and `plan_id`. Obtain confirmation to apply this specific plan.

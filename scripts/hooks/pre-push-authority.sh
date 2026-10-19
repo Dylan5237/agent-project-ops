@@ -53,6 +53,16 @@ push_identity="$(github_repo_identity "$remote_url")" || \
 [[ "$push_identity" == "$origin_identity" ]] || \
   deny "actual push destination differs from the GitHub origin repository"
 
+# Selected-layout repositories verify the generated bindings on every push.
+# The methodology's self-dogfood checkout has no vendored descriptor.
+if [[ -f "$root/.agent-project-ops/templates/project-options.json" || -f "$root/.agent-project-ops/scripts/project-settings.py" ]]; then
+  checker="$root/.agent-project-ops/scripts/project-settings.py"
+  [[ -f "$checker" ]] || deny "project settings checker missing"
+  command -v python3 >/dev/null || deny "python3 required for binding checks"
+  python3 "$checker" check --root "$root" || deny "project bindings differ from selected settings"
+  python3 "$checker" check-core --root "$root" || deny "project core contract failed"
+fi
+
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ -z "${local_ref:-}" ]] && continue
 
