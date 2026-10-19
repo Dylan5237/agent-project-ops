@@ -167,10 +167,33 @@ class UpgradeTests(unittest.TestCase):
         self.pcommit()
         with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_PARTIAL'):
             self.preview()
+
+        with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_CONFLICT'):
+            u.plan(self.proj, self.new, self.src,
+                   dict(process_mode='light', agent_tools='codex', external_tools='none'))
+
+        selected = dict(process_mode='standard', agent_tools='codex', external_tools='none')
+        _, changes = u.plan(self.proj, self.new, self.src, selected)
+        config = changes['.agent-project-ops/project-config'][1].data
+        self.assertEqual(config.decode().splitlines(), [
+            'process_mode=standard', 'agent_tools=codex', 'external_tools=none'])
+        self.assertEqual(cmd(self.proj, 'status', '--porcelain'), b'')
+
         self.pput('.agent-project-ops/project-config', 'process_mode=standard\nagent_tools=codex\nexternal_tools=none\n')
         self.pcommit()
         with self.assertRaisesRegex(u.Stop, 'PROJECT_SETTINGS_CONFLICT'):
             u.plan(self.proj, self.new, self.src, dict(process_mode='light', agent_tools='codex', external_tools='none'))
+
+    def test_unknown_project_config_entry_stops_without_target_writes(self):
+        self.enable_choices()
+        self.pput('.agent-project-ops/project-config', 'task_base=origin/develop\ncustom_flag=preserve-me\n')
+        self.pcommit()
+        before = self.snapshot()
+        with self.assertRaisesRegex(u.Stop, 'PROJECT_CONFIG_REVIEW_REQUIRED'):
+            u.plan(self.proj, self.new, self.src, dict(
+                process_mode='standard', agent_tools='codex', external_tools='none'))
+        self.assertEqual(self.snapshot(), before)
+        self.assertEqual(cmd(self.proj, 'status', '--porcelain'), b'')
 
     def test_custom_claude_requires_preservation_migration(self):
         self.enable_choices()

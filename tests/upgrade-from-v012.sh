@@ -30,7 +30,7 @@ exercise_upgrade() {
   git -C "$project" remote add origin "https://github.com/example/$project_name.git"
   printf '\n## Project-specific rules\nPreserve the clinical data boundary.\n' >> "$project/AGENTS.md"
   printf 'business content must survive\n' > "$project/business.txt"
-  printf 'task_base=origin/develop\ncustom_flag=preserve-me\n' > "$project/.agent-project-ops/project-config"
+  printf 'task_base=origin/develop\nmax_worktrees=3\nworktree_mode=always\n' > "$project/.agent-project-ops/project-config"
   git -C "$project" add .
   git -C "$project" commit -qm 'fixture: personal rules and business baseline'
   baseline="$(git -C "$project" rev-parse HEAD)"
@@ -60,6 +60,10 @@ exercise_upgrade() {
   cmp -s "$tmp/remotes-$slug.worktree-before" "$tmp/upgrade-$slug/.agent-project-ops/remotes" || fail "$tag remote registry altered"
   { cat "$tmp/project-config-$slug.before"; printf 'process_mode=standard\nagent_tools=codex,claude\nexternal_tools=none\n'; } > "$tmp/project-config-$slug.expected"
   cmp -s "$tmp/project-config-$slug.expected" "$tmp/upgrade-$slug/.agent-project-ops/project-config" || fail "$tag old project settings not preserved with explicit choices appended"
+  python3 "$tmp/upgrade-$slug/.agent-project-ops/scripts/project-settings.py" validate-config --root "$tmp/upgrade-$slug" \
+    || fail "$tag generated project-config failed validation"
+  python3 "$tmp/upgrade-$slug/.agent-project-ops/scripts/project-settings.py" check --root "$tmp/upgrade-$slug" \
+    || fail "$tag generated project layout failed validation"
   cmp -s "$tmp/config-$slug.before" <(git -C "$tmp/upgrade-$slug" config --local --list) || fail "$tag local Git config altered"
   for retired in \
     .cursor/rules/agent-project-ops.mdc \

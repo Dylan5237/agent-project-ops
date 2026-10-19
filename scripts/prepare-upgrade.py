@@ -337,19 +337,26 @@ def project_choices(root: Path, source: Source, explicit: dict[str, str]) -> tup
         raise Stop("SOURCE_LAYOUT_UNSUPPORTED: project options")
     config = read_target(root, ".agent-project-ops/project-config")
     before = config.data if config else b""
-    values = settings_helper.config_values(before.decode("utf-8"), strict=False)
+    try:
+        values = settings_helper.config_values(before.decode("utf-8"))
+    except ValueError as exc:
+        raise Stop("PROJECT_CONFIG_REVIEW_REQUIRED: " + str(exc)) from exc
     present = [key in values for key in settings_helper.KEYS]
-    if any(present) and not all(present):
-        raise Stop("PROJECT_SETTINGS_PARTIAL: review all three choices together")
     if all(present):
         selected = settings_helper.normalize(data, *(values[k] for k in settings_helper.KEYS))
         if explicit and settings_helper.normalize(data, *(explicit.get(k, "") for k in settings_helper.KEYS)) != selected:
             raise Stop("PROJECT_SETTINGS_CONFLICT: review settings on a project task first")
         return selected, before, before
     if set(explicit) != set(settings_helper.KEYS):
+        if any(present):
+            raise Stop("PROJECT_SETTINGS_PARTIAL: provide all three explicit choices to complete reviewed settings")
         raise Stop("PROJECT_SETTINGS_REQUIRED: provide --process-mode, --agent-tools and --external-tools")
     selected = settings_helper.normalize(data, *(explicit[k] for k in settings_helper.KEYS))
-    after = before + (b"\n" if before and not before.endswith(b"\n") else b"") + settings_helper.settings_text(selected).encode()
+    existing = settings_helper.normalize(data, *(values.get(k, selected[k]) for k in settings_helper.KEYS))
+    if existing != selected:
+        raise Stop("PROJECT_SETTINGS_CONFLICT: explicit choices conflict with recorded settings")
+    missing = "".join(k + "=" + selected[k] + "\n" for k in settings_helper.KEYS if k not in values)
+    after = before + (b"\n" if before and not before.endswith(b"\n") else b"") + missing.encode()
     return selected, before, after
 
 
