@@ -91,12 +91,17 @@ def marker(body: str, kind: str):
 def pending_decisions(records: list[dict], phase: int) -> str:
     latest = {}
     results = {}
+    requests = set()
     for record in records:
         request = marker(record.get("body") or "", "apo-decision")
         result = marker(record.get("body") or "", "apo-decision-result")
         if (request or result) and not isinstance(record.get("_apo_issue"), int):
             raise Invalid("formal decision record has no source discussion")
         if request:
+            identity = (request["id"], request["rev"])
+            if identity in requests:
+                raise Invalid("duplicate formal decision id/revision; reconcile the source discussions")
+            requests.add(identity)
             old = latest.get(request["id"])
             if old is None or int(request["rev"]) > int(old[0]["rev"]):
                 latest[request["id"]] = (request, record)

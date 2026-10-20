@@ -138,6 +138,15 @@ class AutomationTests(unittest.TestCase):
         self.assertIn('rev 3', a.pending_decisions(records, 20))
         self.assertEqual(a.pending_decisions(records, 21), '无')
 
+    def test_duplicate_revision_cannot_hide_a_request_in_another_discussion(self):
+        request = {'body': '<!-- apo-decision v1 | id: D-17 | rev: 1 | type: 最终验收 | target: #20 | disposer: @human -->',
+                   'html_url': 'https://example.test/request', 'created_at': '2026-01-01', '_apo_issue': 10}
+        result = {'body': '<!-- apo-decision-result v1 | id: D-17 | rev: 1 | result: 批准 A | reply: 对话 -->',
+                  'created_at': '2026-01-02', '_apo_issue': 10}
+        for other in ({**request, '_apo_issue': 20}, {**request, 'body': request['body'].replace('#20', '#21')}, dict(request)):
+            with self.assertRaisesRegex(a.Invalid, 'duplicate formal decision'):
+                a.pending_decisions([request, other, result], 20)
+
     def test_dispatch_file_directory_case_and_segment_boundaries(self):
         self.gh.data['issues/30'] = issue(30, 'task', 'backlog', scope('file: src/auth/login.py'))
         task = issue(31, 'task', 'in-progress', scope('dir: SRC/auth/'))
