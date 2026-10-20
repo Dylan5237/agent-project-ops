@@ -48,7 +48,10 @@ input facts to those values rather than inventing equivalent status spellings.
    light tasks, Phases and releases stay `status:verification` until covered by
    disposer final acceptance; only then set `status:done` and close. Light tasks
    close after release final acceptance covers them (or all confirmed goals are
-   finally accepted if no release). An explicit cancel with recorded
+   finally accepted if no release). In light, lead review and PR merge do not
+   constitute task acceptance. The disposer's final acceptance covers task
+   acceptance, followed immediately by done/closure; there is no separate lead
+   task-acceptance step. An explicit cancel with recorded
    authorization/reason also sets `status:done` and closes the item. Phase/release
    cancellation always requires the disposer's explicit authorization; only
    eligible task cancellations may be authorized by the lead. §11.8 still applies

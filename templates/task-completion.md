@@ -8,6 +8,8 @@
 
 Phase/发布取消须拍板人明确授权；主 Agent 仅可取消现有规则允许的任务，改变已确认目标仍须按 §11.8 批准。
 
+light 中主 Agent 的技术复核和 PR 合并不构成单独的任务验收；任务验收由拍板人的最终验收覆盖，随后立即 done/关闭，不增加单独的主 Agent 任务验收步骤。
+
 ```markdown
 <!-- apo-task-completion v1 -->
 task: #{{TASK_ISSUE}}

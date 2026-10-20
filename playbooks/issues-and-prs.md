@@ -53,6 +53,9 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    until covered by disposer final acceptance; only then set `status:done` and close.
    Light tasks close after release final acceptance covers them (or after all
    confirmed goals are finally accepted when the project never releases).
+   In light, lead review and PR merge do not constitute task acceptance. The
+   disposer's final acceptance covers task acceptance, followed immediately by
+   done/closure; there is no separate lead task-acceptance step.
    An explicit cancel, with authorization and reason recorded, also sets
    `status:done` and closes the item. Phase/release cancellation always requires
    the disposer's explicit authorization; only eligible task cancellations may be

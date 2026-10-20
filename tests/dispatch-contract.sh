@@ -119,6 +119,7 @@ def check_done_contract(docs):
         for term in ('light tasks', 'Phases and releases',
                      '`status:verification`', 'until covered by disposer final acceptance',
                      'Light tasks close after release final acceptance', 'explicit cancel',
+                     'In light, lead review and PR merge do not constitute task acceptance',
                      "Phase/release cancellation always requires the disposer's explicit authorization"):
             assert term in holding, (name, 'human/cancel path', term)
     lifecycle = compact(docs['playbooks/phase-lifecycle.md'].split('### 5. CLOSED', 1)[1])
@@ -126,12 +127,14 @@ def check_done_contract(docs):
     assert "Phase/release cancellation always requires the disposer's explicit authorization" in lifecycle
     for name in ('templates/ISSUE_TEMPLATE/task.md', 'templates/task-completion.md'):
         for term in ('standard 子任务', 'PR 合并', '非实现者', '`status:done`',
-                     '移除旧状态', 'light 任务等发布最终验收后关闭', '明确取消', 'Phase/发布取消须拍板人明确授权'):
+                     '移除旧状态', 'light 任务等发布最终验收后关闭', '明确取消', 'Phase/发布取消须拍板人明确授权',
+                     '技术复核和 PR 合并不构成单独的任务验收'):
             assert term in docs[name], (name, term)
     executor = compact(docs['skills/github-multi-agent-task-executor/SKILL.md'])
     for term in ('standard child task', 'non-implementing lead', '`status:done`',
                  'close it', 'Light tasks close after release final acceptance',
                  'An executor does not close its own task',
+                 'In light, lead review and PR merge do not constitute task acceptance',
                  "Phase/release cancellation always requires the disposer's explicit authorization"):
         assert term in executor, ('executor', term)
 
@@ -152,6 +155,10 @@ for name in close_steps:
                                 'Phase/release cancellation may be authorized by the lead', done_docs[name], count=1)
     assert count == 1, name
     mutations.append((name, no_disposer))
+    premature_accept, count = re.subn(r'In light, lead review and PR merge do not\s+constitute task acceptance',
+                                     'In light, lead review and PR merge constitute task acceptance', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, premature_accept))
 for name, changed in mutations:
     try:
         check_done_contract(dict(done_docs, **{name: changed}))

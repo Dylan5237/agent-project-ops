@@ -79,3 +79,7 @@ actions: Phase/release cancellation always requires the disposer's explicit
 authorization; only eligible task cancellations may be authorized by the lead,
 subject to §11.8. An executor does not close its own task. PR merge is never Phase PASS.
 See [staff and dispatch](../../playbooks/staff-and-dispatch.md).
+
+In light, lead review and PR merge do not constitute task acceptance. The
+disposer's final acceptance covers task acceptance, followed immediately by
+done/closure; there is no separate lead task-acceptance step.

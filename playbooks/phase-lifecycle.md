@@ -9,6 +9,10 @@ Move a Phase from idea to **CLOSED** with a frozen contract, isolated implementa
 - `standard`: the steps below run once per Phase.
 - `light`: there are no Phase issues. Each task uses the [task sheet](../templates/ISSUE_TEMPLATE/task.md), label `type:task`, carries its own contract and runs steps 1–3. Step 4's final acceptance runs once before each release, in one request of type `最终验收+发布` that lists every task since the last release (a project that never releases asks when all confirmed goals are done); step 5 then closes the tasks it covered.
 
+In light, the lead's technical review and PR merge do not accept a task. Task
+acceptance is covered by the disposer's final acceptance in step 4 and is followed
+immediately by done/closure in step 5, without a separate lead task-acceptance step.
+
 ## When
 
 - A Phase issue exists (`type:phase`); in `light` mode, a task issue (`type:task`).
@@ -52,7 +56,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 4. Do not “improve” frozen fields in the same PR. A change that hits §11, goes beyond the confirmed goal or loosens a confirmed acceptance test is an exception request (`playbooks/blocked-and-exceptions.md` B); anything else is a new `CONTRACT FREEZE` with a one-line diff note.
 5. Update CC §1 when the implementation PR opens or the Phase label moves. [ ] **CC §1 updated**
 6. Before asking for merge/review, check actual mandatory CI and review gates for the current PR SHA using `playbooks/issues-and-prs.md` step 8.
-7. The lead Agent reviews each task PR against the task's acceptance tests and merges it once the required checks pass (unless merging releases or deploys: §11 item 4). For a standard child task implemented by an executor, after PR merge and acceptance by a non-implementing lead, remove its previous status, set `status:done` and close the task. Tasks implemented by the lead, light tasks, Phases and releases stay `status:verification` until covered by disposer final acceptance; only then set `status:done` and close. Light tasks close after release final acceptance covers them (or all confirmed goals are finally accepted if no release); step 5 closes those covered tasks. An explicit cancel with recorded authorization/reason also sets `status:done` and closes the item. Phase/release cancellation always requires the disposer's explicit authorization; only eligible task cancellations may be authorized by the lead, subject to §11.8 when they change a confirmed goal.
+7. The lead Agent reviews each task PR against the task's acceptance tests and merges it once the required checks pass (unless merging releases or deploys: §11 item 4). For a standard child task implemented by an executor, after PR merge and acceptance by a non-implementing lead, remove its previous status, set `status:done` and close the task. Tasks implemented by the lead, light tasks, Phases and releases stay `status:verification` until covered by disposer final acceptance; only then set `status:done` and close. Light tasks close after release final acceptance covers them (or all confirmed goals are finally accepted if no release); step 5 closes those covered tasks. In light, lead review and PR merge do not constitute task acceptance. The disposer's final acceptance covers task acceptance, followed immediately by done/closure; there is no separate lead task-acceptance step. An explicit cancel with recorded authorization/reason also sets `status:done` and closes the item. Phase/release cancellation always requires the disposer's explicit authorization; only eligible task cancellations may be authorized by the lead, subject to §11.8 when they change a confirmed goal.
 8. After each PR merges or closes, run `tidy-worktrees.sh --apply`: merged work is retired, closed work is archived first, everything unproven is kept and listed.
 
 ### 3. Verify / 验证
