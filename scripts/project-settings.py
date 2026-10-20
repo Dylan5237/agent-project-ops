@@ -95,6 +95,21 @@ def no_links(path: Path) -> None:
             raise Invalid("links/reparse points are unsupported: " + str(item))
 
 
+def sync_root(path: Path) -> Path:
+    absolute = path.absolute()
+    # macOS exposes ordinary temporary/project paths through OS-owned aliases.
+    # Normalize only these known system prefixes; user links below them still
+    # pass through no_links before resolve can hide a junction/symlink.
+    if sys.platform == "darwin":
+        for name in ("var", "tmp", "etc"):
+            prefix = Path("/") / name
+            if absolute.is_relative_to(prefix) and prefix.resolve() == Path("/private") / name:
+                absolute = prefix.resolve() / absolute.relative_to(prefix)
+                break
+    no_links(absolute)
+    return absolute.resolve()
+
+
 def regular(path: Path) -> bytes:
     no_links(path)
     if not path.is_file():
@@ -475,8 +490,7 @@ def main() -> int:
     parser.add_argument("--expect-plan", default="")
     args = parser.parse_args()
     try:
-        no_links(args.root.absolute())
-        root = args.root.resolve()
+        root = sync_root(args.root) if args.command == "sync-skills" else args.root.resolve()
         source = args.source.resolve() if args.source else methodology(root)
         if args.command == "sync-skills":
             sync_skills(root, args.apply, args.expect_plan)
