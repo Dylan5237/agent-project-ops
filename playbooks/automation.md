@@ -46,9 +46,9 @@ python3 .agent-project-ops/scripts/project-settings.py sync-skills --root .
 # --apply --expect-plan <预览输出的 plan_id>
 ```
 
-`.agents/skills/` 是正本。命令只同步项目已选的 `.claude/skills/` 和 `.codebuddy/skills/`；两者都选时一次同步两者，不创建未选目录、不修改设置、正本或根规则。差异列出新增、修改和将移入备份的多余目标文件；摘要绑定项目路径、设置与全部源/目标文件内容。过期摘要、链接/junction、特殊文件或不合法布局拒绝写入。
+`.agents/skills/` 是正本。命令只同步项目已选的 `.claude/skills/` 和 `.codebuddy/skills/`；两者都选时一次同步两者，不创建未选目录、不修改设置、正本或根规则。差异列出文件内容变化、空目录和 POSIX 权限（含可执行位）变化及将移入备份的多余目标文件；摘要绑定项目路径、设置与全部源/目标内容及目录布局。过期摘要、链接/junction、特殊文件或不合法布局拒绝写入。
 
-apply 先准备新树，再把旧目录整体移到 Git 私有目录的 `apo-skill-sync/<id>/`，最后交换新树；目标多余内容可从备份恢复，不永久删除。失败时尝试恢复已交换目录，并输出恢复目录；`manifest.json` 列出编号备份和目标。手动恢复时先把当前目标移到别处保留，再把对应编号备份移回原目标；原目标不存在的项恢复为不存在。若跨卷移动失败或恢复也失败，保留所有工件，依据 manifest 人工恢复，不继续推送。重复预览应无差异，然后运行 `project-settings.py check`。
+apply 先准备新树，再把旧目录整体移到 Git 私有目录的 `apo-skill-sync/<id>/`，最后交换新树；目标多余内容可从备份恢复，不永久删除。失败时尝试恢复已交换目录，并输出恢复目录；`manifest.json` 在交换前记录编号备份、目标、暂存路径和进度。手动恢复时先把当前目标移到别处保留，再把对应编号备份移回原目标；原目标不存在的项恢复为不存在。若进程在 `swapping` 状态中断，先查看 target/saved/staging 哪些实际存在：saved 存在则保全当前 target 后恢复 saved；saved 不存在且 existed=true 时原树应仍在 target，不要拿 staging 覆盖；existed=false 时保全新 target 并恢复为不存在。若跨卷移动失败或恢复也失败，保留所有工件，依据 manifest 人工恢复，不继续推送。重复预览应无差异，然后运行 `project-settings.py check`。
 
 ## 推送与收尾
 

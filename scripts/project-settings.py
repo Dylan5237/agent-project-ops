@@ -7,7 +7,7 @@ import difflib
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 import re
 import stat
 import subprocess
@@ -125,6 +125,42 @@ def tree(path: Path) -> dict[str, bytes]:
     return result
 
 
+def layout(path: Path) -> dict:
+    """Include empty directories and POSIX permissions, without following links."""
+    no_links(path)
+    if not path.is_dir():
+        raise Invalid("expected a real directory: " + str(path))
+    result = {}
+    pending = [path]
+    while pending:
+        entry = pending.pop()
+        no_links(entry)
+        if not entry.is_dir() and not entry.is_file():
+            raise Invalid("special directory entry: " + str(entry))
+        result[entry.relative_to(path).as_posix()] = {
+            "kind": "dir" if entry.is_dir() else "file",
+            "mode": stat.S_IMODE(entry.stat().st_mode) & 0o777 if os.name == "posix" else None}
+        if entry.is_dir():
+            pending.extend(entry.iterdir())
+    return result
+
+
+def materialize(dest: Path, contents: dict, structure: dict) -> None:
+    for name, item in structure.items():
+        if item["kind"] == "dir":
+            (dest / name).mkdir(parents=True, exist_ok=True)
+    for name, raw in contents.items():
+        file = dest / name
+        file.write_bytes(raw)
+        if structure[name]["mode"] is not None:
+            file.chmod(structure[name]["mode"])
+    # Apply directory permissions last so read-only source folders can be built.
+    for name in sorted(structure, key=lambda p: len(PurePath(p).parts), reverse=True):
+        item = structure[name]
+        if item["kind"] == "dir" and item["mode"] is not None:
+            (dest / name).chmod(item["mode"])
+
+
 def verify_bridge(path: Path) -> None:
     if regular(path).decode("utf-8").replace("\r\n", "\n") not in (BRIDGE, BRIDGE.rstrip("\n")):
         raise Invalid("CLAUDE.md must contain only @AGENTS.md: " + str(path))
@@ -168,12 +204,10 @@ def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
     no_links(config)
     if config.exists():
         raise Invalid("refusing to replace project-config")
+    structure = layout(root / ".agents/skills")
     for dest in destinations:
         dest.mkdir(parents=True)
-        for name, raw in source_tree.items():
-            file = dest / name
-            file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_bytes(raw)
+        materialize(dest, source_tree, structure)
     for dest, raw in guides:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(raw)
@@ -193,7 +227,7 @@ def check(root: Path) -> None:
         dest = root / item["skills_dir"]
         no_links(dest)
         if key in settings["agent_tools"].split(","):
-            if tree(dest) != original:
+            if tree(dest) != original or layout(dest) != layout(root / ".agents/skills"):
                 raise Invalid("skill copy drift: " + str(dest))
         elif dest.exists():
             raise Invalid("unselected skill adapter exists: " + str(dest))
@@ -289,10 +323,12 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
     config = regular(root / ".agent-project-ops/project-config")
     settings = checked_settings(root, data)
     original = tree(root / ".agents/skills")
+    source_layout = layout(root / ".agents/skills")
     destinations = []
     changes = []
     snapshot = {"root": str(root), "config": hashlib.sha256(config).hexdigest(),
                 "source": {k: hashlib.sha256(v).hexdigest() for k, v in sorted(original.items())},
+                "source_layout": source_layout,
                 "targets": {}}
     for key, item in data["agent_tools"].items():
         directory = item["skills_dir"]
@@ -305,8 +341,9 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
                 raise Invalid("unselected skill adapter exists; reconcile settings first: " + directory)
             continue
         old = {p.relative_to(dest).as_posix(): regular(p) for p in files_below(dest)} if dest.exists() else None
+        old_layout = layout(dest) if old is not None else {}
         snapshot["targets"][directory] = None if old is None else {
-            k: hashlib.sha256(v).hexdigest() for k, v in sorted(old.items())}
+            "files": {k: hashlib.sha256(v).hexdigest() for k, v in sorted(old.items())}, "layout": old_layout}
         old_files = old or {}
         delta = []
         for name in sorted(original.keys() | old_files.keys()):
@@ -316,6 +353,8 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
                 action = "ADD"
             elif original[name] != old_files[name]:
                 action = "UPDATE"
+            elif source_layout[name] != old_layout.get(name):
+                action = "UPDATE_MODE"
             else:
                 continue
             delta.append(f"{action} {directory}/{name}")
@@ -326,9 +365,14 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
                              fromfile=directory + "/" + name, tofile=".agents/skills/" + name, lineterm=""))
             except UnicodeDecodeError:
                 delta.append("binary sha256: " + hashlib.sha256(before).hexdigest() + " -> " + hashlib.sha256(after).hexdigest())
+        for name in sorted(source_layout.keys() | old_layout.keys()):
+            new_item, old_item = source_layout.get(name), old_layout.get(name)
+            if new_item == old_item or not any(item and item["kind"] == "dir" for item in (new_item, old_item)):
+                continue
+            delta.append(f"DIRECTORY {directory}/{name}: {old_item} -> {new_item}")
         if delta or old is None:
             changes.extend(delta)
-            destinations.append((dest, old))
+            destinations.append((dest, old, old_layout))
     plan_id = hashlib.sha256(json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     print("\n".join(changes) if changes else "UNCHANGED: selected skill copies match")
     print("plan_id=" + plan_id)
@@ -361,30 +405,29 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
         replace_text(journal_path, json.dumps(manifest, indent=2))
 
     try:
-        for dest, old in destinations:
+        for dest, old, old_layout in destinations:
             dest.parent.mkdir(parents=True, exist_ok=True)
             stage = Path(tempfile.mkdtemp(prefix=".apo-sync-", dir=dest.parent))
-            prepared.append((dest, stage, old))
+            prepared.append((dest, stage, old, old_layout))
             manifest["entries"].append({"target": str(dest), "saved": str(backup / str(len(prepared)-1)),
                                         "existed": old is not None, "staging": str(stage),
                                         "failed_new": str(backup / ("failed-new-" + str(len(prepared)-1))),
                                         "state": "staged"})
-            for name, raw in original.items():
-                target = stage / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(raw)
+            journal()  # Also record each staging path before populating it.
+            materialize(stage, original, source_layout)
         manifest["state"] = "staged"
         journal()  # Persist recovery locations before the first target move.
         print("RECOVERY: " + str(journal_path), file=sys.stderr, flush=True)
         # Revalidate immediately before any swap (including all tree contents).
-        if regular(root / ".agent-project-ops/project-config") != config or tree(root / ".agents/skills") != original:
+        if (regular(root / ".agent-project-ops/project-config") != config or tree(root / ".agents/skills") != original
+                or layout(root / ".agents/skills") != source_layout):
             raise Invalid("STALE_PLAN: source/settings changed while staging")
-        for dest, stage, old in prepared:
+        for dest, stage, old, old_layout in prepared:
             no_links(dest)
             now = {p.relative_to(dest).as_posix(): regular(p) for p in files_below(dest)} if dest.exists() else None
-            if now != old:
+            if now != old or (layout(dest) if now is not None else {}) != old_layout:
                 raise Invalid("STALE_PLAN: target changed while staging")
-        for i, (dest, stage, old) in enumerate(prepared):
+        for i, (dest, stage, old, old_layout) in enumerate(prepared):
             saved = backup / str(i)
             manifest["entries"][i]["state"] = "swapping"
             journal()

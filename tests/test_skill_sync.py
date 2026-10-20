@@ -131,6 +131,36 @@ class SyncTests(unittest.TestCase):
         self.assertFalse((self.root/'.claude/skills').exists())
         self.assertFalse((self.root/'.codebuddy/skills').exists())
 
+    def test_empty_directories_are_previewed_bound_and_recovered(self):
+        (self.root/'.agents/skills/demo/empty-source').mkdir()
+        extra = self.root/'.claude/skills/empty-target'
+        extra.mkdir()
+        preview = self.cli()
+        self.assertIn('empty-source', preview.stdout)
+        self.assertIn('empty-target', preview.stdout)
+        token = re.search(r'plan_id=([0-9a-f]{64})', preview.stdout)[1]
+        (extra/'new-empty').mkdir()
+        self.cli('--apply', '--expect-plan', token, ok=False)
+        self.cli('--apply', '--expect-plan', self.plan())
+        for host in ('.claude', '.codebuddy'):
+            self.assertTrue((self.root/host/'skills/demo/empty-source').is_dir())
+        backup = next((self.root/'.git/apo-skill-sync').iterdir())
+        self.assertTrue((backup/'0/empty-target/new-empty').is_dir())
+
+    @unittest.skipUnless(os.name == 'posix', 'POSIX permission contract')
+    def test_executable_mode_preserved_and_mode_only_change_invalidates_preview(self):
+        script = self.put('.agents/skills/demo/run.sh', '#!/bin/sh\necho working\n')
+        script.chmod(0o755)
+        token = self.plan()
+        script.chmod(0o700)
+        self.cli('--apply', '--expect-plan', token, ok=False)
+        self.cli('--apply', '--expect-plan', self.plan())
+        for host in ('.claude', '.codebuddy'):
+            target = self.root/host/'skills/demo/run.sh'
+            self.assertEqual(target.stat().st_mode & 0o777, 0o700)
+            result = subprocess.run([str(target)], capture_output=True, text=True)
+            self.assertEqual(result.stdout.strip(), 'working')
+
 
 if __name__ == '__main__':
     unittest.main()
