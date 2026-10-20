@@ -149,6 +149,25 @@ class AutomationTests(unittest.TestCase):
                 a.one_line(text, 'quote')
         self.assertEqual(a.one_line('at codex；@human', 'quote'), 'at codex；@human')
 
+    def test_batch_candidates_and_invalid_open_task_status_fail_closed(self):
+        self.gh.data['issues/30'] = issue(30, 'task', 'backlog', scope('dir: src/'))
+        self.gh.data['issues/31'] = issue(31, 'task', 'backlog', scope('file: src/file.py'))
+        listing = 'issues?state=open&labels=type%3Atask&per_page=100'
+        self.gh.data[listing] = []
+        self.assertEqual(a.dispatch_check(self.gh, [30, 31]), 3)
+        other = issue(32, 'task', 'in-progress', scope('file: unrelated'))
+        self.gh.data[listing] = [other]
+        for labels in ([], [{'name': 'status:unknown'}], [{'name': 'status:backlog'}, {'name': 'status:verification'}]):
+            other['labels'] = labels
+            self.assertEqual(a.dispatch_check(self.gh, 30), 2)
+        self.gh.data['issues/30']['labels'][1]['name'] = 'status:verification'
+        with self.assertRaises(a.Invalid):
+            a.dispatch_check(self.gh, 30)
+
+    def test_malformed_formal_request_does_not_hide_pending(self):
+        with self.assertRaisesRegex(a.Invalid, 'requires target'):
+            a.pending_decisions([{'body': '<!-- apo-decision v1 | id: D-17 | rev: 1 | type: 最终验收 -->'}], 20)
+
     def test_cli_rejects_missing_parameters_and_api_error_no_write(self):
         result = subprocess.run([sys.executable, str(SCRIPT), 'status'], capture_output=True)
         self.assertEqual(result.returncode, 2)

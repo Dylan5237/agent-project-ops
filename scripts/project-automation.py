@@ -81,6 +81,10 @@ def marker(body: str, kind: str):
         raise Invalid("duplicate decision fields")
     if not re.fullmatch(r"D-[1-9][0-9]*", values.get("id", "")) or not re.fullmatch(r"[1-9][0-9]*", values.get("rev", "")):
         raise Invalid("invalid formal decision identity/revision")
+    if kind == "apo-decision":
+        if (not re.fullmatch(r"#[1-9][0-9]*(?: +#[1-9][0-9]*)*", values.get("target", ""))
+                or not values.get("type") or not re.fullmatch(r"@[A-Za-z0-9][A-Za-z0-9-]*", values.get("disposer", ""))):
+            raise Invalid("formal decision requires target, type and disposer")
     return values
 
 
@@ -216,28 +220,48 @@ def overlap(left, right):
             or rk == "dir" and lp.startswith(rp + "/"))
 
 
-def dispatch_check(gh: GitHub, number: int) -> int:
-    candidate = gh.api(f"issues/{number}")
-    if "pull_request" in candidate or candidate["state"] != "open" or "type:task" not in {x["name"] for x in candidate["labels"]}:
-        raise Invalid("candidate must be an open type:task Issue")
-    desired = file_scope(candidate.get("body") or "")
+def task_status(task: dict) -> str:
+    labels = [label["name"] for label in task["labels"] if label["name"].startswith("status:")]
+    if len(labels) != 1 or labels[0] not in ("status:backlog", "status:in-progress", "status:verification", "status:blocked"):
+        raise Invalid("UNKNOWN_SCOPE: open task requires exactly one valid non-done status")
+    return labels[0]
+
+
+def dispatch_check(gh: GitHub, numbers) -> int:
+    numbers = [numbers] if isinstance(numbers, int) else numbers
+    if not numbers or len(set(numbers)) != len(numbers) or any(n <= 0 for n in numbers):
+        raise Invalid("provide unique positive --task numbers")
+    candidates = []
+    for number in numbers:
+        candidate = gh.api(f"issues/{number}")
+        if "pull_request" in candidate or candidate["state"] != "open" or "type:task" not in {x["name"] for x in candidate["labels"]}:
+            raise Invalid("candidate must be an open type:task Issue")
+        if task_status(candidate) not in ("status:backlog", "status:in-progress"):
+            raise Invalid("candidate must be backlog or in-progress for START/recheck")
+        candidates.append((number, file_scope(candidate.get("body") or "")))
     tasks = gh.api("issues?state=open&labels=type%3Atask&per_page=100", pages=True)
     conflicts, unknown = [], []
+    def compare(number, desired, other, active):
+        for left in desired:
+            for right in active:
+                if overlap(left, right):
+                    conflicts.append(f'#{number} {left[0]}:{left[1]} <-> #{other} {right[0]}:{right[1]}')
+    for i, (number, desired) in enumerate(candidates):
+        for other, active in candidates[i+1:]:
+            compare(number, desired, other, active)
     for task in tasks:
-        if task["number"] == number or "pull_request" in task:
-            continue
-        labels = {label["name"] for label in task["labels"]}
-        if "status:in-progress" not in labels:
+        if "pull_request" in task:
             continue
         try:
+            status = task_status(task)
+            if task["number"] in numbers or status != "status:in-progress":
+                continue
             active = file_scope(task.get("body") or "")
         except Invalid as exc:
             unknown.append(f'#{task["number"]}: {exc}')
             continue
-        for left in desired:
-            for right in active:
-                if overlap(left, right):
-                    conflicts.append(f'#{number} {left[0]}:{left[1]} <-> #{task["number"]} {right[0]}:{right[1]}')
+        for number, desired in candidates:
+            compare(number, desired, task["number"], active)
     for conflict in conflicts:
         print("CONFLICT: " + conflict)
     for item in unknown:
@@ -247,7 +271,7 @@ def dispatch_check(gh: GitHub, number: int) -> int:
     if conflicts:
         print("Resolve by serializing tasks or reviewing nonoverlapping scope before dispatch; nothing dispatched.")
         return 3
-    print(f"NO_CONFLICT: #{number}; declared paths only; no dispatch or writes performed")
+    print("NO_CONFLICT: " + ", ".join("#" + str(n) for n in numbers) + "; declared paths only; no dispatch or writes performed")
     return 0
 
 
@@ -265,7 +289,7 @@ def main():
     status.add_argument("--apply", action="store_true")
     status.add_argument("--expect-plan", default="")
     dispatch = commands.add_parser("dispatch-check")
-    dispatch.add_argument("--task", type=int, required=True)
+    dispatch.add_argument("--task", type=int, action="append", required=True)
     args = parser.parse_args()
     try:
         gh = GitHub(authority(args.root.resolve()))
@@ -279,4 +303,6 @@ def main():
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     sys.exit(main())

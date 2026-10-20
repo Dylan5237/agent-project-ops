@@ -31,11 +31,12 @@ dir: tests/session/
 
 ```bash
 python3 .agent-project-ops/scripts/project-automation.py dispatch-check --task 124
+# 同批派发一次传入全部候选：--task 124 --task 125
 ```
 
-脚本读取 origin 对应仓库的候选任务与所有开放 `type:task` / `status:in-progress` 任务，跨 Phase 比较声明路径，按不区分大小写的保守规则检查。返回 0 = 声明范围无冲突；3 = 已列出重叠任务/路径，先串行或调整冻结范围再派发；2 = 缺范围、格式非法、权限/API 不可用等未知，停止受影响派发。目录按路径分段匹配，`src/auth/` 不会匹配 `src/auth-old/`。
+脚本读取 origin 对应仓库的候选任务与所有开放任务，要求状态唯一且合法；候选仅允许 backlog 或 in-progress（开工前检查/运行中复查）。同批候选两两比较，再与其他 `type:task` / `status:in-progress` 任务跨 Phase 比较声明路径，按不区分大小写的保守规则检查。返回 0 = 声明范围无冲突；3 = 已列出重叠任务/路径，先串行或调整冻结范围再派发；2 = 缺范围、状态/格式非法、权限/API 不可用等未知，停止受影响派发。目录按路径分段匹配，`src/auth/` 不会匹配 `src/auth-old/`。
 
-检查只读，不分配 owner、不启动 Agent、不更改 Issue；它不是锁，也不能发现未申报的写入。主 Agent 应在真正 START 前立即重查，核对同批候选两两无重叠，并在任务范围改变时重查。只读评审不申报为并行实现任务。
+检查只读，不分配 owner、不启动 Agent、不更改 Issue；它不是锁，也不能发现未申报的写入。主 Agent 应在真正 START 前立即重查，同批候选必须在同一命令里全部传入，并在任务范围改变时重查。只读评审不申报为并行实现任务。
 
 ## 同步所选宿主技能副本
 
