@@ -29,6 +29,8 @@ skill tree is .agents/skills; selected hosts receive checked copies. WorkBuddy's
 project rules and .codebuddy/skills were verified in Craft mode; Ask is not a
 verified project-governance entry. CLAUDE.md contains only the AGENTS.md import.
 
+已选外部工具的接入说明在 `.agent-project-ops/integrations/`，用到前先读。
+
 Run python3 .agent-project-ops/scripts/project-settings.py check --root . after
 changing bindings. The generated pre-push hook also verifies choices, the one-line
 import, copied skills and the core-name boundary. Preserve custom files when a

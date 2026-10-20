@@ -203,6 +203,27 @@ class SettingsTests(unittest.TestCase):
             self.put(self.source, "playbooks/test.md", alias)
             self.cli("check-core", "--root", self.source, ok=False)
 
+    def test_project_rules_may_name_selected_tools_but_apo_template_may_not(self):
+        root = self.fixture("project-tool-names", external="arckeep,grok-bot")
+        self.generate(root, external="arckeep,grok-bot")
+        for name in ("PRINCIPLES.md", "templates/AGENTS.md", "templates/CLAUDE.md"):
+            self.put(root / ".agent-project-ops", name,
+                     (self.source / name).read_text(encoding="utf-8"))
+        self.put(root, "AGENTS.md", "Project instructions for Arckeep and Grok Bot.\n")
+        self.cli("check-core", "--root", root)
+
+        template = root / ".agent-project-ops/templates/AGENTS.md"
+        original = template.read_bytes()
+        template.write_bytes(original + b"Arckeep and Grok Bot\n")
+        rejected = self.cli("check-core", "--root", root, ok=False)
+        self.assertIn("external tool name in core:", rejected.stderr)
+        self.assertIn("AGENTS.md", rejected.stderr)
+        template.write_bytes(original)
+
+        self.put(root, "CLAUDE.md", "@AGENTS.md\nExtra project rule\n")
+        rejected = self.cli("check-core", "--root", root, ok=False)
+        self.assertIn("CLAUDE.md must contain only @AGENTS.md", rejected.stderr)
+
     def test_migration_preview_apply_repeat_and_binary_refusal(self):
         root = self.fixture("migration")
         claude = self.put(root, "CLAUDE.md", "@AGENTS.md\n\nKeep this project rule.\n保留中文规则。\n")

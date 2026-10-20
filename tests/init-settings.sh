@@ -54,12 +54,49 @@ for name, file in expected.items():
         assert bool((root / name).stat().st_mode & 0o111) == (file.mode == 0o755), name
 print('PASS: actual bootstrap files/content/modes equal selected-layout upgrade rendering')
 PY
-git -C "$tmp/generated" remote add origin https://github.com/example/generated.git
+git -C "$tmp/generated" remote add origin git@github.com:example/generated.git
+# Exercise native git push and its installed pre-push hook without a network.
+# The test-only SSH transport connects canonical GitHub URLs to this local bare.
+git init --bare -q --initial-branch=main "$tmp/push-target.git"
+cat > "$tmp/fake-ssh.sh" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+command="${*: -1}"
+case "$command" in
+  git-receive-pack\ *) exec git-receive-pack "$APO_TEST_BARE" ;;
+  *) echo 'unexpected test SSH command' >&2; exit 2 ;;
+esac
+SH
 (
   cd "$tmp/generated"
-  bash .githooks/pre-push origin https://github.com/example/generated.git </dev/null
+  export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1
+  export APO_TEST_BARE="$tmp/push-target.git"
+  export GIT_SSH_COMMAND="bash '$tmp/fake-ssh.sh'" GIT_SSH_VARIANT=ssh
+  git config user.name apo-test
+  git config user.email apo-test@example.invalid
+  printf '\nProject rules for selected Arckeep and Grok Bot integrations.\n' >> AGENTS.md
+  git add AGENTS.md
+  git commit -qm 'fixture: selected tools in project rules'
+  git push origin HEAD:refs/heads/fixture/selected-tools
+  test "$(git --git-dir="$APO_TEST_BARE" rev-parse refs/heads/fixture/selected-tools)" = "$(git rev-parse HEAD)"
+  echo 'PASS: project AGENTS.md names selected tools and native git push succeeds'
+
+  cp .agent-project-ops/templates/AGENTS.md "$tmp/core-template.before"
+  printf '\nArckeep and Grok Bot\n' >> .agent-project-ops/templates/AGENTS.md
+  git add .agent-project-ops/templates/AGENTS.md
+  git commit -qm 'fixture: forbidden tool names in APO template'
+  if git push origin HEAD:refs/heads/fixture/rejected-core >"$tmp/core-hook.out" 2>&1; then
+    echo 'FAIL: native push accepted external tool names in APO core' >&2; exit 1
+  fi
+  grep -q 'external tool name in core:' "$tmp/core-hook.out"
+  if git --git-dir="$APO_TEST_BARE" show-ref --verify --quiet refs/heads/fixture/rejected-core; then
+    echo 'FAIL: rejected push changed the bare remote' >&2; exit 1
+  fi
+  cp "$tmp/core-template.before" .agent-project-ops/templates/AGENTS.md
+  echo 'PASS: the same names in the APO template still block native git push'
+
   printf 'extra rule\n' >> CLAUDE.md
-  if bash .githooks/pre-push origin https://github.com/example/generated.git </dev/null >"$tmp/hook.out" 2>&1; then
+  if bash .githooks/pre-push origin git@github.com:example/generated.git </dev/null >"$tmp/hook.out" 2>&1; then
     echo 'FAIL: generated pre-push accepted a multiline CLAUDE.md' >&2; exit 1
   fi
   grep -q 'CLAUDE.md must contain only' "$tmp/hook.out"
