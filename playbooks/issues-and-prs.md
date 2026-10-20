@@ -21,7 +21,8 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
 1. **Choose the issue type**
    - Command Center: one per repo (index, roster, policy).
    - Phase: one core problem; lifecycle in `phase-lifecycle.md`.
-   - Child task (optional): small implementable slice under a Phase; still one PR.
+   - Task: use [task sheet](../templates/ISSUE_TEMPLATE/task.md) for a standard
+     Phase child task or a light standalone task; still one PR per task.
    - Architecture Exception: frozen-contract change request.
 2. **Status label (exactly one):**
    - `status:backlog` — not started
@@ -36,12 +37,20 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    - Label PR `pr:implementation`. Do not add product-only labels from a business SOP pack.
 5. **Attach evidence** to the task PR or Issue. A separate `evidence/{issue}-{slug}` PR with the optional evidence template/label is available when useful; it is not required.
 6. **Comments are the log.** Status changes get a one-line reason. Paste command output **summaries** that matter; do not dump secrets.
+   Use [claim/start](../templates/task-claim.md) and
+   [completion](../templates/task-completion.md) comments. Agent names are plain
+   text; claim/start comments must not mention Agents. CLAIM leaves backlog;
+   verified START moves to in-progress; completion moves to verification.
 7. **CC §1 on every status/gate change.** Same turn: rewrite Command Center section 1 and keep exactly one Phase `status:*` label. [ ] **CC §1 updated**. If CC cannot be edited → `BLOCKED:` on GitHub, not chat-only.
 8. **Required checks before merge-ask.** Inspect the project's actual mandatory CI, code-review and acceptance conditions for the current PR SHA.
    1. If CI or reviewer gates are required, obtain their actual results before requesting a merge. Missing or failed mandatory checks are blockers.
    2. An additional review tool may be used only when it belongs to that project's own policy; generic APO does not install or wake a vendor-specific bot.
    3. Summarize completed, pending and failed checks. CI, automated review and PR merge do **not** constitute `PHASE ACCEPT`.
-9. **Close rules.** Close tasks when their PR is merged **and** the Phase still owns Accept. Close Phase only after `PHASE ACCEPT` or documented supersede. Closing a PR ≠ closing a Phase.
+9. **Close rules.** A standard child task may close after its PR merges and a
+   different lead accepts the task; the Phase still owns human final acceptance.
+   A lead's own task and light standalone tasks wait for the disposer's final
+   acceptance to cover them. Close Phase only after human final acceptance or
+   documented supersede. Closing a PR alone does not close or accept a task/Phase.
 
 ## Done when
 

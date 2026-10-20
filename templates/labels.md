@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | `type:command-center` | `1D76DB` | 项目总控台 |
 | `type:phase` | `0052CC` | 解决一个核心问题的阶段 |
-| `type:task` | `006B75` | 阶段下的子任务（可选） |
+| `type:task` | `006B75` | 标准档的阶段子任务，或轻量档的独立任务 |
 | `type:exception` | `B60205` | 已冻结合同的例外申请 |
 | `type:docs` | `C5DEF5` | 文档改动事项 |
 

@@ -7,7 +7,7 @@ Move a Phase from idea to **CLOSED** with a frozen contract, isolated implementa
 **Process mode** (`PRINCIPLES.md` §0; `process_mode` in `.agent-project-ops/project-config`, unrecorded = `standard`):
 
 - `standard`: the steps below run once per Phase.
-- `light`: there are no Phase issues. Each task issue (same template, label `type:task`) carries its own contract and runs steps 1–3. Step 4's final acceptance runs once before each release, in one request of type `最终验收+发布` that lists every task since the last release (a project that never releases asks when all confirmed goals are done); step 5 then closes the tasks it covered.
+- `light`: there are no Phase issues. Each task uses the [task sheet](../templates/ISSUE_TEMPLATE/task.md), label `type:task`, carries its own contract and runs steps 1–3. Step 4's final acceptance runs once before each release, in one request of type `最终验收+发布` that lists every task since the last release (a project that never releases asks when all confirmed goals are done); step 5 then closes the tasks it covered.
 
 ## When
 
@@ -43,6 +43,10 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 ### 2. Implement / 实现
 
 1. One branch per task/PR, on the idle primary checkout or its own worktree (`playbooks/git-worktree.md`, `git-branch-and-remote.md`).
+   Use the task sheet plus [claim/start](../templates/task-claim.md) and
+   [completion](../templates/task-completion.md) records. CLAIM is not permission
+   to start; valid START needs frozen scope, required approval and actual baseline.
+   Agent identities in claim/start comments are plain text, never mentions.
 2. Implementation PRs use `templates/PULL_REQUEST_TEMPLATE/implementation.md`.
 3. Link `Closes` / `Refs` the Phase or child task issue.
 4. Do not “improve” frozen fields in the same PR. A change that hits §11, goes beyond the confirmed goal or loosens a confirmed acceptance test is an exception request (`playbooks/blocked-and-exceptions.md` B); anything else is a new `CONTRACT FREEZE` with a one-line diff note.
