@@ -223,9 +223,8 @@ def check_core(root: Path) -> None:
                          if (directory == "playbooks" and p.suffix == ".md")
                          or (directory == "skills" and p.name == "SKILL.md")
                          or (directory == "scripts" and p.suffix in (".sh", ".py")))
-    for name in ("AGENTS.md", "CLAUDE.md"):
-        if (root / name).exists():
-            files.add(root / name)
+    # Only APO-owned source files participate in the name boundary. Project
+    # instructions may name selected tools; the root bridge is checked below.
     names = [name.casefold() for key, item in data["external_tools"].items()
              for name in [key, item["label"], *item["names"]]]
     for file in sorted(files):
