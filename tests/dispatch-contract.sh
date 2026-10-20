@@ -86,6 +86,87 @@ for name in ('playbooks/staff-and-dispatch.md', 'skills/github-multi-agent-proje
     assert 'task-claim.md' in text and 'task-completion.md' in text, name
 for name in ('github-multi-agent-project-ops', 'github-multi-agent-task-executor'):
     assert re.search(r'^name: ' + re.escape(name) + r'$', read(f'skills/{name}/SKILL.md'), re.M)
+
+# A completion report is not acceptance: definitions and actual close steps must agree.
+close_steps = {
+    'playbooks/issues-and-prs.md': ('9. **Close rules.**', '## Done when'),
+    'playbooks/staff-and-dispatch.md': ('5. **Completion and handoff:**', '6. **Recall:**'),
+    'skills/github-multi-agent-project-ops/SKILL.md': ('4. Completion is verification', '5. After authorized merge'),
+    'playbooks/phase-lifecycle.md': ('7. The lead Agent reviews', '8. After each PR'),
+}
+done_files = (*close_steps, 'templates/labels.md', 'templates/ISSUE_TEMPLATE/task.md',
+              'templates/task-completion.md', 'skills/github-multi-agent-task-executor/SKILL.md')
+done_docs = {name: read(name) for name in done_files}
+compact = lambda text: re.sub(r'\s+', ' ', text)
+
+def check_done_contract(docs):
+    glossary = next(line for line in docs['playbooks/issues-and-prs.md'].splitlines()
+                    if line.startswith('   - `status:done`'))
+    for term in ('standard child task', 'non-implementing lead', 'after PR merge',
+                 'light task', 'disposer final acceptance', 'explicit cancel'):
+        assert term in glossary, ('done glossary', term)
+    labels = next(line for line in docs['templates/labels.md'].splitlines()
+                  if line.startswith('| `status:done`'))
+    for term in ('standard 子任务', 'PR 合并', '非实现者', '自己实现', 'light',
+                 '拍板人最终验收', '明确取消', '移除旧状态', '关闭', 'Phase/发布取消须拍板人明确授权'):
+        assert term in labels, ('done label', term)
+    for name, (start, end) in close_steps.items():
+        step = compact(docs[name].split(start, 1)[1].split(end, 1)[0])
+        standard, holding = step.split('Tasks implemented by the lead', 1)
+        for term in ('standard child task', 'implemented by an executor', 'after PR merge', 'non-implementing lead',
+                     'remove its previous status', 'set `status:done` and close'):
+            assert term in standard, (name, 'standard path', term)
+        for term in ('light tasks', 'Phases and releases',
+                     '`status:verification`', 'until covered by disposer final acceptance',
+                     'Light tasks close after release final acceptance', 'explicit cancel',
+                     'In light, lead review and PR merge do not constitute task acceptance',
+                     "Phase/release cancellation always requires the disposer's explicit authorization"):
+            assert term in holding, (name, 'human/cancel path', term)
+    lifecycle = compact(docs['playbooks/phase-lifecycle.md'].split('### 5. CLOSED', 1)[1])
+    assert 'In light mode' in lifecycle and 'after release final acceptance' in lifecycle
+    assert "Phase/release cancellation always requires the disposer's explicit authorization" in lifecycle
+    for name in ('templates/ISSUE_TEMPLATE/task.md', 'templates/task-completion.md'):
+        for term in ('standard 子任务', 'PR 合并', '非实现者', '`status:done`',
+                     '移除旧状态', 'light 任务等发布最终验收后关闭', '明确取消', 'Phase/发布取消须拍板人明确授权',
+                     '技术复核和 PR 合并不构成单独的任务验收'):
+            assert term in docs[name], (name, term)
+    executor = compact(docs['skills/github-multi-agent-task-executor/SKILL.md'])
+    for term in ('standard child task', 'non-implementing lead', '`status:done`',
+                 'close it', 'Light tasks close after release final acceptance',
+                 'An executor does not close its own task',
+                 'In light, lead review and PR merge do not constitute task acceptance',
+                 "Phase/release cancellation always requires the disposer's explicit authorization"):
+        assert term in executor, ('executor', term)
+
+check_done_contract(done_docs)
+mutations = [('playbooks/issues-and-prs.md', re.sub(
+    r'^   - `status:done`.*$', '   - `status:done` — disposer finished (Accept or explicit cancel)',
+    done_docs['playbooks/issues-and-prs.md'], flags=re.M))]
+mutations.append(('templates/labels.md', done_docs['templates/labels.md'].replace('非实现者', '实现者')))
+for name in close_steps:
+    omitted, count = re.subn(r'set\s+`status:done`\s+and close', 'close', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, omitted))
+    premature, count = re.subn(r'Light tasks\s+close after release final\s+acceptance',
+                              'Light tasks close before release final acceptance', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, premature))
+    no_disposer, count = re.subn(r"Phase/release\s+cancellation always requires\s+the disposer's\s+explicit authorization",
+                                'Phase/release cancellation may be authorized by the lead', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, no_disposer))
+    premature_accept, count = re.subn(r'In light, lead review and PR merge do not\s+constitute task acceptance',
+                                     'In light, lead review and PR merge constitute task acceptance', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, premature_accept))
+for name, changed in mutations:
+    try:
+        check_done_contract(dict(done_docs, **{name: changed}))
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError(('contradictory done/close policy accepted', name))
+print('PASS: done/close policy agrees; old glossary, missing done, premature light closure and lead-only Phase cancellation rejected')
 print('PASS: three task formats, plain Agent identity, pending CLAIM and invalid START examples')
 PY
 tmp="$(mktemp -d)"

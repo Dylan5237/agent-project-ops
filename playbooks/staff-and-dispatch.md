@@ -59,8 +59,19 @@ Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides 
    facts and contract deviations. Set the task Issue verification and sync CC.
    A standard child task does not change its parent Phase label; the lead updates
    the Phase only when the Phase lifecycle actually changes. The executor
-   does not merge, close or self-accept. Another lead may accept a reviewed task;
-   a lead's own implementation waits for the disposer's final acceptance.
+   does not merge, close or self-accept. For a standard child task implemented by an executor, after PR merge
+   and acceptance by a non-implementing lead, remove its previous status, set
+   `status:done` and close the task. Tasks implemented by the lead, light tasks, Phases and
+   releases stay `status:verification` until covered by disposer final acceptance;
+   only then set `status:done` and close. Light tasks close after release final
+   acceptance covers them (or all confirmed goals are finally accepted if no release).
+   In light, lead review and PR merge do not constitute task acceptance. The
+   disposer's final acceptance covers task acceptance, followed immediately by
+   done/closure; there is no separate lead task-acceptance step.
+   An explicit cancel with recorded authorization/reason also sets `status:done`
+   and closes the item. Phase/release cancellation always requires the disposer's
+   explicit authorization; only eligible task cancellations may be authorized by
+   the lead. §11.8 still requires approval when cancellation changes a confirmed goal.
    For handoff, commit and push authorized work first (never stash; never leave mystery dirty trees), then comment `HANDOFF to <id>` with branch, working directory and head SHA. The lead reconciles the owner on the Issue before the next Agent claims it. If the next Agent works in a different place, `tidy-worktrees.sh --park <branch>` releases the folder and it resumes with `new-worktree.sh` (same issue, slug and kind; the owner may change).
 6. **Recall:** if scope drifts, the disposer or the lead Agent comments `STOP` or `RETURN TO BACKLOG`. The executing Agent commits and pushes, parks with `tidy-worktrees.sh --park <branch>` (branch kept, folder released), sets `status:backlog` or `blocked`, and updates CC §1. To abandon the task instead, close its PR and run `tidy-worktrees.sh --abandon <branch>` (archive tag first, then delete); that is the lead Agent's call unless dropping the task changes a confirmed goal (§11 item 8 → ask the disposer). [ ] **CC §1 updated**
 7. **Parallelism:** the first task may use the idle primary checkout; every further concurrent task gets its own worktree, at most `max_worktrees` folders. Never stack two tasks in one directory. More tasks than slots ⇒ queue (step 4), never bypass the cap.
