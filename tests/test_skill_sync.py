@@ -161,6 +161,33 @@ class SyncTests(unittest.TestCase):
             result = subprocess.run([str(target)], capture_output=True, text=True)
             self.assertEqual(result.stdout.strip(), 'working')
 
+    def test_input_root_link_is_rejected_without_writes(self):
+        outer = tempfile.TemporaryDirectory()
+        self.addCleanup(outer.cleanup)
+        link = Path(outer.name)/'project-link'
+        if os.name == 'nt':
+            quote = lambda value: "'" + str(value).replace("'", "''") + "'"
+            command = f"New-Item -ItemType Junction -Path {quote(link)} -Target {quote(self.root)} -ErrorAction Stop | Out-Null"
+            subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command], check=True, capture_output=True)
+        else:
+            link.symlink_to(self.root, target_is_directory=True)
+        before = self.snapshot()
+        result = subprocess.run([sys.executable, str(SCRIPT), 'sync-skills', '--root', str(link)],
+                                capture_output=True, text=True, encoding='utf-8')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('links/reparse points', result.stderr)
+        self.assertEqual(before, self.snapshot())
+
+    @unittest.skipUnless(sys.platform == 'darwin', 'macOS system-alias contract')
+    def test_system_var_alias_accepts_ordinary_project_paths(self):
+        if not self.root.is_relative_to('/private/var'):
+            self.skipTest('temporary project is outside the system var alias')
+        alias = Path('/var')/self.root.relative_to('/private/var')
+        result = subprocess.run([sys.executable, str(SCRIPT), 'sync-skills', '--root', str(alias)],
+                                capture_output=True, text=True, encoding='utf-8')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('PREVIEW', result.stdout)
+
 
 if __name__ == '__main__':
     unittest.main()
