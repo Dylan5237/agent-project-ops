@@ -235,7 +235,7 @@ cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib
 # Only touch the new snapshot; never delete files from the method checkout.
 find .agent-project-ops -type d -name '__pycache__' -prune -exec rm -rf {} +
 find .agent-project-ops -type f -name '*.pyc' -delete
-chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/scan-inverted-sot.py .agent-project-ops/scripts/project-settings.py
+chmod +x .agent-project-ops/scripts/new-worktree.sh .agent-project-ops/scripts/tidy-worktrees.sh .agent-project-ops/scripts/install-hooks.sh .agent-project-ops/scripts/scan-inverted-sot.py .agent-project-ops/scripts/project-settings.py .agent-project-ops/scripts/project-automation.py
 
 cat > .agent-project-ops/PIN <<EOF
 url=${methodology_url}

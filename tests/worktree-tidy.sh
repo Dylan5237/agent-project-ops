@@ -411,7 +411,7 @@ for scenario in ff-fail ff-ok; do
   git -C "$tmp/$scenario-maint" push -q origin trunk
   if [[ "$scenario" == ff-fail ]]; then
     if bash "$tidy" --apply > "$tmp/$scenario.out" 2>&1; then fail 'divergent primary silently succeeded'; fi
-    grep -Fq 'fast-forward failed' "$tmp/$scenario.out" || fail 'missing explicit fast-forward error'
+    grep -Fq 'fast-forward failed' "$tmp/$scenario.out" || fail "missing explicit fast-forward error: $(cat "$tmp/$scenario.out")"
     grep -Fq 'failed=1' "$tmp/$scenario.out" || fail 'fast-forward failure missing from summary'
     [[ "$(git rev-parse "refs/heads/feat/106-$scenario")" == "$tip" ]] || fail 'failed retirement lost task ref'
     [[ "$(git show trunk:local-only.txt)" == local-only ]] || fail 'failed retirement lost local mainline work'
