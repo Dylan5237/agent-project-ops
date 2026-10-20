@@ -1,0 +1,45 @@
+name: automation-contract
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/project-automation.py'
+      - 'scripts/project-settings.py'
+      - 'scripts/lib/url-guard.sh'
+      - 'tests/test_project_automation.py'
+      - 'tests/test_skill_sync.py'
+      - 'playbooks/automation.md'
+      - '.github/workflows/automation-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/project-automation.py'
+      - 'scripts/project-settings.py'
+      - 'scripts/lib/url-guard.sh'
+      - 'tests/test_project_automation.py'
+      - 'tests/test_skill_sync.py'
+      - 'playbooks/automation.md'
+      - '.github/workflows/automation-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  behavior:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Status generation, dispatch scope and reversible skill sync
+        run: |
+          python tests/test_project_automation.py -v
+          python tests/test_skill_sync.py -v

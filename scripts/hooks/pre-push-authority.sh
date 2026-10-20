@@ -9,7 +9,6 @@ set -euo pipefail
 remote_name="${1:-}"
 remote_url="${2:-}"
 zero="0000000000000000000000000000000000000000"
-default_branch="${APO_DEFAULT_BRANCH:-main}"
 
 root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 [[ -n "${root}" ]] || { echo "agent-project-ops hook: cannot resolve repository root" >&2; exit 1; }
@@ -53,6 +52,27 @@ push_identity="$(github_repo_identity "$remote_url")" || \
 [[ "$push_identity" == "$origin_identity" ]] || \
   deny "actual push destination differs from the GitHub origin repository"
 
+# Query the real authority, not a possibly stale local origin/HEAD or an
+# environment override. Include heads in the same successful advertisement so
+# an unreachable/ambiguous repository cannot be mistaken for an empty one.
+advertisement="$(git ls-remote --symref origin HEAD 'refs/heads/*')" || \
+  deny "cannot query origin default branch; no push allowed"
+default_branch="$(printf '%s\n' "$advertisement" | awk '$1=="ref:" && $3=="HEAD" {sub(/^refs\/heads\//,"",$2); print $2}')"
+initial=0
+heads="$(printf '%s\n' "$advertisement" | awk '$1 ~ /^[0-9a-f]+$/ && $2 ~ /^refs\/heads\// {print $2}')"
+if [[ -z "$heads" ]]; then
+  # There is no default branch yet. Only an explicit bootstrap declaration may
+  # create the first branch; this value never overrides a real remote HEAD.
+  default_branch="${APO_INITIAL_BRANCH:-}"
+  [[ -n "$default_branch" ]] || deny "empty origin: explicit APO_INITIAL_BRANCH required for first push"
+  initial=1
+else
+  [[ -n "$default_branch" ]] || deny "origin has branches but its default HEAD is unknown; repair the remote default branch"
+  printf '%s\n' "$heads" | grep -Fxq "refs/heads/$default_branch" || deny "origin default HEAD does not name an advertised branch"
+fi
+git check-ref-format "refs/heads/$default_branch" >/dev/null 2>&1 || deny "invalid origin default branch"
+[[ "$default_branch" != *$'\n'* ]] || deny "ambiguous origin default branch"
+
 # Selected-layout repositories verify the generated bindings on every push.
 # The methodology's self-dogfood checkout has no vendored descriptor.
 if [[ -f "$root/.agent-project-ops/templates/project-options.json" || -f "$root/.agent-project-ops/scripts/project-settings.py" ]]; then
@@ -65,6 +85,9 @@ fi
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   [[ -z "${local_ref:-}" ]] && continue
+  if [[ "$initial" -eq 1 && "$remote_ref" != "refs/heads/$default_branch" ]]; then
+    deny "empty origin: first push must create declared initial branch $default_branch"
+  fi
 
   # Default branch deletion is forbidden on every registered remote.
   if [[ "${local_sha}" == "${zero}" ]]; then
@@ -77,7 +100,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   # Topic branches may be pushed to origin. Bootstrap may create the authority
   # default branch once; later direct updates must go through PRs.
   if [[ "${remote_ref}" == "refs/heads/${default_branch}" ]]; then
-    if [[ "${remote_sha}" == "${zero}" ]]; then
+    if [[ "$initial" -eq 1 && "${remote_sha}" == "${zero}" ]]; then
       continue
     fi
     deny "direct push to ${default_branch} on authority '${authority}' is forbidden; open a PR"

@@ -38,6 +38,7 @@ Agent 应核实最新**已发布稳定版**，再根据项目现状选择初始�
 - [升级已有项目](./docs/UPGRADE.md)
 - [核心原则](./PRINCIPLES.md)
 - [工作流程](./playbooks/)
+- [状态生成、派发检查与技能副本同步](./playbooks/automation.md)（当前主线，尚未发布）
 - [Agent 技能](./skills/)
 - [模板](./templates/)
 - [历史决策](./docs/adr/README.md)、[历史提案](./docs/rfcs/README.md)、[研究记录](./docs/research/README.md)、[验证证据](./docs/evidence/)

@@ -82,6 +82,11 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 If blocked at any step: `playbooks/blocked-and-exceptions.md`. Do not skip the freeze or the final acceptance. Blocked also updates CC §1.
 
+Generate CC section 1 using the status preview/apply command described in
+[automation](automation.md), after recording the real Issue labels and decisions.
+Do not infer final acceptance. In any GitHub comment, including human quotations,
+rewrite Agent/bot mentions as “at name” and note the safe rewrite.
+
 ## Done when
 
 - [ ] The freeze carries a `大改动检查` line; on a hit, the start confirmation was approved (legacy `FREEZE ACK` counts).

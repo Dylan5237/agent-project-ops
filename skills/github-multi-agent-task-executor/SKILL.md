@@ -43,7 +43,10 @@ Loading this skill only reads instructions; it does not claim work or start it.
    [worktree workflow](../../playbooks/git-worktree.md). No implementation branch
    before a valid freeze/approval. Do not alter worktree limits or take a dirty
    checkout. Run `git -C "<workdir>" rev-parse HEAD` for the actual SHA, not a
-   base ref. Record START with real values; then task Issue in-progress and CC section 1.
+   base ref. Verify the task's actual `apo-file-scope v1` declarations and rerun
+   `project-automation.py dispatch-check --task <number>` before START. Conflict
+   or unknown scope stops affected work; ask the lead to sequence/reconcile.
+   Record START with real values; then task Issue in-progress and CC section 1.
 4. Implement only the task scope, preserve unrelated work and run its acceptance
    checks. Push only to GitHub origin under the current authorization; a task
    assignment is not permission for an otherwise unapproved external action.
@@ -68,6 +71,9 @@ For handoff, preserve and push authorized work first, record branch, workdir,
 HEAD and remaining tests, then follow the existing park/resume workflow. The
 lead must explicitly reconcile ownership before another executor takes over.
 GitHub comments are durable records, not a mechanism for launching another Agent.
+Quoted human text in any GitHub comment must also rewrite Agent/bot mentions as
+“at name”, noting the safe rewrite. See [automation](../../playbooks/automation.md)
+for CC preview/apply and dispatch checks.
 
 For a standard child task implemented by an executor, after PR merge a non-implementing lead may accept it,
 replace the previous status with `status:done` and close it. A lead's own task,

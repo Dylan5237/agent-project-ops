@@ -18,7 +18,7 @@ Inspect the **current project** before writing. A new/empty project follows this
 
 Read [PRINCIPLES.md](../../PRINCIPLES.md) first. This skill creates and binds a repository; it does not Freeze product scope, implement features, or Accept phases.
 
-Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post-audit hardening contract](../../docs/rfcs/0001-bootstrap-and-binding-hardening-contract.md). Free-private C posture: [ADR 0004](../../docs/adr/0004-free-private-capability-c.md).
+Current initialization procedure: [bootstrap playbook](../../playbooks/bootstrap-project.md). Binding and safety contract: [PRINCIPLES](../../PRINCIPLES.md). Free-private C posture: [protection steps](../../playbooks/bootstrap-project.md#steps). These references are included in the pinned project snapshot.
 
 ## Required path
 
@@ -28,6 +28,9 @@ Design: [RFC 0001](../../docs/rfcs/0001-bootstrap-and-binding.md) plus its [post
 4. Run `scripts/bootstrap-project.sh --dry-run ...` first when environment behavior is uncertain, then the real command.
 5. After scaffold, verify PIN contains a real SHA, remotes records authority=origin, and project-config / Command Center record all three choices. .agents/skills is the canonical source; selected hosts get identical full-tree copies. WorkBuddy uses .codebuddy/skills and AGENTS.md in Craft mode; Ask was not verified. CLAUDE.md must contain only @AGENTS.md. Run the installed project-settings.py check and check-core; the generated pre-push repeats these checks. Optional integration instructions are copied only when selected and never connect accounts or services.
 6. Verify `git config --get core.hooksPath` is `.githooks` in the bootstrap checkout. Remember a later clone will not inherit it; root `AGENTS.md` instructs the next Agent to run the installer.
+   After editing canonical project skills, use `project-settings.py sync-skills`
+   to preview selected-host copies; inspect differences, then explicitly apply
+   with the matching plan_id. See [automation](../../playbooks/automation.md).
 7. If GitHub creation is enabled, read the reported protection capability: A (code-owner review enforced), B (PR-only), or C (unprotected/unverifiable). Never upgrade the wording beyond what was verified. On GitHub Free **private** repos, C is **expected**: record C on Command Center and continue. Do not treat C as init failure or “do not start feature work.” Do not require Pro to finish init.
 8. Run `playbooks/start-project.md` next (labels, Command Center, first Phase). No `feat/` / `fix/` implementation before Freeze.
 

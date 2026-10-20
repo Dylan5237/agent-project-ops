@@ -256,11 +256,14 @@ retire_branch() { # branch tip reason (uses v_head)
 }
 switch_primary() {
   if g show-ref --verify --quiet "refs/heads/$default_name"; then
-    g switch --quiet "$default_name"
+    g switch --quiet "$default_name" || return 1
   else
-    g switch --quiet -c "$default_name" --track "origin/$default_name"
+    g switch --quiet -c "$default_name" --track "origin/$default_name" || return 1
   fi
-  g merge --ff-only --quiet "refs/remotes/origin/$default_name" >/dev/null 2>&1 || true
+  if ! g merge --ff-only --quiet "refs/remotes/origin/$default_name"; then
+    echo "fast-forward failed: primary checkout $default_name -> origin/$default_name; task branch preserved; reconcile the mainline before retrying" >&2
+    return 1
+  fi
 }
 release_checkout() { # path reason
   local dirty label

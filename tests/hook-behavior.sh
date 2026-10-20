@@ -41,7 +41,9 @@ set -euo pipefail
 command="${*: -1}"
 case "$command" in
   git-receive-pack\ *) exec git-receive-pack "$APO_TEST_BARE" ;;
-  git-upload-pack\ *) exec git-upload-pack "$APO_TEST_BARE" ;;
+  git-upload-pack\ *)
+    [[ "${APO_TEST_UPLOAD_FAIL:-0}" != 1 ]] || exit 1
+    exec git-upload-pack "$APO_TEST_BARE" ;;
   *) echo 'unexpected test SSH command' >&2; exit 2 ;;
 esac
 EOF
@@ -75,7 +77,9 @@ done
 
 # Bootstrap may create the authority default branch once. The same commit must
 # then be fetched before checking the direct-update rule.
-expect_allow 'initial main -> origin' git push -u origin main
+expect_deny 'empty origin requires explicit first branch' git push -u origin main
+expect_deny 'empty origin rejects undeclared topic' env APO_INITIAL_BRANCH=trunk git push origin main
+expect_allow 'initial main -> origin' env APO_INITIAL_BRANCH=main git push -u origin main
 git fetch -q origin main
 base_tip="$(git rev-parse refs/remotes/origin/main)"
 
@@ -131,6 +135,39 @@ done
 
 # The hook preserves the default-branch deletion prohibition.
 expect_deny 'delete main -> origin' git push origin :refs/heads/main
+
+# Remote HEAD is authoritative even when local origin/HEAD and an old override
+# disagree. The old main is now an ordinary branch; trunk is protected instead.
+git --git-dir="$APO_TEST_BARE" update-ref refs/heads/trunk "$base_tip"
+git --git-dir="$APO_TEST_BARE" symbolic-ref HEAD refs/heads/trunk
+git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/main
+expect_deny 'real trunk update despite stale local HEAD and override' env APO_DEFAULT_BRANCH=main git push origin HEAD:refs/heads/trunk
+expect_deny 'delete real trunk default' git push origin :refs/heads/trunk
+expect_allow 'old main is now a topic branch' git push origin HEAD:refs/heads/main
+expect_deny 'remote HEAD query failure fails closed' env APO_TEST_UPLOAD_FAIL=1 git push origin HEAD:refs/heads/feat/unverified
+if git --git-dir="$APO_TEST_BARE" show-ref --verify --quiet refs/heads/feat/unverified; then bad 'failed query changed remote'; fi
+git --git-dir="$APO_TEST_BARE" symbolic-ref HEAD refs/heads/missing
+expect_deny 'existing heads with missing default fail closed' env APO_INITIAL_BRANCH=main git push origin HEAD:refs/heads/feat/ambiguous
+git --git-dir="$APO_TEST_BARE" symbolic-ref HEAD refs/heads/trunk
+
+# Test unusual successful advertisements at the native hook process boundary.
+# This wrapper affects only ls-remote, delegating all other Git commands.
+real_git="$(command -v git)"
+mkdir -p "$tmp/bin"
+cat > "$tmp/bin/git" <<'SH'
+#!/usr/bin/env bash
+if [[ "$1" == ls-remote ]]; then printf '%s\n' "$APO_TEST_ADVERTISEMENT"; exit 0; fi
+exec "$APO_TEST_REAL_GIT" "$@"
+SH
+chmod +x "$tmp/bin/git"
+export APO_TEST_REAL_GIT="$real_git"
+hook_default_create() { printf 'refs/heads/trunk %s refs/heads/trunk %s\n' "$(git rev-parse HEAD)" "$zero" | bash .githooks/pre-push origin git@github.com:example/origin.git; }
+export APO_TEST_ADVERTISEMENT=$'ref: refs/heads/trunk\tHEAD'
+expect_deny 'empty heads plus HEAD symref still requires initial declaration' env PATH="$tmp/bin:$PATH" bash -c 'printf "refs/heads/main %s refs/heads/main %s\n" "$(git rev-parse HEAD)" 0000000000000000000000000000000000000000 | bash .githooks/pre-push origin git@github.com:example/origin.git'
+export APO_TEST_ADVERTISEMENT=$'ref: refs/heads/trunk\tHEAD\n'"$base_tip"$'\trefs/heads/trunk'
+saved_path="$PATH"; export PATH="$tmp/bin:$PATH"
+expect_deny 'noninitial default creation is forbidden' hook_default_create
+export PATH="$saved_path"
 
 # A fresh clone receives the tracked hook but not local hooksPath configuration.
 cd "${tmp}"

@@ -54,6 +54,33 @@ for name, file in expected.items():
         assert bool((root / name).stat().st_mode & 0o111) == (file.mode == 0o755), name
 print('PASS: actual bootstrap files/content/modes equal selected-layout upgrade rendering')
 PY
+python3 - "$tmp/generated" <<'PY'
+from pathlib import Path
+import re, sys
+root=Path(sys.argv[1])
+skill=root/'.agent-project-ops/skills/bootstrap-project/SKILL.md'
+text=skill.read_text(encoding='utf-8')
+assert '../../docs/rfcs/' not in text and '../../docs/adr/' not in text
+links=re.findall(r'\[[^\]]+\]\(([^)]+)\)', text)
+for link in links:
+    if '://' in link: continue
+    target=(skill.parent/link.split('#')[0]).resolve()
+    assert target.is_file(), (link, target)
+assert (root/'.agent-project-ops/scripts/project-automation.py').is_file()
+wrapper=root/'.agents/skills/bootstrap-project/SKILL.md'
+target=re.search(r'\]\(([^)]+)\)', wrapper.read_text(encoding='utf-8'))[1]
+assert (wrapper.parent/target).resolve()==skill.resolve()
+print('PASS: real generated bootstrap skill links and wrapper resolve')
+PY
+printf 'project-local skill note\n' > "$tmp/generated/.agents/skills/bootstrap-project/project-note.txt"
+sync="$tmp/generated/.agent-project-ops/scripts/project-settings.py"
+python3 "$sync" sync-skills --root "$tmp/generated" > "$tmp/sync-preview.txt"
+test ! -e "$tmp/generated/.claude/skills/bootstrap-project/project-note.txt"
+plan_id="$(sed -n 's/^plan_id=//p' "$tmp/sync-preview.txt" | tr -d '\r')"
+python3 "$sync" sync-skills --root "$tmp/generated" --apply --expect-plan "$plan_id" > "$tmp/sync-apply.txt"
+python3 "$sync" check --root "$tmp/generated"
+cmp "$tmp/generated/.agents/skills/bootstrap-project/project-note.txt" "$tmp/generated/.claude/skills/bootstrap-project/project-note.txt"
+cmp "$tmp/generated/.agents/skills/bootstrap-project/project-note.txt" "$tmp/generated/.codebuddy/skills/bootstrap-project/project-note.txt"
 git -C "$tmp/generated" remote add origin git@github.com:example/generated.git
 # Exercise native git push and its installed pre-push hook without a network.
 # The test-only SSH transport connects canonical GitHub URLs to this local bare.
@@ -64,6 +91,7 @@ set -euo pipefail
 command="${*: -1}"
 case "$command" in
   git-receive-pack\ *) exec git-receive-pack "$APO_TEST_BARE" ;;
+  git-upload-pack\ *) exec git-upload-pack "$APO_TEST_BARE" ;;
   *) echo 'unexpected test SSH command' >&2; exit 2 ;;
 esac
 SH
@@ -74,6 +102,7 @@ SH
   export GIT_SSH_COMMAND="bash '$tmp/fake-ssh.sh'" GIT_SSH_VARIANT=ssh
   git config user.name apo-test
   git config user.email apo-test@example.invalid
+  APO_INITIAL_BRANCH=main git push origin HEAD:refs/heads/main
   printf '\nProject rules for selected Arckeep and Grok Bot integrations.\n' >> AGENTS.md
   git add AGENTS.md
   git commit -qm 'fixture: selected tools in project rules'

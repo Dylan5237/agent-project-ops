@@ -229,6 +229,7 @@ cp "${METHODOLOGY_ROOT}/scripts/tidy-worktrees.sh" .agent-project-ops/scripts/ti
 cp "${METHODOLOGY_ROOT}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 cp "${METHODOLOGY_ROOT}/scripts/scan-inverted-sot.py" .agent-project-ops/scripts/scan-inverted-sot.py
 cp "${METHODOLOGY_ROOT}/scripts/project-settings.py" .agent-project-ops/scripts/project-settings.py
+cp "${METHODOLOGY_ROOT}/scripts/project-automation.py" .agent-project-ops/scripts/project-automation.py
 cp "${METHODOLOGY_ROOT}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 # Remove transient Python bytecode that may have been produced by prior tests.
 # Only touch the new snapshot; never delete files from the method checkout.
@@ -325,7 +326,7 @@ fi
 
 vis_flag="--private"
 [[ "${visibility}" == "public" ]] && vis_flag="--public"
-gh repo create "${github_repo}" "${vis_flag}" --source=. --remote=origin --push --description "Project bound to agent-project-ops"
+APO_INITIAL_BRANCH="$(git symbolic-ref --short HEAD)" gh repo create "${github_repo}" "${vis_flag}" --source=. --remote=origin --push --description "Project bound to agent-project-ops"
 log "created GitHub authority: ${github_repo} (${visibility})"
 gh repo edit "${github_repo}" --enable-issues=true >/dev/null 2>&1 || true
 if gh repo edit "${github_repo}" --delete-branch-on-merge >/dev/null 2>&1; then
