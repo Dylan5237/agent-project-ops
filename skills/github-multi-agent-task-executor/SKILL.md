@@ -36,6 +36,8 @@ Loading this skill only reads instructions; it does not claim work or start it.
    plain text, such as `owner: Codex`; never prefix Agent names with an at sign
    in claim or start comments. A CLAIM is only ownership registration, not
    permission to implement; missing workspace values stay explicitly unassigned.
+   Keep field names and literal values exactly as the template defines them;
+   normalize input language without translating the comment's protocol values.
 3. Before START, verify the freeze, required approval, dependencies and owner.
    Obtain the actual workspace, branch and base SHA through the existing
    [worktree workflow](../../playbooks/git-worktree.md). No implementation branch

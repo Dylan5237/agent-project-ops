@@ -22,6 +22,8 @@ Use exactly the [task sheet](../../templates/ISSUE_TEMPLATE/task.md),
 [completion report](../../templates/task-completion.md) as the shared handoff.
 Keep the existing lead entry name; these links are the shared contract, not a
 second process or control plane.
+Keep field names and the template's literal values exactly; normalize translated
+input facts to those values rather than inventing equivalent status spellings.
 
 1. Create a bounded task with inputs/dependencies, allowed files, non-goals,
    acceptance tests and stop rules. In standard link its parent Phase; light

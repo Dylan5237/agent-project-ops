@@ -39,23 +39,32 @@ def conform(comment):
     assert all(fields.values()) and '{{' not in comment
     assert not re.search(r'(?<!\w)@[A-Za-z]', comment)
     assert fields['action'] in ('CLAIM', 'START')
+    assert fields['phase'] == '无' or re.fullmatch(r'#[0-9]+', fields['phase'])
+    assert fields['major_change'] == '无' or re.match(r'命中第 [0-9、]+ 条', fields['major_change'])
+    approval = fields['start_approval']
+    assert approval in ('不需要', '等待') or approval.startswith('https://')
+    if fields['major_change'] == '无':
+        assert approval == '不需要'
     if fields['action'] == 'START':
         assert all(fields[k] not in ('待分配', '等待') for k in ('workdir', 'branch', 'head', 'start_approval'))
         assert re.fullmatch('[0-9a-f]{40}', fields['head'])
         if fields['major_change'] != '无':
-            assert fields['start_approval'] != '不需要'
+            assert approval.startswith('https://')
     return fields
 for agent in ('Codex', 'Claude Code', 'WorkBuddy'):
     for action in ('CLAIM', 'START'):
         conform(render(claim, dict(values, AGENT_ID=agent, CLAIM_OR_START=action)))
 conform(render(claim, dict(values, CLAIM_OR_START='CLAIM', PHASE_ISSUE_OR_NONE='无',
+                          CHECK_RESULT='命中第 7 条',
                           ABSOLUTE_PATH_OR_PENDING='待分配', BRANCH_OR_PENDING='待分配',
                           HEAD_SHA_OR_PENDING='待分配', APPROVAL_URL_OR_NOT_REQUIRED_OR_PENDING='等待')))
 valid = render(claim, values)
 invalid = [valid.replace('owner: Codex', 'owner: ' + chr(64) + 'Codex'),
            valid.replace('owner: Codex\n', ''), valid + '\nowner: Other',
            valid.replace('/tmp/project', '待分配'), valid.replace('不需要', '等待'),
-           valid.replace('major_change: 无', 'major_change: 命中第 7 条')]
+           valid.replace('major_change: 无', 'major_change: 命中第 7 条'),
+           valid.replace('major_change: 无', 'major_change: none'),
+           valid.replace('不需要', 'not_required'), valid.replace('不需要', 'pending')]
 for bad in invalid:
     try:
         conform(bad)
