@@ -82,6 +82,12 @@ python3 .agent-project-ops/scripts/project-settings.py check --root .
 6. 检查当前 PR 提交对应的必需 CI 和审查条件。检查通过后可以按仓库规则合并；合并不代表最终验收。
 7. `standard` 标准档在每个阶段结束时提交固定格式的最终验收请求。`light` 轻量档在每次发布前与发布确认一并请求最终验收；项目没有发布时，在所有已确认目标完成后统一请求。拍板人回复后，Agent 如实记录结果；Agent 不得自行写 `批准 A` 或宣布 Phase PASS。
 
+## 任务派发和回报
+
+主 Agent 用[任务单](../templates/ISSUE_TEMPLATE/task.md)写清目标、范围和验收办法；执行 Agent 按[认领/开工格式](../templates/task-claim.md)核对合同和批准、记录真实工作区，再实施任务。[完成回报](../templates/task-completion.md)逐项列证据，交主 Agent 复核。认领不代表可以开工，回报不代表通过验收。Agent 名称写纯文本，不通过提及评论唤醒机器人。
+
+项目统筹使用 `github-multi-agent-project-ops`；只负责一个已分配任务时使用 `github-multi-agent-task-executor`。自己的实现不能自己验收，阶段最终验收仍由拍板人决定。
+
 ## GitHub 保护能力
 
 只报告实际核实的服务端保护能力：

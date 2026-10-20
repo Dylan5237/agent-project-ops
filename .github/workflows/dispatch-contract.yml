@@ -1,0 +1,39 @@
+name: dispatch-contract
+
+on:
+  pull_request:
+    paths:
+      - 'skills/github-multi-agent-project-ops/**'
+      - 'skills/github-multi-agent-task-executor/**'
+      - 'templates/ISSUE_TEMPLATE/task.md'
+      - 'templates/task-*.md'
+      - 'templates/AGENTS.md'
+      - 'playbooks/staff-and-dispatch.md'
+      - 'playbooks/phase-lifecycle.md'
+      - 'playbooks/issues-and-prs.md'
+      - 'tests/dispatch-contract.sh'
+      - '.github/workflows/dispatch-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/github-multi-agent-project-ops/**'
+      - 'skills/github-multi-agent-task-executor/**'
+      - 'templates/**'
+      - 'playbooks/staff-and-dispatch.md'
+      - 'playbooks/phase-lifecycle.md'
+      - 'playbooks/issues-and-prs.md'
+      - 'tests/dispatch-contract.sh'
+      - '.github/workflows/dispatch-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fixed task protocol and installed role skills
+        run: bash tests/dispatch-contract.sh

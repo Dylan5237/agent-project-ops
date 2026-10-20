@@ -1,0 +1,38 @@
+# 完成回报评论
+
+只复制代码块内正文，替换占位符并按任务验收项增减表格行。绑定最终 HEAD 和 PR，分别列出已验证、失败和未验证；没有证据时不能写通过。偏离合同先停下处理，不靠回报补授权。
+
+这是等待复核的交付，不是验收结论。回报后任务 Issue 保持 verification；普通子任务不直接改变父 Phase 标签。执行者不自行合并、关闭任务或验收；由另一位主 Agent 按实际检查复核。主 Agent 自己实现的任务，仍要等拍板人的最终验收覆盖。
+
+```markdown
+<!-- apo-task-completion v1 -->
+task: #{{TASK_ISSUE}}
+owner: {{AGENT_ID}}
+workdir: {{ABSOLUTE_PATH}}
+branch: {{BRANCH}}
+head: {{FINAL_HEAD_SHA}}
+pr: {{PR_URL}}
+status: verification
+
+## 实际改动
+
+{{CHANGES_AND_FILES}}
+
+## 验收证据
+
+| 验收项 | 实际结果 | 命令/步骤与证据链接 | 验证状态 |
+| --- | --- | --- | --- |
+| {{ACCEPTANCE_ITEM}} | {{OBSERVED_RESULT}} | {{EVIDENCE}} | 已验证 / 失败 / 未验证 |
+
+## 失败和未验证
+
+{{FAILED_OR_UNVERIFIED_OR_NONE}}
+
+## 合同偏差与阻塞
+
+{{DEVIATIONS_AND_BLOCKERS_OR_NONE}}
+
+## 下一步
+
+交主 Agent 复核当前 HEAD 的必需检查和证据；本评论不表示任务或 Phase 通过验收。
+```
