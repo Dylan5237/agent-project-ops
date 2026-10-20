@@ -106,8 +106,8 @@ class AutomationTests(unittest.TestCase):
     def test_latest_revision_only_and_first_line_markers(self):
         def request(rev):
             return {'body': f'<!-- apo-decision v1 | id: D-17 | rev: {rev} | type: 最终验收 | target: #20 | disposer: @human -->\n正文',
-                    'html_url': 'https://example.test/request/' + str(rev), 'created_at': '2026-01-01'}
-        result = {'body': '<!-- apo-decision-result v1 | id: D-17 | rev: 1 | result: 批准 A | reply: 对话 -->', 'created_at': '2026-01-02'}
+                    'html_url': 'https://example.test/request/' + str(rev), 'created_at': '2026-01-01', '_apo_issue': 20}
+        result = {'body': '<!-- apo-decision-result v1 | id: D-17 | rev: 1 | result: 批准 A | reply: 对话 -->', 'created_at': '2026-01-02', '_apo_issue': 20}
         self.assertEqual(a.pending_decisions([request(1), result], 20), '无')
         pending = a.pending_decisions([request(1), result, request(2)], 20)
         self.assertIn('rev 2', pending)
@@ -115,6 +115,17 @@ class AutomationTests(unittest.TestCase):
         quoted = request(3)
         quoted['body'] = '```markdown\n' + quoted['body'] + '\n```'
         self.assertEqual(a.pending_decisions([quoted], 20), '无')
+
+    def test_result_in_other_discussion_cannot_settle_request(self):
+        request = {'body': '<!-- apo-decision v1 | id: D-17 | rev: 1 | type: 最终验收 | target: #20 | disposer: @human -->',
+                   'html_url': 'https://example.test/request', 'created_at': '2026-01-01'}
+        result = {'body': '<!-- apo-decision-result v1 | id: D-17 | rev: 1 | result: 批准 A | reply: 对话 -->',
+                  'created_at': '2026-01-02'}
+        for request_thread, result_thread in ((10, 20), (20, 10)):
+            request['_apo_issue'], result['_apo_issue'] = request_thread, result_thread
+            self.assertIn('D-17 rev 1', a.pending_decisions([request, result], 20))
+        result['_apo_issue'] = request['_apo_issue']
+        self.assertEqual(a.pending_decisions([request, result], 20), '无')
 
     def test_dispatch_file_directory_case_and_segment_boundaries(self):
         self.gh.data['issues/30'] = issue(30, 'task', 'backlog', scope('file: src/auth/login.py'))

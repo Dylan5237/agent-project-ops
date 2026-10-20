@@ -94,6 +94,8 @@ def pending_decisions(records: list[dict], phase: int) -> str:
     for record in records:
         request = marker(record.get("body") or "", "apo-decision")
         result = marker(record.get("body") or "", "apo-decision-result")
+        if (request or result) and not isinstance(record.get("_apo_issue"), int):
+            raise Invalid("formal decision record has no source discussion")
         if request:
             targets = re.findall(r"#([0-9]+)", request.get("target", ""))
             if str(phase) not in targets:
@@ -104,12 +106,12 @@ def pending_decisions(records: list[dict], phase: int) -> str:
         if result:
             if result.get("result") not in ("批准 A", "改用 B", "退回", "撤回") or not result.get("reply"):
                 raise Invalid("invalid decision result marker")
-            results.setdefault((result["id"], result["rev"]), []).append(record)
+            results.setdefault((result["id"], result["rev"], record["_apo_issue"]), []).append(record)
     pending = []
     for ident, (request, record) in sorted(latest.items(), key=lambda pair: int(pair[0][2:])):
         # A result for an older revision never settles the latest request.
         settled = any(r.get("created_at", "") >= record.get("created_at", "")
-                      for r in results.get((ident, request["rev"]), []))
+                      for r in results.get((ident, request["rev"], record["_apo_issue"]), []))
         if not settled:
             pending.append(f'[{ident} rev {request["rev"]}]({record["html_url"]})（{request.get("type", "决定")}）')
     return "；".join(pending) or "无"
@@ -146,9 +148,10 @@ def status_plan(gh: GitHub, args):
         raise Invalid("target must have exactly one known status label")
     if (phase["state"] == "closed") != (labels[0] == "status:done"):
         raise Invalid("target state and status label disagree")
-    records = [cc, phase]
+    records = [{**cc, "_apo_issue": args.cc}, {**phase, "_apo_issue": args.phase}]
     for number in (args.cc, args.phase):
-        records += gh.api(f"issues/{number}/comments?per_page=100", pages=True)
+        records += [{**record, "_apo_issue": number}
+                    for record in gh.api(f"issues/{number}/comments?per_page=100", pages=True)]
     values = [f'#{args.phase} {phase["title"]}', words[labels[0]], pending_decisions(records, args.phase),
               args.recent, args.blocker, args.next_action, args.tidy]
     fields = ["当前工作", "状态", "待你决定", "最近完成", "卡点", "下一步", "收尾检查"]
