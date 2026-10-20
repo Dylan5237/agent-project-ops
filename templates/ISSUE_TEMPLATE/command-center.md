@@ -7,7 +7,7 @@ labels: "type:command-center, status:in-progress"
 
 ## 1. 一眼状态
 
-<!-- 每次阶段状态、冻结、阻塞、待验收或决策变化时，同步更新本表。无法更新时，在 GitHub 写明阻塞。 -->
+<!-- 每次门禁变化后，用 project-automation.py status 先预览，核对 plan_id 后 apply 生成第 1 节；详见快照 playbooks/automation.md。无法更新时，在 GitHub 写明阻塞。 -->
 
 | 项目 | 现在 |
 | --- | --- |

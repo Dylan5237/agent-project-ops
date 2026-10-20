@@ -29,6 +29,10 @@ input facts to those values rather than inventing equivalent status spellings.
    acceptance tests and stop rules. In standard link its parent Phase; light
    standalone tasks carry their own freeze. Earlier approval covers only the
    explicitly written scope, never a newly discovered major-change hit.
+   Declare actual file/dir paths in `apo-file-scope v1`; before dispatch/START,
+   run `project-automation.py dispatch-check --task <number>`. Conflict (3) or
+   unknown scope/API (2) stops affected dispatch until sequenced or reconciled.
+   Check same-batch candidates against each other. See [automation](../../playbooks/automation.md).
 2. Check existing claims/handoffs before assigning. For an unassigned task, CLAIM
    is a request: explicitly confirm the owner on the task and in the authorized
    host assignment before START. Assigned tasks require matching identities.
@@ -95,6 +99,8 @@ Keeping Command Center **section 1** current is **Agent work on every gate flip*
 **On every** gate flip / phase status change / Freeze / blocked / verification / Accept event, in the **same turn**:
 
 1. Update Command Center **section 1** (one-glance): current work, status word, pending decisions (“待你决定”), blockers, evidence pointers, **single Next Action**, latest `apo-tidy:` line.
+   Use `project-automation.py status` to preview from current GitHub state, inspect
+   the table, then apply with the matching plan_id; no hand-built status table.
 2. If this event is a Phase **status transition** (dispatch → `in-progress`, blocked, verification, Accept/`done`), update the Phase issue **status label** (`status:backlog` | `in-progress` | `blocked` | `verification` | `done`) and remove the previous status label. **Freeze ACK is not a status-label change** — leave the existing label (usually `status:backlog`) in place.
 3. Chat only pings humans to **look at GitHub**. Chat ≠ state.
 
@@ -105,6 +111,10 @@ Phase transition checklist (required checkbox):
 If the Agent **cannot** update Command Center (auth, permissions, read-only `gh`, API failure): fail closed. Comment `BLOCKED:` with the gap on the Phase (or a new Command Center draft) and set `status:blocked`. Do **not** leave the new state only in chat.
 
 Playbook copies: [phase-lifecycle.md](../../playbooks/phase-lifecycle.md), [staff-and-dispatch.md](../../playbooks/staff-and-dispatch.md).
+
+In every GitHub comment, including quoted human text, rewrite Agent/bot mentions
+as “at name” and note that the quote was safely rewritten. Keep human disposer
+identity fields and file-import syntax intact.
 
 ## Fail closed
 

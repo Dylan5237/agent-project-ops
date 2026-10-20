@@ -41,6 +41,12 @@ Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides 
    - Before creating an implementation branch, verify the task's frozen contract
      and re-check `PRINCIPLES.md` §11. A hit needs the covering approval; a new
      hit waits for its own confirmation while unaffected tasks go ahead.
+   - Declare actual file/dir paths in the task's `apo-file-scope v1` block. Run
+     `project-automation.py dispatch-check --task <number>` immediately before
+     dispatch/START; code 3 lists overlaps with other active tasks, code 2 means
+     unknown scope/API failure. Resolve by sequencing or reviewing scope first;
+     do not dispatch on an unknown/conflicting result. Check batch candidates
+     against each other too. See [automation](automation.md).
    - Only after that gate, run `new-worktree.sh` per git playbooks. It retires finished work first, then puts the task on the idle primary checkout or a new worktree. **Exit 3** = folder cap reached, nothing created: leave the Issue `status:backlog`, comment `QUEUED: folder cap (n/max)`, and dispatch it when a running task merges or is parked.
    - Use the [claim/start comment](../templates/task-claim.md). CLAIM registers
      ownership only and leaves backlog; it does not authorize implementation.
@@ -76,6 +82,11 @@ Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides 
 6. **Recall:** if scope drifts, the disposer or the lead Agent comments `STOP` or `RETURN TO BACKLOG`. The executing Agent commits and pushes, parks with `tidy-worktrees.sh --park <branch>` (branch kept, folder released), sets `status:backlog` or `blocked`, and updates CC §1. To abandon the task instead, close its PR and run `tidy-worktrees.sh --abandon <branch>` (archive tag first, then delete); that is the lead Agent's call unless dropping the task changes a confirmed goal (§11 item 8 → ask the disposer). [ ] **CC §1 updated**
 7. **Parallelism:** the first task may use the idle primary checkout; every further concurrent task gets its own worktree, at most `max_worktrees` folders. Never stack two tasks in one directory. More tasks than slots ⇒ queue (step 4), never bypass the cap.
 8. **After merge or close:** run `tidy-worktrees.sh --apply` and put its `apo-tidy:` line in the status report. Anything it keeps is listed with a reason; resolve `stale` entries or name their owner.
+
+Generate CC section 1 with `project-automation.py status`: preview, inspect the
+table, then apply the unchanged plan_id. Keep status/decision records on GitHub
+first; see [automation](automation.md). When quoting humans in any GitHub comment,
+rewrite Agent/bot mentions as “at name” and note the safe rewrite.
 
 ## Done when
 

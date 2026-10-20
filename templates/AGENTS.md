@@ -28,6 +28,9 @@ Project choices are recorded in .agent-project-ops/project-config. The canonical
 skill tree is .agents/skills; selected hosts receive checked copies. WorkBuddy's
 project rules and .codebuddy/skills were verified in Craft mode; Ask is not a
 verified project-governance entry. CLAUDE.md contains only the AGENTS.md import.
+After canonical skill edits, run `project-settings.py sync-skills` from the
+snapshot scripts: preview differences, then apply with the matching plan_id.
+See `.agent-project-ops/playbooks/automation.md` for synchronization and recovery.
 
 已选外部工具的接入说明在 `.agent-project-ops/integrations/`，用到前先读。
 
@@ -52,11 +55,12 @@ bash .agent-project-ops/scripts/install-hooks.sh
 
 Then check `git remote -v` against `.agent-project-ops/remotes`: only `origin` is supported. Preserve and report extra remotes or active legacy roles; do not push them or silently remove configuration.
 
-A missing client hook is **not** permission to push `main`. The hook is bypassable; server-side repository policy remains the stronger control.
+A missing client hook is **not** permission to push the default branch. The hook is bypassable; server-side repository policy remains the stronger control.
 
 ## Starting work
 
 - Lead project operations: `.agent-project-ops/skills/github-multi-agent-project-ops/SKILL.md`. Assigned task execution: `.agent-project-ops/skills/github-multi-agent-task-executor/SKILL.md`. Use the task sheet, task-claim and task-completion templates under `.agent-project-ops/templates/`; claim/start Agent identities are plain text, never mentions. CLAIM is not authorization to start; completion is not acceptance.
+- Before dispatch/START, declare actual task paths and run `project-automation.py dispatch-check`. Generate CC section 1 through its `status` preview/apply command. Both use `.agent-project-ops/scripts/`; see the automation playbook. In any GitHub comment, safely rewrite Agent/bot mentions in quotes as “at name” and note the rewrite.
 - No Command Center / first project setup: `.agent-project-ops/playbooks/start-project.md`
 - New task: use `.agent-project-ops/scripts/new-worktree.sh` and the worktree playbook. Resolve the base from project config or verified origin default; if ambiguous, ask with the Agent host's native choice tool, use plain conversation as fallback, and require `--base` in headless mode. Persist a project default only after explicit user choice and a normal PR. The helper retires finished work first; exit 3 means the folder cap is reached and nothing was created (queue the task or park one).
 - After a PR merges or closes, before each status report and before proposing acceptance: run `.agent-project-ops/scripts/tidy-worktrees.sh --apply` and quote its `apo-tidy:` line. Pause = commit + push + `--park <branch>`; abandon with `--abandon <branch>` (archives first) — the lead Agent's call unless dropping the task changes a confirmed goal (§11 item 8 → ask the disposer).

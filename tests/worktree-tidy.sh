@@ -390,4 +390,37 @@ grep -Fq 'cannot verify merge without gh' "$tmp/offline.txt" || fail "offline re
 grep -Fq 'apo-tidy: mode=apply gh=off' "$tmp/offline.txt" || fail "offline summary missing"
 unset FAKE_GH_OFFLINE
 
+# A failed primary fast-forward is an actual failed retirement, with task refs
+# preserved. Use trunk to exercise a non-main default throughout the path.
+for scenario in ff-fail ff-ok; do
+  fixture "$scenario"
+  git --git-dir="$tmp/$scenario.git" symbolic-ref HEAD refs/heads/trunk
+  git -C "$tmp/$scenario-maint" branch -m main trunk
+  git -C "$tmp/$scenario-maint" push -q origin trunk
+  cd "$tmp/$scenario"
+  git branch -m main trunk
+  git fetch -q origin
+  git symbolic-ref refs/remotes/origin/HEAD refs/remotes/origin/trunk
+  base="$(git rev-parse HEAD)"
+  if [[ "$scenario" == ff-fail ]]; then commit_in "$PWD" 'local-only'; fi
+  git switch -qc "feat/106-$scenario" "$base"
+  git push -qu origin HEAD
+  tip="$(git rev-parse HEAD)"
+  pr "feat/106-$scenario" 106 MERGED "$tip"
+  commit_in "$tmp/$scenario-maint" 'remote-only'
+  git -C "$tmp/$scenario-maint" push -q origin trunk
+  if [[ "$scenario" == ff-fail ]]; then
+    if bash "$tidy" --apply > "$tmp/$scenario.out" 2>&1; then fail 'divergent primary silently succeeded'; fi
+    grep -Fq 'fast-forward failed' "$tmp/$scenario.out" || fail "missing explicit fast-forward error: $(cat "$tmp/$scenario.out")"
+    grep -Fq 'failed=1' "$tmp/$scenario.out" || fail 'fast-forward failure missing from summary'
+    [[ "$(git rev-parse "refs/heads/feat/106-$scenario")" == "$tip" ]] || fail 'failed retirement lost task ref'
+    [[ "$(git show trunk:local-only.txt)" == local-only ]] || fail 'failed retirement lost local mainline work'
+  else
+    bash "$tidy" --apply > "$tmp/$scenario.out" 2>&1 || fail 'valid primary fast-forward failed'
+    [[ "$(git symbolic-ref --short HEAD)" == trunk && "$(git rev-parse HEAD)" == "$(git rev-parse origin/trunk)" ]] || fail 'primary was not updated to trunk'
+    ! has_branch "feat/106-$scenario" || fail 'successful retirement kept task branch'
+    grep -Fq 'failed=0' "$tmp/$scenario.out" || fail 'successful retirement summary failed'
+  fi
+done
+
 echo 'PASS: merged/squash/closed retirement; ignored data protection/report snapshot; primary ignored-data and .worktrees reuse; dirty/open/fresh/protected kept; folder cap; park/abandon/resume; offline proof only'

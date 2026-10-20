@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePath
 import re
 import stat
+import subprocess
 import sys
 import tempfile
+import uuid
 
 KEYS = ("process_mode", "agent_tools", "external_tools")
 OTHER_KEYS = {"task_base", "max_worktrees", "worktree_mode"}
@@ -92,6 +95,21 @@ def no_links(path: Path) -> None:
             raise Invalid("links/reparse points are unsupported: " + str(item))
 
 
+def sync_root(path: Path) -> Path:
+    absolute = path.absolute()
+    # macOS exposes ordinary temporary/project paths through OS-owned aliases.
+    # Normalize only these known system prefixes; user links below them still
+    # pass through no_links before resolve can hide a junction/symlink.
+    if sys.platform == "darwin":
+        for name in ("var", "tmp", "etc"):
+            prefix = Path("/") / name
+            if absolute.is_relative_to(prefix) and prefix.resolve() == Path("/private") / name:
+                absolute = prefix.resolve() / absolute.relative_to(prefix)
+                break
+    no_links(absolute)
+    return absolute.resolve()
+
+
 def regular(path: Path) -> bytes:
     no_links(path)
     if not path.is_file():
@@ -120,6 +138,42 @@ def tree(path: Path) -> dict[str, bytes]:
     if not result or not any(p.endswith("/SKILL.md") for p in result):
         raise Invalid("no skill manifests: " + str(path))
     return result
+
+
+def layout(path: Path) -> dict:
+    """Include empty directories and POSIX permissions, without following links."""
+    no_links(path)
+    if not path.is_dir():
+        raise Invalid("expected a real directory: " + str(path))
+    result = {}
+    pending = [path]
+    while pending:
+        entry = pending.pop()
+        no_links(entry)
+        if not entry.is_dir() and not entry.is_file():
+            raise Invalid("special directory entry: " + str(entry))
+        result[entry.relative_to(path).as_posix()] = {
+            "kind": "dir" if entry.is_dir() else "file",
+            "mode": stat.S_IMODE(entry.stat().st_mode) & 0o777 if os.name == "posix" else None}
+        if entry.is_dir():
+            pending.extend(entry.iterdir())
+    return result
+
+
+def materialize(dest: Path, contents: dict, structure: dict) -> None:
+    for name, item in structure.items():
+        if item["kind"] == "dir":
+            (dest / name).mkdir(parents=True, exist_ok=True)
+    for name, raw in contents.items():
+        file = dest / name
+        file.write_bytes(raw)
+        if structure[name]["mode"] is not None:
+            file.chmod(structure[name]["mode"])
+    # Apply directory permissions last so read-only source folders can be built.
+    for name in sorted(structure, key=lambda p: len(PurePath(p).parts), reverse=True):
+        item = structure[name]
+        if item["kind"] == "dir" and item["mode"] is not None:
+            (dest / name).chmod(item["mode"])
 
 
 def verify_bridge(path: Path) -> None:
@@ -165,12 +219,10 @@ def generate(root: Path, source: Path, settings: dict[str, str]) -> None:
     no_links(config)
     if config.exists():
         raise Invalid("refusing to replace project-config")
+    structure = layout(root / ".agents/skills")
     for dest in destinations:
         dest.mkdir(parents=True)
-        for name, raw in source_tree.items():
-            file = dest / name
-            file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_bytes(raw)
+        materialize(dest, source_tree, structure)
     for dest, raw in guides:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(raw)
@@ -190,7 +242,7 @@ def check(root: Path) -> None:
         dest = root / item["skills_dir"]
         no_links(dest)
         if key in settings["agent_tools"].split(","):
-            if tree(dest) != original:
+            if tree(dest) != original or layout(dest) != layout(root / ".agents/skills"):
                 raise Invalid("skill copy drift: " + str(dest))
         elif dest.exists():
             raise Invalid("unselected skill adapter exists: " + str(dest))
@@ -279,9 +331,155 @@ def migrate(root: Path, apply: bool) -> None:
         replace_text(claude, BRIDGE)
 
 
+def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
+    """Preview a complete selected-host copy; quarantine old trees before swap."""
+    source = methodology(root)
+    data = catalog(source)
+    config = regular(root / ".agent-project-ops/project-config")
+    settings = checked_settings(root, data)
+    original = tree(root / ".agents/skills")
+    source_layout = layout(root / ".agents/skills")
+    destinations = []
+    changes = []
+    snapshot = {"root": str(root), "config": hashlib.sha256(config).hexdigest(),
+                "source": {k: hashlib.sha256(v).hexdigest() for k, v in sorted(original.items())},
+                "source_layout": source_layout,
+                "targets": {}}
+    for key, item in data["agent_tools"].items():
+        directory = item["skills_dir"]
+        if directory == ".agents/skills":
+            continue
+        dest = root / directory
+        no_links(dest)
+        if key not in settings["agent_tools"].split(","):
+            if dest.exists():
+                raise Invalid("unselected skill adapter exists; reconcile settings first: " + directory)
+            continue
+        old = {p.relative_to(dest).as_posix(): regular(p) for p in files_below(dest)} if dest.exists() else None
+        old_layout = layout(dest) if old is not None else {}
+        snapshot["targets"][directory] = None if old is None else {
+            "files": {k: hashlib.sha256(v).hexdigest() for k, v in sorted(old.items())}, "layout": old_layout}
+        old_files = old or {}
+        delta = []
+        for name in sorted(original.keys() | old_files.keys()):
+            if name not in original:
+                action = "QUARANTINE_EXTRA"
+            elif name not in old_files:
+                action = "ADD"
+            elif original[name] != old_files[name]:
+                action = "UPDATE"
+            elif source_layout[name] != old_layout.get(name):
+                action = "UPDATE_MODE"
+            else:
+                continue
+            delta.append(f"{action} {directory}/{name}")
+            before, after = old_files.get(name, b""), original.get(name, b"")
+            try:
+                delta.extend(difflib.unified_diff(before.decode("utf-8").splitlines(),
+                             after.decode("utf-8").splitlines(),
+                             fromfile=directory + "/" + name, tofile=".agents/skills/" + name, lineterm=""))
+            except UnicodeDecodeError:
+                delta.append("binary sha256: " + hashlib.sha256(before).hexdigest() + " -> " + hashlib.sha256(after).hexdigest())
+        for name in sorted(source_layout.keys() | old_layout.keys()):
+            new_item, old_item = source_layout.get(name), old_layout.get(name)
+            if new_item == old_item or not any(item and item["kind"] == "dir" for item in (new_item, old_item)):
+                continue
+            delta.append(f"DIRECTORY {directory}/{name}: {old_item} -> {new_item}")
+        if delta or old is None:
+            changes.extend(delta)
+            destinations.append((dest, old, old_layout))
+    plan_id = hashlib.sha256(json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    print("\n".join(changes) if changes else "UNCHANGED: selected skill copies match")
+    print("plan_id=" + plan_id)
+    if not apply:
+        print("PREVIEW: no files written; confirm with --apply --expect-plan " + plan_id)
+        return
+    if not expect_plan or expect_plan != plan_id:
+        raise Invalid("STALE_PLAN: preview first; source, targets or settings changed")
+    if not destinations:
+        return
+    # Git's private directory keeps recovery data out of commits, including in
+    # linked worktrees. Cross-volume rename fails safely rather than deleting.
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--absolute-git-dir"],
+                            capture_output=True, text=True, encoding="utf-8", env=env, check=True)
+    top = subprocess.run(["git", "-C", str(root), "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True, encoding="utf-8", env=env, check=True)
+    if Path(top.stdout.strip()).resolve() != root:
+        raise Invalid("sync root must be the actual Git worktree root")
+    backup = Path(result.stdout.strip()) / "apo-skill-sync" / uuid.uuid4().hex
+    no_links(backup)
+    backup.mkdir(parents=True)
+    prepared = []
+    swapped = []
+    manifest = {"plan_id": plan_id, "state": "preparing", "entries": []}
+    journal_path = backup / "manifest.json"
+    journal_path.write_text("{}", encoding="utf-8")
+
+    def journal():
+        replace_text(journal_path, json.dumps(manifest, indent=2))
+
+    try:
+        for dest, old, old_layout in destinations:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            stage = Path(tempfile.mkdtemp(prefix=".apo-sync-", dir=dest.parent))
+            prepared.append((dest, stage, old, old_layout))
+            manifest["entries"].append({"target": str(dest), "saved": str(backup / str(len(prepared)-1)),
+                                        "existed": old is not None, "staging": str(stage),
+                                        "failed_new": str(backup / ("failed-new-" + str(len(prepared)-1))),
+                                        "state": "staged"})
+            journal()  # Also record each staging path before populating it.
+            materialize(stage, original, source_layout)
+        manifest["state"] = "staged"
+        journal()  # Persist recovery locations before the first target move.
+        print("RECOVERY: " + str(journal_path), file=sys.stderr, flush=True)
+        # Revalidate immediately before any swap (including all tree contents).
+        if (regular(root / ".agent-project-ops/project-config") != config or tree(root / ".agents/skills") != original
+                or layout(root / ".agents/skills") != source_layout):
+            raise Invalid("STALE_PLAN: source/settings changed while staging")
+        for dest, stage, old, old_layout in prepared:
+            no_links(dest)
+            now = {p.relative_to(dest).as_posix(): regular(p) for p in files_below(dest)} if dest.exists() else None
+            if now != old or (layout(dest) if now is not None else {}) != old_layout:
+                raise Invalid("STALE_PLAN: target changed while staging")
+        for i, (dest, stage, old, old_layout) in enumerate(prepared):
+            saved = backup / str(i)
+            manifest["entries"][i]["state"] = "swapping"
+            journal()
+            if old is not None:
+                dest.rename(saved)
+            swapped.append((i, dest, saved, old))
+            stage.rename(dest)
+            manifest["entries"][i]["state"] = "installed"
+            journal()
+        manifest["state"] = "applied"
+        journal()
+        print("APPLIED: selected skill copies match; recovery=" + str(backup))
+        print("Recovery: move the current target aside, then move its saved numbered tree back; see manifest.json")
+    except Exception:
+        print("FAILED: recovery=" + str(backup), file=sys.stderr)
+        # Preserve both versions, including newly staged files, on any failure.
+        for i, dest, saved, old in reversed(swapped):
+            try:
+                if dest.exists():
+                    dest.rename(backup / ("failed-new-" + str(i)))
+                if old is not None and saved.exists():
+                    saved.rename(dest)
+                manifest["entries"][i]["state"] = "rolled-back"
+            except OSError as rollback_error:
+                manifest["entries"][i]["state"] = "recovery-required"
+                print("ROLLBACK FAILED: " + str(rollback_error), file=sys.stderr)
+        manifest["state"] = "failed"
+        try:
+            journal()
+        except OSError as journal_error:
+            print("RECOVERY JOURNAL FAILED: " + str(journal_error), file=sys.stderr)
+        raise
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("select", "generate", "check", "check-core", "validate-config", "migrate-claude"))
+    parser.add_argument("command", choices=("select", "generate", "check", "check-core", "validate-config", "migrate-claude", "sync-skills"))
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--source", type=Path)
     parser.add_argument("--process-mode", default="")
@@ -289,11 +487,14 @@ def main() -> int:
     parser.add_argument("--external-tools", default="")
     parser.add_argument("--non-interactive", action="store_true")
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--expect-plan", default="")
     args = parser.parse_args()
     try:
-        root = args.root.resolve()
+        root = sync_root(args.root) if args.command == "sync-skills" else args.root.resolve()
         source = args.source.resolve() if args.source else methodology(root)
-        if args.command == "migrate-claude":
+        if args.command == "sync-skills":
+            sync_skills(root, args.apply, args.expect_plan)
+        elif args.command == "migrate-claude":
             migrate(root, args.apply)
         elif args.command in ("select", "generate"):
             data = catalog(source)
@@ -319,10 +520,12 @@ def main() -> int:
         elif args.command == "validate-config":
             checked_settings(root, catalog(source))
         return 0
-    except (OSError, ValueError, KeyError, EOFError) as exc:
+    except (OSError, ValueError, KeyError, EOFError, subprocess.SubprocessError) as exc:
         print("project-settings: " + str(exc), file=sys.stderr)
         return 2
 
 
 if __name__ == "__main__":
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     sys.exit(main())

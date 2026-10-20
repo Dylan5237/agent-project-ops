@@ -34,7 +34,7 @@ ROOT_FILES = {"AGENTS.md", "CLAUDE.md", ".gitignore", ".gitattributes", ".aider.
 PREFIXES = (".agent-project-ops/", ".agents/skills/", ".claude/skills/", ".codebuddy/skills/",
             ".github/ISSUE_TEMPLATE/", ".github/PULL_REQUEST_TEMPLATE/")
 SCRIPT_FILES = ("new-worktree.sh", "tidy-worktrees.sh", "install-hooks.sh", "share-export.sh", "export-sync.sh",
-                "scan-inverted-sot.py", "project-settings.py", "lib/url-guard.sh",
+                "scan-inverted-sot.py", "project-settings.py", "project-automation.py", "lib/url-guard.sh",
                 "lib/share-export-denylist.sh", "lib/export-strip-list.sh")
 
 INDEX_MODES: dict[str, int] = {}

@@ -23,6 +23,12 @@ labels: "type:task, status:backlog"
 - 不做的事：
 - 输入和依赖（附来源；未确认的依赖要注明）：
 
+<!-- 填写允许写入的实际 repo 相对路径；file 是文件，dir 是目录树。
+     替换块中提示，不支持通配符。派发前用 project-automation.py dispatch-check。 -->
+<!-- apo-file-scope v1 -->
+待填写 file: 路径 或 dir: 路径/
+<!-- /apo-file-scope -->
+
 ## 合同和开工依据
 
 - 任务合同：本单的范围、验收和停止条件；standard 同时链接父 Phase 的冻结范围
