@@ -127,6 +127,17 @@ class AutomationTests(unittest.TestCase):
         result['_apo_issue'] = request['_apo_issue']
         self.assertEqual(a.pending_decisions([request, result], 20), '无')
 
+    def test_latest_revision_retargets_before_phase_filter(self):
+        def request(rev, target):
+            return {'body': f'<!-- apo-decision v1 | id: D-17 | rev: {rev} | type: 最终验收 | target: #{target} | disposer: @human -->',
+                    'html_url': f'https://example.test/request/{rev}', 'created_at': f'2026-01-0{rev}', '_apo_issue': 10}
+        records = [request(1, 20), request(2, 21)]
+        self.assertEqual(a.pending_decisions(records, 20), '无')
+        self.assertIn('rev 2', a.pending_decisions(records, 21))
+        records.append(request(3, 20))
+        self.assertIn('rev 3', a.pending_decisions(records, 20))
+        self.assertEqual(a.pending_decisions(records, 21), '无')
+
     def test_dispatch_file_directory_case_and_segment_boundaries(self):
         self.gh.data['issues/30'] = issue(30, 'task', 'backlog', scope('file: src/auth/login.py'))
         task = issue(31, 'task', 'in-progress', scope('dir: SRC/auth/'))

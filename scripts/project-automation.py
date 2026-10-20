@@ -97,9 +97,6 @@ def pending_decisions(records: list[dict], phase: int) -> str:
         if (request or result) and not isinstance(record.get("_apo_issue"), int):
             raise Invalid("formal decision record has no source discussion")
         if request:
-            targets = re.findall(r"#([0-9]+)", request.get("target", ""))
-            if str(phase) not in targets:
-                continue
             old = latest.get(request["id"])
             if old is None or int(request["rev"]) > int(old[0]["rev"]):
                 latest[request["id"]] = (request, record)
@@ -109,6 +106,8 @@ def pending_decisions(records: list[dict], phase: int) -> str:
             results.setdefault((result["id"], result["rev"], record["_apo_issue"]), []).append(record)
     pending = []
     for ident, (request, record) in sorted(latest.items(), key=lambda pair: int(pair[0][2:])):
+        if str(phase) not in re.findall(r"#([0-9]+)", request["target"]):
+            continue
         # A result for an older revision never settles the latest request.
         settled = any(r.get("created_at", "") >= record.get("created_at", "")
                       for r in results.get((ident, request["rev"], record["_apo_issue"]), []))
