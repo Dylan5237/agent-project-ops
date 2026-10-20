@@ -29,7 +29,7 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    - `status:in-progress` — dispatched, worktree exists
    - `status:blocked` — cannot proceed; gap listed
    - `status:verification` — implementation proposed; evidence in flight or waiting Accept
-   - `status:done` — disposer finished (Accept or explicit cancel)
+   - `status:done` — a standard child task implemented by an executor, accepted by a non-implementing lead after PR merge; a task implemented by its lead, light task, Phase or release covered by disposer final acceptance; or an explicit cancel. See step 9.
 3. **Type labels:** `type:command-center` | `type:phase` | `type:task` | `type:exception` | `type:docs`
 4. **Open implementation PR** with `templates/PULL_REQUEST_TEMPLATE/implementation.md`.
    - Title: `{type}(#{issue}): short slug`
@@ -46,11 +46,16 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    1. If CI or reviewer gates are required, obtain their actual results before requesting a merge. Missing or failed mandatory checks are blockers.
    2. An additional review tool may be used only when it belongs to that project's own policy; generic APO does not install or wake a vendor-specific bot.
    3. Summarize completed, pending and failed checks. CI, automated review and PR merge do **not** constitute `PHASE ACCEPT`.
-9. **Close rules.** A standard child task may close after its PR merges and a
-   different lead accepts the task; the Phase still owns human final acceptance.
-   A lead's own task and light standalone tasks wait for the disposer's final
-   acceptance to cover them. Close Phase only after human final acceptance or
-   documented supersede. Closing a PR alone does not close or accept a task/Phase.
+9. **Close rules.** For a standard child task implemented by an executor, after PR merge and acceptance by a
+   non-implementing lead, remove its previous status, set `status:done` and close
+   the task. This does not change the parent Phase's status or final acceptance.
+   Tasks implemented by the lead, light tasks, Phases and releases stay `status:verification`
+   until covered by disposer final acceptance; only then set `status:done` and close.
+   Light tasks close after release final acceptance covers them (or after all
+   confirmed goals are finally accepted when the project never releases).
+   An explicit cancel, with authorization and reason recorded, also sets
+   `status:done` and closes the item; changing a confirmed goal still needs §11.8.
+   Closing a PR alone does not close or accept a task/Phase.
 
 ## Done when
 

@@ -52,7 +52,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 4. Do not “improve” frozen fields in the same PR. A change that hits §11, goes beyond the confirmed goal or loosens a confirmed acceptance test is an exception request (`playbooks/blocked-and-exceptions.md` B); anything else is a new `CONTRACT FREEZE` with a one-line diff note.
 5. Update CC §1 when the implementation PR opens or the Phase label moves. [ ] **CC §1 updated**
 6. Before asking for merge/review, check actual mandatory CI and review gates for the current PR SHA using `playbooks/issues-and-prs.md` step 8.
-7. The lead Agent reviews each task PR against the task's acceptance tests and merges it once the required checks pass (unless merging releases or deploys: §11 item 4). It closes the task when it accepts it; it never accepts a task it implemented itself — that task stays `status:verification` until the final acceptance covers it.
+7. The lead Agent reviews each task PR against the task's acceptance tests and merges it once the required checks pass (unless merging releases or deploys: §11 item 4). For a standard child task implemented by an executor, after PR merge and acceptance by a non-implementing lead, remove its previous status, set `status:done` and close the task. Tasks implemented by the lead, light tasks, Phases and releases stay `status:verification` until covered by disposer final acceptance; only then set `status:done` and close. Light tasks close after release final acceptance covers them (or all confirmed goals are finally accepted if no release); step 5 closes those covered tasks. An explicit cancel with recorded authorization/reason also sets `status:done` and closes the item, subject to §11.8 when it changes a confirmed goal.
 8. After each PR merges or closes, run `tidy-worktrees.sh --apply`: merged work is retired, closed work is archived first, everything unproven is kept and listed.
 
 ### 3. Verify / 验证
@@ -72,7 +72,7 @@ Use exactly: `status:backlog` → `status:in-progress` → (`status:blocked` if 
 
 ### 5. CLOSED
 
-1. Set `status:done`. Close the Phase issue when the final acceptance is recorded and leftover tasks are closed or moved to a new Phase.
+1. After recorded disposer final acceptance, remove the previous status and set `status:done`. Close the Phase issue when leftover tasks are closed or moved to a new Phase. In light mode, instead set the covered tasks `status:done` and close them after release final acceptance (or final acceptance of all confirmed goals if no release). A recorded, authorized explicit cancel/supersede also sets `status:done` and closes the item; §11.8 still applies to changes of confirmed goals.
 2. Link the Command Center index to the closed Phase (table row: issue number, date, result).
 3. Update CC §1 (current phase, status word, Next Action). [ ] **CC §1 updated**
 

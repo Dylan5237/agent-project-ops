@@ -42,9 +42,16 @@ input facts to those values rather than inventing equivalent status spellings.
    set the task Issue in-progress and sync CC section 1. A child task does not
    change its parent Phase label; update that only on a real Phase transition.
 4. Completion is verification, with per-test evidence, final HEAD/PR and explicit
-   failures/unverified facts. Inspect actual checks for that SHA. Review and
-   accept only another Agent's implementation; your own work waits for human
-   final acceptance. Executors cannot merge or self-accept.
+   failures/unverified facts. Inspect actual checks for that SHA. For a standard
+   child task implemented by an executor, after PR merge and acceptance by a non-implementing lead, remove
+   its previous status, set `status:done` and close the task. Tasks implemented by the lead,
+   light tasks, Phases and releases stay `status:verification` until covered by
+   disposer final acceptance; only then set `status:done` and close. Light tasks
+   close after release final acceptance covers them (or all confirmed goals are
+   finally accepted if no release). An explicit cancel with recorded
+   authorization/reason also sets `status:done` and closes the item; §11.8 still
+   applies. Executors cannot merge, close or self-accept. Sync CC section 1 after
+   the status/closure transition; a child task does not change its parent Phase.
 5. After authorized merge run the existing tidy script, keep CC current and
    request human final acceptance at the Phase/release boundary. No comment,
    check result or task acceptance substitutes for Phase PASS.

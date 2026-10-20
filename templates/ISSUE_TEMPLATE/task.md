@@ -51,6 +51,7 @@ labels: "type:task, status:backlog"
 - 接替执行前，主 Agent 核对已有认领及交接记录，再明确更新负责人；执行者不能自行抢占。
 - 按认领/开工模板记录归属；CLAIM 不等于开工，START 才能在条件齐全后推进 in-progress。
 - 完成后按完成回报模板交给主 Agent 复核，保持 verification；执行者不自行合并、验收或关闭。主 Agent 自己实现的任务也不能自己验收。
+- 执行 Agent 实现的 standard 子任务在 PR 合并、非实现者的主 Agent 验收后，移除旧状态、标 `status:done` 并关闭；主 Agent 自己实现的任务、light 任务、Phase 和发布等拍板人最终验收覆盖后才 done。light 任务等发布最终验收后关闭（不发布的项目等全部已确认目标最终验收）；有授权和原因记录的明确取消也标 done 并关闭。
 - Phase / 发布最终验收仍由拍板人决定；合并不等于 PASS。
 
 <!-- 认领/开工和完成回报格式位于 .agent-project-ops/templates/。 -->

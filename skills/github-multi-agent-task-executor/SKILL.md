@@ -69,6 +69,11 @@ HEAD and remaining tests, then follow the existing park/resume workflow. The
 lead must explicitly reconcile ownership before another executor takes over.
 GitHub comments are durable records, not a mechanism for launching another Agent.
 
-The lead reviews and accepts work it did not implement. A lead's own task stays
-verification until the disposer's final acceptance covers it. PR merge is never
-Phase PASS. See [staff and dispatch](../../playbooks/staff-and-dispatch.md).
+For a standard child task implemented by an executor, after PR merge a non-implementing lead may accept it,
+replace the previous status with `status:done` and close it. A lead's own task,
+light task, Phase or release stays `status:verification` until covered by disposer
+final acceptance. Light tasks close after release final acceptance (or final
+acceptance of all confirmed goals if no release). An explicit cancel also means
+`status:done` and closure, with authority/reason recorded. These are lead/disposer
+actions; an executor does not close its own task. PR merge is never Phase PASS.
+See [staff and dispatch](../../playbooks/staff-and-dispatch.md).
