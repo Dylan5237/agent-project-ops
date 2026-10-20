@@ -12,7 +12,7 @@
 | `status:in-progress` | `FBCA04` | 已明确负责人、工作区和分支 |
 | `status:blocked` | `D93F0B` | 有缺口，暂停受影响的工作并在 Issue 说明 |
 | `status:verification` | `5319E7` | 等待证据核对或最终验收 |
-| `status:done` | `0E8A16` | 执行 Agent 实现的 standard 子任务的 PR 合并且由非实现者的主 Agent 验收；主 Agent 自己实现的任务、light 任务、Phase 或发布已被拍板人最终验收覆盖；或已明确取消。移除旧状态后标此标签并关闭；light 任务等发布最终验收后关闭（不发布的项目等全部已确认目标最终验收） |
+| `status:done` | `0E8A16` | 执行 Agent 实现的 standard 子任务的 PR 合并且由非实现者的主 Agent 验收；主 Agent 自己实现的任务、light 任务、Phase 或发布已被拍板人最终验收覆盖；或已明确取消。移除旧状态后标此标签并关闭；light 任务等发布最终验收后关闭（不发布的项目等全部已确认目标最终验收）。Phase/发布取消须拍板人明确授权；主 Agent 仅可取消现有规则允许的任务，改变已确认目标仍须按 §11.8 批准 |
 
 ## Issue 类型
 

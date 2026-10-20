@@ -6,6 +6,8 @@
 
 后续关闭按任务类型处理：执行 Agent 实现的 standard 子任务在 PR 合并、非实现者的主 Agent 验收后，移除旧状态、标 `status:done` 并关闭；主 Agent 自己实现的任务、light 任务、Phase 和发布，等拍板人最终验收覆盖后才 done。light 任务等发布最终验收后关闭（不发布的项目等全部已确认目标最终验收）；有授权和原因记录的明确取消也标 done 并关闭。
 
+Phase/发布取消须拍板人明确授权；主 Agent 仅可取消现有规则允许的任务，改变已确认目标仍须按 §11.8 批准。
+
 ```markdown
 <!-- apo-task-completion v1 -->
 task: #{{TASK_ISSUE}}

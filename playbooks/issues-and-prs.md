@@ -54,7 +54,9 @@ Keep **Issues as state** and **PRs as proposals**. Labels make the board machine
    Light tasks close after release final acceptance covers them (or after all
    confirmed goals are finally accepted when the project never releases).
    An explicit cancel, with authorization and reason recorded, also sets
-   `status:done` and closes the item; changing a confirmed goal still needs §11.8.
+   `status:done` and closes the item. Phase/release cancellation always requires
+   the disposer's explicit authorization; only eligible task cancellations may be
+   authorized by the lead. Changing a confirmed goal still needs §11.8 approval.
    Closing a PR alone does not close or accept a task/Phase.
 
 ## Done when

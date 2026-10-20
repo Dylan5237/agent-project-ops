@@ -49,8 +49,10 @@ input facts to those values rather than inventing equivalent status spellings.
    disposer final acceptance; only then set `status:done` and close. Light tasks
    close after release final acceptance covers them (or all confirmed goals are
    finally accepted if no release). An explicit cancel with recorded
-   authorization/reason also sets `status:done` and closes the item; §11.8 still
-   applies. Executors cannot merge, close or self-accept. Sync CC section 1 after
+   authorization/reason also sets `status:done` and closes the item. Phase/release
+   cancellation always requires the disposer's explicit authorization; only
+   eligible task cancellations may be authorized by the lead. §11.8 still applies
+   when cancellation changes a confirmed goal. Executors cannot merge, close or self-accept. Sync CC section 1 after
    the status/closure transition; a child task does not change its parent Phase.
 5. After authorized merge run the existing tidy script, keep CC current and
    request human final acceptance at the Phase/release boundary. No comment,

@@ -108,7 +108,7 @@ def check_done_contract(docs):
     labels = next(line for line in docs['templates/labels.md'].splitlines()
                   if line.startswith('| `status:done`'))
     for term in ('standard 子任务', 'PR 合并', '非实现者', '自己实现', 'light',
-                 '拍板人最终验收', '明确取消', '移除旧状态', '关闭'):
+                 '拍板人最终验收', '明确取消', '移除旧状态', '关闭', 'Phase/发布取消须拍板人明确授权'):
         assert term in labels, ('done label', term)
     for name, (start, end) in close_steps.items():
         step = compact(docs[name].split(start, 1)[1].split(end, 1)[0])
@@ -118,18 +118,21 @@ def check_done_contract(docs):
             assert term in standard, (name, 'standard path', term)
         for term in ('light tasks', 'Phases and releases',
                      '`status:verification`', 'until covered by disposer final acceptance',
-                     'Light tasks close after release final acceptance', 'explicit cancel'):
+                     'Light tasks close after release final acceptance', 'explicit cancel',
+                     "Phase/release cancellation always requires the disposer's explicit authorization"):
             assert term in holding, (name, 'human/cancel path', term)
     lifecycle = compact(docs['playbooks/phase-lifecycle.md'].split('### 5. CLOSED', 1)[1])
     assert 'In light mode' in lifecycle and 'after release final acceptance' in lifecycle
+    assert "Phase/release cancellation always requires the disposer's explicit authorization" in lifecycle
     for name in ('templates/ISSUE_TEMPLATE/task.md', 'templates/task-completion.md'):
         for term in ('standard 子任务', 'PR 合并', '非实现者', '`status:done`',
-                     '移除旧状态', 'light 任务等发布最终验收后关闭', '明确取消'):
+                     '移除旧状态', 'light 任务等发布最终验收后关闭', '明确取消', 'Phase/发布取消须拍板人明确授权'):
             assert term in docs[name], (name, term)
     executor = compact(docs['skills/github-multi-agent-task-executor/SKILL.md'])
     for term in ('standard child task', 'non-implementing lead', '`status:done`',
                  'close it', 'Light tasks close after release final acceptance',
-                 'an executor does not close its own task'):
+                 'An executor does not close its own task',
+                 "Phase/release cancellation always requires the disposer's explicit authorization"):
         assert term in executor, ('executor', term)
 
 check_done_contract(done_docs)
@@ -145,6 +148,10 @@ for name in close_steps:
                               'Light tasks close before release final acceptance', done_docs[name], count=1)
     assert count == 1, name
     mutations.append((name, premature))
+    no_disposer, count = re.subn(r"Phase/release\s+cancellation always requires\s+the disposer's\s+explicit authorization",
+                                'Phase/release cancellation may be authorized by the lead', done_docs[name], count=1)
+    assert count == 1, name
+    mutations.append((name, no_disposer))
 for name, changed in mutations:
     try:
         check_done_contract(dict(done_docs, **{name: changed}))
@@ -152,7 +159,7 @@ for name, changed in mutations:
         pass
     else:
         raise AssertionError(('contradictory done/close policy accepted', name))
-print('PASS: done definitions and closure steps agree; old glossary, missing done step and premature light closure rejected')
+print('PASS: done/close policy agrees; old glossary, missing done, premature light closure and lead-only Phase cancellation rejected')
 print('PASS: three task formats, plain Agent identity, pending CLAIM and invalid START examples')
 PY
 tmp="$(mktemp -d)"

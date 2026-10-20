@@ -66,7 +66,9 @@ Make it obvious **who decides what** (`PRINCIPLES.md` §1: the disposer decides 
    only then set `status:done` and close. Light tasks close after release final
    acceptance covers them (or all confirmed goals are finally accepted if no release).
    An explicit cancel with recorded authorization/reason also sets `status:done`
-   and closes the item; §11.8 still governs cancellation that changes a confirmed goal.
+   and closes the item. Phase/release cancellation always requires the disposer's
+   explicit authorization; only eligible task cancellations may be authorized by
+   the lead. §11.8 still requires approval when cancellation changes a confirmed goal.
    For handoff, commit and push authorized work first (never stash; never leave mystery dirty trees), then comment `HANDOFF to <id>` with branch, working directory and head SHA. The lead reconciles the owner on the Issue before the next Agent claims it. If the next Agent works in a different place, `tidy-worktrees.sh --park <branch>` releases the folder and it resumes with `new-worktree.sh` (same issue, slug and kind; the owner may change).
 6. **Recall:** if scope drifts, the disposer or the lead Agent comments `STOP` or `RETURN TO BACKLOG`. The executing Agent commits and pushes, parks with `tidy-worktrees.sh --park <branch>` (branch kept, folder released), sets `status:backlog` or `blocked`, and updates CC §1. To abandon the task instead, close its PR and run `tidy-worktrees.sh --abandon <branch>` (archive tag first, then delete); that is the lead Agent's call unless dropping the task changes a confirmed goal (§11 item 8 → ask the disposer). [ ] **CC §1 updated**
 7. **Parallelism:** the first task may use the idle primary checkout; every further concurrent task gets its own worktree, at most `max_worktrees` folders. Never stack two tasks in one directory. More tasks than slots ⇒ queue (step 4), never bypass the cap.
