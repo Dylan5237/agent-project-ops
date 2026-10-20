@@ -23,7 +23,8 @@ for name in retired:
 for name in ['.agent-project-ops/remotes', 'templates/remotes']:
     lines = [s.strip() for s in (root / name).read_text(encoding='utf-8').splitlines() if s.strip() and not s.lstrip().startswith('#')]
     assert lines == ['authority=origin'], f'unsupported current registry: {name}'
-assert (root / 'VERSION').read_text(encoding='utf-8').strip() == '0.2.1', 'Step2 must not change package version'
+# Step2's no-release freeze is complete; Step6's version is chosen, publication is gated.
+assert (root / 'VERSION').read_text(encoding='utf-8').strip() == '0.3.0', 'Step6 release version must be 0.3.0'
 principles = (root / 'PRINCIPLES.md').read_text(encoding='utf-8')
 assert principles.startswith('# PRINCIPLES — v0.3.0'), 'rules version does not match freeze'
 assert 'A separate evidence PR is **optional**' in principles
