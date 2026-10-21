@@ -4,11 +4,13 @@
 
 ## 版本状态
 
-- 本指南对应 **v0.3.0**。相对 v0.2.1 的新增、删除和升级影响见[发布说明](./releases/v0.3.0.md)。
-- 使用前核实 [v0.3.0 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)、标签指向的精确提交与附件校验。发行页尚未生成时，不得以候选 PR 或版本号声称已经发布，也不能用候选版升级业务项目。
-- v0.3.0 的既有发行流程提供 5 个附件：两个源码压缩包、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`。v0.2.1 的 6 个旧附件保留；新版本不再单独附带 `UPGRADE.zh-CN.md`。
+- 本指南对应 **v0.3.1**。相对 v0.3.0 的四项边界修复和升级影响见[发布说明](./releases/v0.3.1.md)；从 v0.2.1 升级还需看 [v0.3.0 的新增与删除](./releases/v0.3.0.md)。
+- 使用前核实 [v0.3.1 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.1)、标签指向的精确提交与附件校验。发行页尚未生成时继续使用已发布的 v0.3.0，不得以候选 PR 或版本号声称已经发布，也不能用候选版升级业务项目。
+- v0.3.1 的既有发行流程提供 5 个附件：两个源码压缩包、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`。所有旧发行和标签保留；不再单独附带 `UPGRADE.zh-CN.md`。
 
-比较基线：[v0.2.1 发布页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.2.1)。短提示词会要求 Agent 先查找最新的已发布稳定版；不要让它把未发布的主线当成发行版。
+本补丁比较基线：[v0.3.0 发布页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)。短提示词会要求 Agent 先查找最新的已发布稳定版；不要让它把未发布的主线当成发行版。
+
+升级到 v0.3.1 前，保留旧 `sync-skills` 输出的恢复目录及 manifest；旧 linked worktree 私有 Git 目录里的备份不会自动迁移。新同步把恢复资料放在 Git 公共目录，跨卷或链接路径会拒绝应用。`new-worktree` / `tidy-worktrees` 也会先硬校验全部 origin 地址和远端登记；额外远端或遗留角色需按项目单独批准迁移，不能靠删配置绕过。逐项影响与回退见本版发布说明。
 
 ## 最简入口
 

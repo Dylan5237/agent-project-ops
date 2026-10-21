@@ -110,6 +110,15 @@ def sync_root(path: Path) -> Path:
     return absolute.resolve()
 
 
+def storage_volume(path: Path) -> tuple[int, str]:
+    """Identify storage before creating anything, including absent target parents."""
+    no_links(path)
+    probe = path
+    while not probe.exists():
+        probe = probe.parent
+    return probe.stat().st_dev, probe.anchor.casefold() if os.name == "nt" else ""
+
+
 def regular(path: Path) -> bytes:
     no_links(path)
     if not path.is_file():
@@ -398,17 +407,28 @@ def sync_skills(root: Path, apply: bool, expect_plan: str) -> None:
         raise Invalid("STALE_PLAN: preview first; source, targets or settings changed")
     if not destinations:
         return
-    # Git's private directory keeps recovery data out of commits, including in
-    # linked worktrees. Cross-volume rename fails safely rather than deleting.
+    # The common directory survives linked-worktree retirement. Validate every
+    # recovery/target path and volume before staging or moving any user content.
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--absolute-git-dir"],
+    no_links(root / ".git")
+    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
                             capture_output=True, text=True, encoding="utf-8", env=env, check=True)
     top = subprocess.run(["git", "-C", str(root), "rev-parse", "--show-toplevel"],
                          capture_output=True, text=True, encoding="utf-8", env=env, check=True)
     if Path(top.stdout.strip()).resolve() != root:
         raise Invalid("sync root must be the actual Git worktree root")
-    backup = Path(result.stdout.strip()) / "apo-skill-sync" / uuid.uuid4().hex
+    common = Path(result.stdout.strip())
+    if not common.is_absolute():
+        raise Invalid("Git common directory must be absolute")
+    no_links(common)
+    if not common.is_dir():
+        raise Invalid("Git common directory must be a directory")
+    backup = common / "apo-skill-sync" / uuid.uuid4().hex
     no_links(backup)
+    volume = storage_volume(common)
+    for dest, _, _ in destinations:
+        if storage_volume(dest) != volume or storage_volume(dest.parent) != volume:
+            raise Invalid("cross-volume skill recovery is unsupported; no targets changed")
     backup.mkdir(parents=True)
     prepared = []
     swapped = []

@@ -147,6 +147,98 @@ class SyncTests(unittest.TestCase):
         backup = next((self.root/'.git/apo-skill-sync').iterdir())
         self.assertTrue((backup/'0/empty-target/new-empty').is_dir())
 
+    def test_linked_worktree_retirement_preserves_backup_and_real_recovery(self):
+        primary = self.root
+        def git(folder, *args):
+            return subprocess.check_output(['git', '-C', str(folder), *args], text=True).strip()
+        git(primary, 'add', '.')
+        git(primary, '-c', 'user.name=tester', '-c', 'user.email=tester@local.invalid', 'commit', '-qm', 'seed')
+        outer = tempfile.TemporaryDirectory()
+        self.addCleanup(outer.cleanup)
+        linked = Path(outer.name).resolve()/'task'
+        git(primary, 'worktree', 'add', '--detach', str(linked), 'HEAD')
+        self.root = linked
+        self.put('.agents/skills/demo/new.txt', 'new source bytes\n')
+        self.put('.claude/skills/personal/SKILL.md', 'personal bytes retained after retirement\n')
+        old = s.tree(linked/'.claude/skills')
+        result = self.cli('--apply', '--expect-plan', self.plan())
+        backup = next((primary/'.git/apo-skill-sync').iterdir())
+        self.assertIn(str(backup), result.stdout)
+        journal = (backup/'manifest.json').read_bytes()
+        manifest = json.loads(journal)
+        self.assertEqual(manifest['state'], 'applied')
+        private = Path(git(linked, 'rev-parse', '--absolute-git-dir'))
+        self.assertFalse(backup.is_relative_to(private))
+        git(linked, 'add', '.')
+        git(linked, '-c', 'user.name=tester', '-c', 'user.email=tester@local.invalid', 'commit', '-qm', 'synced')
+        updated = git(linked, 'rev-parse', 'HEAD')
+        git(primary, 'worktree', 'remove', str(linked))  # No force: only our clean temporary tree.
+        self.assertFalse(private.exists())
+        self.assertEqual((backup/'manifest.json').read_bytes(), journal)
+        self.assertEqual(s.tree(backup/'0'), old)
+        # Recreate an upgraded tree and use the unchanged journal after retirement.
+        git(primary, 'worktree', 'add', '--detach', str(linked), updated)
+        entry = manifest['entries'][0]
+        target, saved = Path(entry['target']), Path(entry['saved'])
+        target.rename(backup/'held-new')
+        saved.rename(target)
+        self.assertEqual(s.tree(target), old)
+        self.assertEqual((backup/'held-new/demo/new.txt').read_text(), 'new source bytes\n')
+        self.root = primary
+
+    def test_cross_volume_rejected_before_recovery_or_staging_writes(self):
+        self.put('.agents/skills/demo/new.txt', 'new bytes\n')
+        real_volume = s.storage_volume
+        def other_volume(path):
+            dev, anchor = real_volume(path)
+            return (dev + 1, anchor) if path == self.root/'.codebuddy/skills' else (dev, anchor)
+        for absent in (False, True):
+            with self.subTest(target_parent_absent=absent):
+                if absent:
+                    (self.root/'.codebuddy').rename(self.root/'.git/held-codebuddy')
+                    self.assertEqual(real_volume(self.root/'.codebuddy/skills'), real_volume(self.root))
+                token = self.plan()
+                before = self.snapshot()
+                with mock.patch.object(s, 'storage_volume', other_volume), contextlib.redirect_stdout(io.StringIO()):
+                    with self.assertRaisesRegex(s.Invalid, 'cross-volume'):
+                        s.sync_skills(self.root, True, token)
+                self.assertEqual(before, self.snapshot())
+                self.assertFalse((self.root/'.git/apo-skill-sync').exists())
+                self.assertEqual(list(self.root.rglob('.apo-sync-*')), [])
+                self.assertEqual((self.root/'.codebuddy').exists(), not absent)
+
+    def test_recovery_path_link_rejected_without_target_or_external_writes(self):
+        outer = tempfile.TemporaryDirectory()
+        self.addCleanup(outer.cleanup)
+        elsewhere = Path(outer.name).resolve()
+        link = self.root/'.git/apo-skill-sync'
+        if os.name == 'nt':
+            quote = lambda value: "'" + str(value).replace("'", "''") + "'"
+            command = f"New-Item -ItemType Junction -Path {quote(link)} -Target {quote(elsewhere)} -ErrorAction Stop | Out-Null"
+            subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', command], check=True, capture_output=True)
+        else:
+            link.symlink_to(elsewhere, target_is_directory=True)
+        self.put('.agents/skills/demo/new.txt', 'new bytes\n')
+        token = self.plan()
+        before = self.snapshot()
+        result = self.cli('--apply', '--expect-plan', token, ok=False)
+        self.assertIn('links/reparse points', result.stderr)
+        self.assertEqual(before, self.snapshot())
+        self.assertEqual(list(elsewhere.iterdir()), [])
+
+    def test_repeated_apply_uses_unique_persistent_recovery_directories(self):
+        backups = self.root/'.git/apo-skill-sync'
+        self.put('.agents/skills/demo/new.txt', 'first\n')
+        self.cli('--apply', '--expect-plan', self.plan())
+        first = next(backups.iterdir())
+        old_journal = (first/'manifest.json').read_bytes()
+        old_tree = s.tree(first/'0')
+        self.put('.agents/skills/demo/new.txt', 'second\n')
+        self.cli('--apply', '--expect-plan', self.plan())
+        self.assertEqual(len(list(backups.iterdir())), 2)
+        self.assertEqual((first/'manifest.json').read_bytes(), old_journal)
+        self.assertEqual(s.tree(first/'0'), old_tree)
+
     @unittest.skipUnless(os.name == 'posix', 'POSIX permission contract')
     def test_executable_mode_preserved_and_mode_only_change_invalidates_preview(self):
         script = self.put('.agents/skills/demo/run.sh', '#!/bin/sh\necho working\n')

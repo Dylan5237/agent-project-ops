@@ -4,7 +4,7 @@
 
 ## 先看版本状态
 
-本指南对应 **v0.3.0**，变化见[发布说明](./releases/v0.3.0.md)。使用前先核对 [v0.3.0 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)和精确提交；发行页尚未生成时继续使用已发布的 v0.2.1，不把候选 PR 当作稳定包。v0.3.0 发行流程提供 5 个附件，升级说明统一为中文 `docs/UPGRADE.md`。
+本指南对应 **v0.3.1**，四项边界修复见[发布说明](./releases/v0.3.1.md)，此前的新增与删除见 [v0.3.0 说明](./releases/v0.3.0.md)。使用前先核对 [v0.3.1 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.1)和精确提交；发行页尚未生成时继续使用已发布的 v0.3.0，不把候选 PR 当作稳定包。发行流程仍提供 5 个附件，升级说明统一为中文 `docs/UPGRADE.md`。
 
 新项目初始化或升级时，Agent 应先核实最新的正式稳定版和精确提交，不要默认使用主线。
 
@@ -57,12 +57,12 @@ bash scripts/bootstrap-project.sh \
 
 ```bash
 cat .agent-project-ops/PIN
-git remote -v
+bash .agent-project-ops/skills/repo-reconciliation-cleanup/scripts/audit-inventory.sh .
 git config --get core.hooksPath
 python3 .agent-project-ops/scripts/project-settings.py check --root .
 ```
 
-当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端时先停止并查明用途，不要自行推送、删除或改写远端。
+盘点只输出远端名称和安全分类，避免把含凭据的原始地址带入日志；`SAFE_GITHUB` 不代表网络可达或有写权限。当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端或 `REVIEW_REQUIRED` 时先停止并查明用途，不要自行推送、删除或改写远端。
 
 规则正文只维护在 AGENTS.md，CLAUDE.md 保留一行导入。选中 Claude Code 或 WorkBuddy 时，脚本分别复制到对应技能目录并自动校验。WorkBuddy 的项目读取入口已在 Craft（做一做）模式实测；Ask（问一问）不在本次保证范围内。未选中的外部工具不会获得接入说明，也不会自动连接任何服务。
 

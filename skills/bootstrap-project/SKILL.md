@@ -32,7 +32,7 @@ Current initialization procedure: [bootstrap playbook](../../playbooks/bootstrap
    to preview selected-host copies; inspect differences, then explicitly apply
    with the matching plan_id. See [automation](../../playbooks/automation.md).
 7. If GitHub creation is enabled, read the reported protection capability: A (code-owner review enforced), B (PR-only), or C (unprotected/unverifiable). Never upgrade the wording beyond what was verified. On GitHub Free **private** repos, C is **expected**: record C on Command Center and continue. Do not treat C as init failure or “do not start feature work.” Do not require Pro to finish init.
-8. Run `playbooks/start-project.md` next (labels, Command Center, first Phase). No `feat/` / `fix/` implementation before Freeze.
+8. Run `playbooks/start-project.md` next (labels, Command Center, first work item). For `light`, open a task with its own contract and no Phase; for `standard` (including unrecorded mode), open a Phase. Register that work item in the Command Center index as the playbook describes so section 1 can be generated. Freeze that task/Phase and wait for any required §11 start confirmation before `feat/` / `fix/` implementation. Final acceptance and release confirmation still follow `PRINCIPLES.md` §3.
 
 ## Important identity limit
 
