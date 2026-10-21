@@ -9,6 +9,7 @@ export GIT_AUTHOR_NAME=tester GIT_AUTHOR_EMAIL=tester@local.invalid
 export GIT_COMMITTER_NAME=tester GIT_COMMITTER_EMAIL=tester@local.invalid
 new="$root/scripts/new-worktree.sh"
 tidy="$root/scripts/tidy-worktrees.sh"
+source "$root/tests/lib/worktree-transport.sh"
 
 # Fake GitHub CLI. PR facts for a head branch live in $FAKE_GH/<branch with / replaced by _>.
 mkdir -p "$tmp/bin" "$tmp/gh"
@@ -36,16 +37,17 @@ fixture() {
   local name="$1"; shift
   git init --bare -q --initial-branch=main "$tmp/$name.git"
   git clone -q "$tmp/$name.git" "$tmp/$name-maint" 2>/dev/null
+  mkdir -p "$tmp/$name-maint/.agent-project-ops"
+  printf 'authority=origin\n' > "$tmp/$name-maint/.agent-project-ops/remotes"
   if [[ $# -gt 0 ]]; then
     mkdir -p "$tmp/$name-maint/.agent-project-ops"
     printf '%s\n' "$@" > "$tmp/$name-maint/.agent-project-ops/project-config"
-    git -C "$tmp/$name-maint" add -A
   fi
+  git -C "$tmp/$name-maint" add -A
   git -C "$tmp/$name-maint" commit -q --allow-empty -m seed
   git -C "$tmp/$name-maint" push -q origin main
   git clone -q "$tmp/$name.git" "$tmp/$name"
-  git -C "$tmp/$name" config "url.$tmp/$name.git.insteadOf" "https://github.com/apo-test/$name.git"
-  git -C "$tmp/$name" remote set-url origin "https://github.com/apo-test/$name.git"
+  worktree_test_bind "$tmp/$name" "$tmp/$name.git" "https://github.com/apo-test/$name.git"
 }
 commit_in() { printf '%s\n' "$2" > "$1/$(printf '%s' "$2" | tr ' /' '__').txt"; git -C "$1" add -A; git -C "$1" commit -q -m "$2"; }
 maint_merge() { # fixture branch [squash]

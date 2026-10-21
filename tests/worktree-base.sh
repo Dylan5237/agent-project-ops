@@ -4,17 +4,22 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+source "$root/tests/lib/worktree-transport.sh"
 
 git init --bare -q --initial-branch=main "$tmp/origin.git"
 git clone -q "$tmp/origin.git" "$tmp/seed" 2>/dev/null
 git -C "$tmp/seed" config user.name tester
 git -C "$tmp/seed" config user.email tester@local.invalid
+mkdir -p "$tmp/seed/.agent-project-ops"
+printf 'authority=origin\n' > "$tmp/seed/.agent-project-ops/remotes"
+git -C "$tmp/seed" add .agent-project-ops/remotes
 git -C "$tmp/seed" commit -q --allow-empty -m seed
 git -C "$tmp/seed" push -q origin main
 git -C "$tmp/seed" checkout -qb develop
 git -C "$tmp/seed" commit -q --allow-empty -m develop
 git -C "$tmp/seed" push -q origin develop
 git clone -q "$tmp/origin.git" "$tmp/project"
+worktree_test_bind "$tmp/project" "$tmp/origin.git" 'https://github.com/apo-test/project.git'
 
 (
   cd "$tmp/project"
@@ -62,9 +67,13 @@ git init --bare -q --initial-branch=master "$tmp/master-origin.git"
 git clone -q "$tmp/master-origin.git" "$tmp/master-seed" 2>/dev/null
 git -C "$tmp/master-seed" config user.name tester
 git -C "$tmp/master-seed" config user.email tester@local.invalid
+mkdir -p "$tmp/master-seed/.agent-project-ops"
+printf 'authority=origin\n' > "$tmp/master-seed/.agent-project-ops/remotes"
+git -C "$tmp/master-seed" add .agent-project-ops/remotes
 git -C "$tmp/master-seed" commit -q --allow-empty -m masterseed
 git -C "$tmp/master-seed" push -q origin master
 git clone -q "$tmp/master-origin.git" "$tmp/master-project"
+worktree_test_bind "$tmp/master-project" "$tmp/master-origin.git" 'https://github.com/apo-test/master-project.git'
 (
   cd "$tmp/master-project"
   bash "$root/scripts/new-worktree.sh" 201 agent master-task fix --worktree > "$tmp/master.log"
@@ -74,6 +83,7 @@ git clone -q "$tmp/master-origin.git" "$tmp/master-project"
 # multiple fetchable branches. This is not the local-vs-remote HEAD conflict
 # exercised above; both local and remote default pointers are unavailable.
 git clone -q "$tmp/origin.git" "$tmp/ambiguous-project"
+worktree_test_bind "$tmp/ambiguous-project" "$tmp/origin.git" 'https://github.com/apo-test/ambiguous-project.git'
 git -C "$tmp/ambiguous-project" symbolic-ref --delete refs/remotes/origin/HEAD
 git --git-dir="$tmp/origin.git" symbolic-ref HEAD refs/heads/default-not-present
 (

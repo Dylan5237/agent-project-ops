@@ -45,16 +45,31 @@ git rev-parse --show-toplevel >/dev/null 2>&1 || die "run inside a git repositor
 # Anchor on the primary checkout so task folders never nest inside another task folder.
 root="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 [[ -n "$root" && -d "$root" ]] || die "cannot resolve the primary checkout"
-git -C "$root" remote get-url origin >/dev/null 2>&1 || die "GitHub authority remote origin is missing"
+source "$script_dir/lib/url-guard.sh"
+authority="$(github_worktree_authority "$root")" \
+  || die "origin authority check failed: require only GitHub origin, matching resolved fetch/push URLs and authority=origin registry"
+assert_authority() {
+  local current
+  current="$(github_worktree_authority "$root")" \
+    || die "origin authority check failed; no new task created"
+  [[ "$current" == "$authority" ]] || die "origin authority changed; no new task created"
+}
 branch="$kind/$issue-$slug"
 git check-ref-format --branch "$branch" >/dev/null 2>&1 || die "invalid branch: $branch"
 git -C "$root" fetch --quiet --prune origin || die "cannot fetch origin; no worktree created"
 
-# Retire finished work before starting new work; failures never block the new task.
+# Ordinary retirement failures keep their existing warning behavior. An
+# authority/preflight refusal is a hard stop, never a warning-and-continue.
 if [[ -f "$script_dir/tidy-worktrees.sh" ]]; then
-  bash "$script_dir/tidy-worktrees.sh" --apply --quiet --no-fetch >&2 \
-    || echo "new-worktree: warning: tidy-worktrees reported a problem (see above); continuing" >&2
+  if bash "$script_dir/tidy-worktrees.sh" --apply --quiet --no-fetch >&2; then
+    :
+  else
+    tidy_rc=$?
+    [[ "$tidy_rc" -ne 2 ]] || die "tidy-worktrees authority/preflight refused; no new task created"
+    echo "new-worktree: warning: tidy-worktrees reported a problem (see above); continuing" >&2
+  fi
 fi
+assert_authority
 
 project_base=""
 max_worktrees=3
@@ -165,6 +180,7 @@ case "$mode_flag" in
   *) if [[ "$worktree_mode" == auto && "$primary_idle" -eq 1 ]]; then mode=here; fi ;;
 esac
 
+assert_authority
 if [[ "$mode" == here ]]; then
   path="$root"
   if [[ "$local_branch" -eq 1 ]]; then
@@ -197,6 +213,7 @@ else
 fi
 
 if [[ "$save_base" -eq 1 ]]; then
+  assert_authority
   cfg="$path/.agent-project-ops/project-config"
   mkdir -p "$path/.agent-project-ops"
   { if [[ -f "$cfg" ]]; then grep -v '^task_base=' "$cfg" || true; fi; printf 'task_base=%s\n' "$base"; } > "$cfg.new"

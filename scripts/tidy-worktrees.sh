@@ -46,9 +46,20 @@ done
 git rev-parse --git-dir >/dev/null 2>&1 || die "run inside a git repository"
 primary="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 [[ -n "$primary" && -d "$primary" ]] || die "cannot resolve the primary checkout"
-g() { git -C "$primary" "$@"; }
-origin_url="$(g config --get remote.origin.url || true)"
-[[ -n "$origin_url" ]] || die "GitHub authority remote origin is missing"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+source "$script_dir/lib/url-guard.sh"
+authority="$(github_worktree_authority "$primary")" \
+  || die "origin authority check failed: require only GitHub origin, matching resolved fetch/push URLs and authority=origin registry"
+assert_authority() {
+  local current
+  current="$(github_worktree_authority "$primary")" \
+    || die "origin authority check failed; no further worktree actions permitted"
+  [[ "$current" == "$authority" ]] || die "origin authority changed during retirement"
+}
+g() {
+  case "$1" in fetch|push) assert_authority ;; esac
+  git -C "$primary" "$@"
+}
 caller_top="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 
 fetch_state=skipped
@@ -73,11 +84,7 @@ if [[ -f "$config" ]]; then
 fi
 
 # PR facts come from the GitHub CLI; without it only offline proof is used.
-gh_repo=""
-case "$origin_url" in
-  https://github.com/*|git@github.com:*|ssh://git@github.com/*)
-    gh_repo="$(printf '%s\n' "$origin_url" | sed -E 's#^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)##; s#\.git$##; s#/+$##')" ;;
-esac
+gh_repo="$authority"
 gh_ok=0
 if [[ -n "$gh_repo" ]] && command -v gh >/dev/null 2>&1 \
   && (cd "$primary" && GH_PROMPT_DISABLED=1 gh repo view "$gh_repo" --json name </dev/null >/dev/null 2>&1); then
@@ -129,6 +136,7 @@ act() { # action target reason command...
   local action="$1" target="$2" reason="$3"
   shift 3
   if [[ "$apply" -eq 0 ]]; then say plan "$action" "$target" "$reason"; return 0; fi
+  assert_authority
   if "$@" >/dev/null 2>"$errf" </dev/null; then say done "$action" "$target" "$reason"; return 0; fi
   failed=$((failed + 1))
   say failed "$action" "$target" "$reason; $(tr '\n' ' ' < "$errf" | cut -c1-200)"

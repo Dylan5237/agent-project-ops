@@ -73,3 +73,29 @@ ${push_urls}"
   [[ "$count" -eq $((fetch_count + push_count)) ]] || return 1
   printf '%s\n' "$identity"
 }
+
+# Worktree lifecycle commands must validate their authority themselves; hooks
+# are not inherited by clones and cannot protect fetches or local retirement.
+# Return only the safe identity, never an untrusted URL or registry value.
+github_worktree_authority() {
+  local root="$1" registry line entries=0 mirror rc
+  [[ "$(git -C "$root" remote 2>/dev/null)" == origin ]] || return 1
+  registry="$root/.agent-project-ops/remotes"
+  [[ -f "$registry" && ! -L "$registry" ]] || return 1
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    [[ "$line" == authority=origin ]] || return 1
+    entries=$((entries + 1))
+  done < "$registry"
+  [[ "$entries" -eq 1 ]] || return 1
+  if mirror="$(git -C "$root" config --bool --get remote.origin.mirror 2>/dev/null)"; then
+    [[ "$mirror" == false ]] || return 1
+  else
+    rc=$?
+    [[ "$rc" -eq 1 ]] || return 1
+  fi
+  github_origin_identity "$root"
+}
