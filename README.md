@@ -4,11 +4,11 @@ APO 帮你把项目状态、改动范围和验收证据留在 GitHub 上，让�
 
 ## 当前版本
 
-- **本版版本号：v0.3.0。** [这版改了什么](./docs/releases/v0.3.0.md)按“新增 / 删除 / 升级时要注意”列出相对 v0.2.1 的变化。
-- **正式可用性以发行页为准。** 修改版本号、PR 检查通过都不代表正式 Release 已生成。使用前核对 [v0.3.0 发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)、标签提交和附件校验；若发行页尚未生成，继续使用已发布的 v0.2.1。
-- **发行附件：** v0.3.0 沿用现有流程提供源码压缩包（tar.gz、zip）、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`，共 5 个；不再单独提供 `UPGRADE.zh-CN.md`。
+- **本版版本号：v0.3.1。** [这版改了什么](./docs/releases/v0.3.1.md)列出相对 v0.3.0 的四项边界修复；此前的新增与删除见 [v0.3.0 说明](./docs/releases/v0.3.0.md)。
+- **正式可用性以发行页为准。** 修改版本号、PR 检查通过都不代表正式 Release 已生成。使用前核对 [v0.3.1 发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.1)、标签提交和附件校验；若发行页尚未生成，继续使用已发布的 v0.3.0。
+- **发行附件：** v0.3.1 沿用现有流程提供源码压缩包（tar.gz、zip）、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`，共 5 个。
 
-[查看 v0.2.1 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.2.1)
+[查看 v0.3.0 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)
 
 ## 推荐入口
 
@@ -43,4 +43,4 @@ v0.3.0 初始化会收集流程档位、Agent 工具和可选外部工具三项�
 - [模板](./templates/)
 - [历史决策](./docs/adr/README.md)、[历史提案](./docs/rfcs/README.md)、[研究记录](./docs/research/README.md)、[验证证据](./docs/evidence/)
 
-这些文档随 v0.3.0 源码维护；正式使用仍须按上面的发行页核对版本。升级已有项目要先审阅具体计划，不能只改 PIN，也不会自动升级其他仓库。
+这些文档随 v0.3.1 源码维护；正式使用仍须按上面的发行页核对版本。升级已有项目要先审阅具体计划，不能只改 PIN，也不会自动升级其他仓库。

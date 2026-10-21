@@ -4,7 +4,7 @@
 
 ## 先看版本状态
 
-本指南对应 **v0.3.0**，变化见[发布说明](./releases/v0.3.0.md)。使用前先核对 [v0.3.0 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.0)和精确提交；发行页尚未生成时继续使用已发布的 v0.2.1，不把候选 PR 当作稳定包。v0.3.0 发行流程提供 5 个附件，升级说明统一为中文 `docs/UPGRADE.md`。
+本指南对应 **v0.3.1**，四项边界修复见[发布说明](./releases/v0.3.1.md)，此前的新增与删除见 [v0.3.0 说明](./releases/v0.3.0.md)。使用前先核对 [v0.3.1 正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.1)和精确提交；发行页尚未生成时继续使用已发布的 v0.3.0，不把候选 PR 当作稳定包。发行流程仍提供 5 个附件，升级说明统一为中文 `docs/UPGRADE.md`。
 
 新项目初始化或升级时，Agent 应先核实最新的正式稳定版和精确提交，不要默认使用主线。
 
