@@ -87,13 +87,15 @@ done
 
 printf '\n## status\n'
 printf 'porcelain_lines=%s\n' "$(git -C "$GIT_ROOT" status --porcelain=v1 2>/dev/null | wc -l | tr -d ' ')"
-git -C "$GIT_ROOT" status -sb 2>/dev/null || true
+# Branch identity is reported above. Do not repeat upstream remote names here:
+# a rejected name could contain the same sensitive text hidden in ## remotes.
+git -C "$GIT_ROOT" status --short 2>/dev/null || true
 
 printf '\n## worktrees\n'
 git -C "$GIT_ROOT" worktree list 2>/dev/null || true
 
 printf '\n## local-branches\n'
-git -C "$GIT_ROOT" for-each-ref --format='%(refname:short) %(objectname:short) %(upstream:short)' refs/heads 2>/dev/null || true
+git -C "$GIT_ROOT" for-each-ref --format='%(refname:short) %(objectname:short)' refs/heads 2>/dev/null || true
 
 printf '\n## remote-branches (origin)\n'
 git -C "$GIT_ROOT" for-each-ref --format='%(refname:short) %(objectname:short)' refs/remotes/origin 2>/dev/null | head -200 || true

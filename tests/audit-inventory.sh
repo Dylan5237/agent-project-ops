@@ -55,7 +55,11 @@ for scenario in safe userinfo query fragment pushurl mixed-push rewrite push-rew
       git -C "$tmp/project" remote add legacy 'https://user:SECRET_SENTINEL@example.invalid/project.git' ;;
     unsafe-name)
       expected=SAFE_GITHUB
-      git -C "$tmp/project" remote add 'user@SECRET_SENTINEL' 'https://example.invalid/project.git' ;;
+      git -C "$tmp/project" remote add 'user@SECRET_SENTINEL' 'https://example.invalid/project.git'
+      current="$(git -C "$tmp/project" branch --show-current)"
+      git -C "$tmp/project" update-ref "refs/remotes/user@SECRET_SENTINEL/$current" HEAD
+      git -C "$tmp/project" config "branch.$current.remote" 'user@SECRET_SENTINEL'
+      git -C "$tmp/project" config "branch.$current.merge" "refs/heads/$current" ;;
     missing-url)
       git -C "$tmp/project" config --unset remote.origin.url
       git -C "$tmp/project" config remote.origin.pushurl 'https://user:SECRET_SENTINEL@github.com/apo-test/project.git' ;;
