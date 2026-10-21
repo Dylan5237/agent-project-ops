@@ -25,8 +25,12 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 4. **Verify `main` protection.** Require pull requests and disable force/deletion as hosting capability permits. Record observed capability on Command Center: **A** code-owner review enforced, **B** PR-only, or **C** unprotected/unverifiable. Never call B an independent-human-review gate. On GitHub Free private, C is expected: record C and continue (hooks + PR discipline). Do not claim B/A. Do not treat C as a stop-all-work gate. See [ADR 0004](../docs/adr/0004-free-private-capability-c.md).
 5. **Open the Command Center issue.** Use `templates/ISSUE_TEMPLATE/command-center.md`. Fill **section 1** (one-glance), project settings (process mode; unrecorded = `standard`), disposer, lead Agent, PIN, default branch, protection capability and Agent roster.
 6. **Reconcile remotes.** Only GitHub `origin` is supported; `.agent-project-ops/remotes` records `authority=origin`. Extra remotes or active old role settings stop affected writes. Preserve them for a separately approved project migration, never use them as another write authority.
-7. **Open Phase-0/Phase-1.** One core problem only. Use the Phase template with backlog status.
-8. **Do not implement yet.** Run Freeze on that Phase before any `feat/` / `fix/` branch.
+7. **Open the first work item by process mode.** One core problem only; use backlog status.
+   - **`light`:** Open a task using `templates/ISSUE_TEMPLATE/task.md`, with its own contract and no parent Phase. Do not create a Phase issue.
+   - **`standard` (including unrecorded mode):** Open Phase-0/Phase-1 using `templates/ISSUE_TEMPLATE/phase.md`.
+8. **Do not implement yet.** Run Freeze on that task (`light`) or Phase (`standard`) before any `feat/` / `fix/` branch. Record the §11 major-change check; on a hit, wait for the disposer's start confirmation or link an existing approval that explicitly covers the scope.
+
+Final acceptance still follows `PRINCIPLES.md` §3: `light` requires the disposer's final acceptance together with release confirmation before each release (or when all confirmed goals are done if nothing releases); `standard` requires it at the end of each Phase. Merge is not acceptance.
 
 ## Done when
 
@@ -35,7 +39,7 @@ Stand up a **control plane** in the **business** git repository so a local Agent
 - [ ] `git config --get core.hooksPath` is `.githooks` for this clone when the tracked hook exists.
 - [ ] Command Center records protection capability A/B/C honestly; capability C (expected on GitHub Free private) is recorded and work continues. Never claim B/A when only C was verified.
 - [ ] Command Center records origin as the only supported remote and matches `.agent-project-ops/remotes` when present.
-- [ ] At least one Phase issue exists with one core problem and no implementation before Freeze.
+- [ ] The first work item matches the mode: a task with its own contract and no Phase (`light`), or a Phase (`standard`). No implementation before Freeze and any required start confirmation.
 - [ ] Agent can find the pinned/current playbooks without the original bootstrap chat.
 
 ## Anti-patterns
