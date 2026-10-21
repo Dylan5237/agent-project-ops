@@ -57,12 +57,12 @@ bash scripts/bootstrap-project.sh \
 
 ```bash
 cat .agent-project-ops/PIN
-git remote -v
+bash .agent-project-ops/skills/repo-reconciliation-cleanup/scripts/audit-inventory.sh .
 git config --get core.hooksPath
 python3 .agent-project-ops/scripts/project-settings.py check --root .
 ```
 
-当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端时先停止并查明用途，不要自行推送、删除或改写远端。
+盘点只输出远端名称和安全分类，避免把含凭据的原始地址带入日志；`SAFE_GITHUB` 不代表网络可达或有写权限。当前流程只支持 GitHub `origin` 作为写入仓库。发现其他远端或 `REVIEW_REQUIRED` 时先停止并查明用途，不要自行推送、删除或改写远端。
 
 规则正文只维护在 AGENTS.md，CLAUDE.md 保留一行导入。选中 Claude Code 或 WorkBuddy 时，脚本分别复制到对应技能目录并自动校验。WorkBuddy 的项目读取入口已在 Craft（做一做）模式实测；Ask（问一问）不在本次保证范围内。未选中的外部工具不会获得接入说明，也不会自动连接任何服务。
 
