@@ -19,22 +19,48 @@ if [[ "${FAKE_GH_OFFLINE:-0}" == 1 ]]; then exit 1; fi
 case "$1 $2" in
   "repo view") exit 0 ;;
   "pr list")
-    head=""
-    while [[ $# -gt 0 ]]; do if [[ "$1" == --head ]]; then head="$2"; fi; shift; done
+    head="" json="" limit=20
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --head) head="$2"; shift ;;
+        --json) json="$2"; shift ;;
+        --limit) limit="$2"; shift ;;
+      esac
+      shift
+    done
     f="$FAKE_GH/$(printf '%s' "$head" | tr '/' '_')"
-    if [[ -f "$f" ]]; then cat "$f"; fi
+    case "$json" in
+      number,state,headRefOid|number,state,headRefOid,headRefName,isCrossRepository,headRepositoryOwner,headRepository) ;;
+      *) exit 2 ;;
+    esac
+    if [[ -f "$f" ]]; then
+      count=0
+      while read -r number state oid branch cross owner repo; do
+        [[ "$count" -lt "$limit" ]] || break
+        count=$((count + 1))
+        if [[ "$json" == number,state,headRefOid ]]; then
+          printf '%s %s %s\n' "$number" "$state" "$oid"
+        else
+          printf '%s %s %s %s %s %s %s\n' "$number" "$state" "$oid" "$branch" "$cross" "$owner" "$repo"
+        fi
+      done < "$f"
+    fi
     exit 0 ;;
 esac
 exit 1
 GH
 chmod +x "$tmp/bin/gh"
 export PATH="$tmp/bin:$PATH" FAKE_GH="$tmp/gh"
-pr() { printf '%s %s %s\n' "$2" "$3" "$4" >> "$FAKE_GH/$(printf '%s' "$1" | tr '/' '_')"; }  # branch number state head
+pr() { # branch number state head [headRefName [isCrossRepository [owner [repo]]]]
+  printf '%s %s %s %s %s %s %s\n' "$2" "$3" "$4" "${5:-$1}" "${6:-false}" \
+    "${7:-apo-test}" "${8:-$fixture_name}" >> "$FAKE_GH/$(printf '%s' "$1" | tr '/' '_')"
+}
 
 # fixture NAME [project-config lines]: bare origin + maintainer clone + project clone whose
 # origin looks like github.com/apo-test/NAME but fetches/pushes the local bare repository.
 fixture() {
   local name="$1"; shift
+  fixture_name="$name"
   git init --bare -q --initial-branch=main "$tmp/$name.git"
   git clone -q "$tmp/$name.git" "$tmp/$name-maint" 2>/dev/null
   mkdir -p "$tmp/$name-maint/.agent-project-ops"
@@ -132,6 +158,188 @@ tail -1 "$tmp/apply.txt" | grep -Eq '^apo-tidy: mode=apply gh=ok fetch=ok .* fai
   || fail "summary: $(tail -1 "$tmp/apply.txt")"
 bash "$tidy" --apply > "$tmp/again.txt" || fail "second apply failed"
 grep -Fq 'folders_removed=0 branches_deleted=0 remote_deleted=0 archived=0 ' "$tmp/again.txt" || fail "second run not a no-op: $(tail -1 "$tmp/again.txt")"
+
+# --- PR identity: a branch name alone does not prove that a closed PR owns today's tip ---
+fixture identity 'max_worktrees=0'
+cd "$tmp/identity"
+printf '/.worktrees/\n' >> .git/info/exclude
+for n in 81 82 83 84 85 86 87; do
+  bash "$new" "$n" agent "p$n" feat --worktree > /dev/null 2>"$tmp/identity-$n.err" \
+    || fail "identity task $n: $(cat "$tmp/identity-$n.err")"
+  w="$tmp/identity/.worktrees/$n-agent-p$n"
+  commit_in "$w" "identity $n"
+done
+identity_wt() { printf '%s' "$tmp/identity/.worktrees/$1-agent-p$1"; }
+for n in 81 82 83 85 86 87; do git -C "$(identity_wt "$n")" push -q -u origin HEAD; done
+identity_81="$(git -C "$(identity_wt 81)" rev-parse HEAD)"
+identity_82="$(git -C "$(identity_wt 82)" rev-parse HEAD)"
+identity_83_old="$(git -C "$(identity_wt 83)" rev-parse HEAD)"
+identity_84_old="$(git -C "$(identity_wt 84)" rev-parse HEAD)"
+commit_in "$(identity_wt 83)" 'after historical closed PR'
+git -C "$(identity_wt 83)" push -q origin HEAD
+# The old PR used this exact branch name, but its head is unrelated to the reused branch.
+git -C "$(identity_wt 84)" reset -q --hard origin/main
+commit_in "$(identity_wt 84)" 'unrelated branch reuse'
+git -C "$(identity_wt 84)" push -q -u origin HEAD
+identity_85="$(git -C "$(identity_wt 85)" rev-parse HEAD)"
+identity_86="$(git -C "$(identity_wt 86)" rev-parse HEAD)"
+identity_87="$(git -C "$(identity_wt 87)" rev-parse HEAD)"
+
+# A local task branch without a registered worktree and two remote-only branches
+# exercise the same PR validation paths as the task folders above.
+git switch -qc feat/88-local origin/main
+commit_in "$PWD" 'local fork closed'
+git push -q -u origin HEAD
+identity_88="$(git rev-parse HEAD)"
+git switch -q main
+for n in 89 90; do
+  git -C "$tmp/identity-maint" switch -qc "feat/$n-remote" origin/main
+  commit_in "$tmp/identity-maint" "remote fork $n"
+  git -C "$tmp/identity-maint" push -q origin HEAD
+done
+git -C "$tmp/identity-maint" switch -q feat/89-remote
+identity_89="$(git -C "$tmp/identity-maint" rev-parse HEAD)"
+identity_90="$(git --git-dir="$tmp/identity.git" rev-parse refs/heads/feat/90-remote)"
+git -C "$tmp/identity-maint" switch -q main
+git fetch -q origin
+
+pr feat/81-p81 81 CLOSED "$identity_81" feat/81-p81 true other-owner identity
+pr feat/81-p81 181 CLOSED "$identity_81" feat/81-p81 false other-owner identity
+pr feat/82-p82 82 MERGED "$identity_82" feat/82-p82 true other-owner identity
+pr feat/82-p82 182 MERGED "$identity_82" feat/82-p82 false apo-test other-repo
+pr feat/83-p83 83 CLOSED "$identity_83_old"
+pr feat/84-p84 84 CLOSED "$identity_84_old"
+pr feat/85-p85 85 CLOSED "$identity_85" feat/85-p85 null null null
+pr feat/86-p86 86 CLOSED "$identity_86" feat/86-p86 false APO-TEST IDENTITY
+pr feat/87-p87 87 CLOSED "$identity_87"
+pr feat/87-p87 97 OPEN "$identity_87"
+pr feat/88-local 88 CLOSED "$identity_88" feat/88-local true other-owner identity
+pr feat/89-remote 89 MERGED "$identity_89" feat/89-remote true other-owner identity
+pr feat/90-remote 90 CLOSED "$identity_90" feat/90-remote true other-owner identity
+
+identity_refs_before="$(git show-ref)"
+identity_origin_before="$(git --git-dir="$tmp/identity.git" show-ref)"
+identity_worktrees_before="$(git worktree list --porcelain)"
+bash "$tidy" --no-fetch > "$tmp/identity-report.txt" || fail "identity report failed"
+for n in 81 82 83 84 85 87; do
+  grep -Eq "^keep +folder +\\.worktrees/$n-agent-p$n " "$tmp/identity-report.txt" \
+    || fail "identity report planned retirement of protected folder $n: $(cat "$tmp/identity-report.txt")"
+done
+grep -Eq '^plan +archive +feat/86-p86 -> archive/feat/86-p86-' "$tmp/identity-report.txt" \
+  || fail 'same-origin current CLOSED PR was not planned for archive'
+[[ "$(git show-ref)" == "$identity_refs_before" \
+  && "$(git --git-dir="$tmp/identity.git" show-ref)" == "$identity_origin_before" \
+  && "$(git worktree list --porcelain)" == "$identity_worktrees_before" ]] \
+  || fail 'identity report changed refs or registered worktrees'
+for n in 81 82 83 84 85 86 87; do
+  if [[ "$n" == 84 ]]; then
+    [[ "$(cat "$(identity_wt 84)/unrelated_branch_reuse.txt")" == 'unrelated branch reuse' ]] \
+      || fail 'identity report changed the reused branch file'
+  else
+    [[ -f "$(identity_wt "$n")/identity_$n.txt" ]] || fail "identity report changed folder $n"
+  fi
+done
+
+identity_kept_refs_before="$(for b in feat/81-p81 feat/82-p82 feat/83-p83 feat/84-p84 feat/85-p85 feat/87-p87 feat/88-local feat/89-remote feat/90-remote; do
+  git --git-dir="$tmp/identity.git" rev-parse "refs/heads/$b"
+  git show-ref --verify "refs/remotes/origin/$b" 2>/dev/null || true
+  git show-ref --verify "refs/heads/$b" 2>/dev/null || true
+done)"
+bash "$tidy" --apply --no-fetch > "$tmp/identity-apply.txt" || fail "identity apply failed: $(cat "$tmp/identity-apply.txt")"
+for n in 81 82 83 84 85 87; do
+  w="$(identity_wt "$n")"
+  if [[ "$n" == 84 ]]; then
+    [[ -d "$w" && "$(cat "$w/unrelated_branch_reuse.txt")" == 'unrelated branch reuse' ]] \
+      || fail 'identity apply removed or altered the reused branch file'
+  else
+    [[ -d "$w" && -f "$w/identity_$n.txt" ]] || fail "identity apply removed or altered protected folder $n"
+  fi
+  [[ -z "$(git -C "$w" status --porcelain)" ]] || fail "identity apply changed files in folder $n"
+done
+[[ "$(git rev-parse refs/heads/feat/88-local)" == "$identity_88" ]] \
+  || fail 'fork CLOSED removed the local branch without a worktree'
+for n in 89 90; do on_origin "feat/$n-remote" || fail "fork PR removed remote-only branch $n"; done
+[[ "$(for b in feat/81-p81 feat/82-p82 feat/83-p83 feat/84-p84 feat/85-p85 feat/87-p87 feat/88-local feat/89-remote feat/90-remote; do
+  git --git-dir="$tmp/identity.git" rev-parse "refs/heads/$b"
+  git show-ref --verify "refs/remotes/origin/$b" 2>/dev/null || true
+  git show-ref --verify "refs/heads/$b" 2>/dev/null || true
+done)" == "$identity_kept_refs_before" ]] || fail 'identity apply changed a protected branch ref'
+[[ ! -e "$(identity_wt 86)" ]] && ! has_branch feat/86-p86 && ! on_origin feat/86-p86 \
+  || fail 'same-origin current CLOSED branch was not retired'
+[[ "$(git ls-remote --tags origin "refs/tags/archive/feat/86-p86-${identity_86:0:7}" | cut -f1)" == "$identity_86" ]] \
+  || fail 'same-origin current CLOSED tip was not archived before deletion'
+[[ "$(git --git-dir="$tmp/identity.git" for-each-ref --format='%(refname)' refs/tags/archive | wc -l | tr -d ' ')" == 1 ]] \
+  || fail 'protected PRs created an archive tag'
+grep -Eq '^keep +folder +\.worktrees/87-agent-p87 .*PR #97 open' "$tmp/identity-apply.txt" \
+  || fail 'OPEN PR did not take precedence over CLOSED history'
+
+# An explicit abandon cannot override an OPEN record whose source is unknown.
+# The 20-result page below hides an OPEN record after a matching CLOSED record;
+# that incomplete page must not license retirement either.
+fixture identity-edge 'max_worktrees=0'
+cd "$tmp/identity-edge"
+for n in 91 92 93; do
+  bash "$new" "$n" agent "e$n" feat --worktree > /dev/null 2>"$tmp/identity-edge-$n.err" \
+    || fail "identity edge task $n: $(cat "$tmp/identity-edge-$n.err")"
+  w="$tmp/identity-edge/.worktrees/$n-agent-e$n"
+  commit_in "$w" "identity edge $n"
+  git -C "$w" push -q -u origin HEAD
+done
+edge_wt() { printf '%s' "$tmp/identity-edge/.worktrees/$1-agent-e$1"; }
+edge_91="$(git -C "$(edge_wt 91)" rev-parse HEAD)"
+edge_92="$(git -C "$(edge_wt 92)" rev-parse HEAD)"
+edge_93="$(git -C "$(edge_wt 93)" rev-parse HEAD)"
+pr feat/91-e91 91 OPEN "$edge_91" feat/91-e91 null null null
+pr feat/92-e92 92 CLOSED "$edge_92"
+for n in $(seq 1 19); do
+  pr feat/92-e92 "$((100 + n))" CLOSED "$edge_92" feat/92-e92 true other-owner identity-edge
+done
+pr feat/92-e92 200 OPEN "$edge_92"
+[[ "$(wc -l < "$FAKE_GH/feat_92-e92" | tr -d ' ')" == 21 ]] || fail 'pagination fixture must contain 21 PRs'
+page="$(gh pr list --head feat/92-e92 --limit 20 --json number,state,headRefOid,headRefName,isCrossRepository,headRepositoryOwner,headRepository)"
+[[ "$(printf '%s\n' "$page" | wc -l | tr -d ' ')" == 20 && "$page" != *'200 OPEN '* ]] \
+  || fail 'fake gh did not hide the 21st OPEN PR at --limit 20'
+maint_merge identity-edge feat/93-e93
+origin_deletes identity-edge feat/93-e93
+git fetch -q --prune origin
+git show-ref --verify --quiet refs/remotes/origin/feat/93-e93 \
+  && fail 'fallback fixture still has an origin tracking ref'
+pr feat/93-e93 93 CLOSED "$edge_93" feat/93-e93 null null null
+
+edge_refs_before="$(git show-ref)"
+edge_origin_before="$(git --git-dir="$tmp/identity-edge.git" show-ref)"
+edge_worktrees_before="$(git worktree list --porcelain)"
+if bash "$tidy" --abandon feat/91-e91 > "$tmp/identity-abandon.txt" 2>&1; then
+  fail 'unknown-source OPEN allowed explicit abandon'
+fi
+grep -Fq 'cannot verify PR history' "$tmp/identity-abandon.txt" \
+  || fail 'unknown-source OPEN abandon refusal did not explain uncertainty'
+[[ "$(git show-ref)" == "$edge_refs_before" \
+  && "$(git --git-dir="$tmp/identity-edge.git" show-ref)" == "$edge_origin_before" \
+  && "$(git worktree list --porcelain)" == "$edge_worktrees_before" ]] \
+  || fail 'refused abandon changed refs or worktrees'
+[[ -f "$(edge_wt 91)/identity_edge_91.txt" ]] || fail 'refused abandon changed branch files'
+
+bash "$tidy" --no-fetch > "$tmp/identity-edge-report.txt" || fail 'identity edge report failed'
+for n in 91 92 93; do
+  grep -Eq "^keep +folder +\\.worktrees/$n-agent-e$n " "$tmp/identity-edge-report.txt" \
+    || fail "identity edge report planned protected folder $n"
+done
+[[ "$(git show-ref)" == "$edge_refs_before" \
+  && "$(git --git-dir="$tmp/identity-edge.git" show-ref)" == "$edge_origin_before" ]] \
+  || fail 'identity edge report changed refs'
+bash "$tidy" --apply --no-fetch > "$tmp/identity-edge-apply.txt" || fail 'identity edge apply failed'
+for n in 91 92 93; do
+  w="$(edge_wt "$n")"
+  [[ -d "$w" && -f "$w/identity_edge_$n.txt" && -z "$(git -C "$w" status --porcelain)" ]] \
+    || fail "identity edge apply changed folder or files $n"
+done
+[[ "$(git show-ref)" == "$edge_refs_before" \
+  && "$(git --git-dir="$tmp/identity-edge.git" show-ref)" == "$edge_origin_before" \
+  && "$(git worktree list --porcelain)" == "$edge_worktrees_before" ]] \
+  || fail 'identity edge apply changed refs or worktrees'
+[[ -z "$(git --git-dir="$tmp/identity-edge.git" for-each-ref --format='%(refname)' refs/tags/archive)" ]] \
+  || fail 'identity edge apply created an archive tag'
 
 # --- Ignored files protect finished folders; report is read-only ---
 fixture ig 'max_worktrees=0'
@@ -425,4 +633,4 @@ for scenario in ff-fail ff-ok; do
   fi
 done
 
-echo 'PASS: merged/squash/closed retirement; ignored data protection/report snapshot; primary ignored-data and .worktrees reuse; dirty/open/fresh/protected kept; folder cap; park/abandon/resume; offline proof only'
+echo 'PASS: origin PR identity and exact CLOSED tip; fork/reused/unknown/truncated history kept; merged/squash/closed retirement; ignored data protection/report snapshot; primary ignored-data and .worktrees reuse; dirty/open/fresh/protected kept; folder cap; park/abandon/resume; offline proof only'
