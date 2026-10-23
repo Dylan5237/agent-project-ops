@@ -128,7 +128,7 @@ jobs:
           (cd "$out"; sha256sum "apo-$tag.tar.gz" "apo-$tag.zip" RELEASE_SHA.txt UPGRADE.md > SHA256SUMS)
           gh release create "$tag" "$out/apo-$tag.tar.gz" "$out/apo-$tag.zip" \
             "$out/RELEASE_SHA.txt" "$out/SHA256SUMS" "$out/UPGRADE.md" \
-            --target "$GITHUB_SHA" --title "APO $tag — portable rules and safe upgrades" \
+            --target "$GITHUB_SHA" --title "APO $tag" \
             --notes-file "$notes" --latest
           gh release view "$tag" --json tagName,url,isDraft,isPrerelease
           echo "Released $tag at exact verified main SHA $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
