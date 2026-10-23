@@ -28,6 +28,19 @@ expect_deny() {
   fi
 }
 
+# Verify the hook, rather than a transport/refspec error, denied the push. The
+# complete bare-ref snapshot also catches partial writes and mirror deletions.
+expect_rejected_push() {
+  local name="$1" before after; shift
+  before="$(git --git-dir="$APO_TEST_BARE" for-each-ref --format='%(refname) %(objectname)')"
+  expect_deny "$name" "$@"
+  after="$(git --git-dir="$APO_TEST_BARE" for-each-ref --format='%(refname) %(objectname)')"
+  if [[ "$before" != "$after" ]]; then bad "$name changed bare refs"; fi
+  if grep -F 'agent-project-ops hook:' "$tmp/denial.log" | grep -Eq 'https?://|git@|DO_NOT_PRINT'; then
+    bad "$name leaked an address in hook diagnostics"
+  fi
+}
+
 mkdir -p "${tmp}/remotes"
 for remote in origin projection export share unknown; do
   git init --bare -q --initial-branch=main "${tmp}/remotes/${remote}.git"
@@ -61,19 +74,12 @@ cp "${repo_root}/scripts/hooks/pre-push-authority.sh" .githooks/pre-push
 cp "${repo_root}/scripts/lib/url-guard.sh" .agent-project-ops/scripts/lib/url-guard.sh
 cp "${repo_root}/scripts/install-hooks.sh" .agent-project-ops/scripts/install-hooks.sh
 chmod +x .githooks/pre-push .agent-project-ops/scripts/install-hooks.sh
-cat > .agent-project-ops/remotes <<'EOF'
-authority=origin
-projection=projection
-export=export
-share_export=share
-EOF
+printf 'authority=origin\n' > .agent-project-ops/remotes
 git add tracked.txt .githooks .agent-project-ops
 git commit -q -m base
 git config core.hooksPath .githooks
 
-for remote in origin projection export share unknown; do
-  git remote add "$remote" "git@github.com:example/${remote}.git"
-done
+git remote add origin git@github.com:example/origin.git
 
 # Bootstrap may create the authority default branch once. The same commit must
 # then be fetched before checking the direct-update rule.
@@ -94,11 +100,49 @@ printf 'topic\n' >> tracked.txt
 git commit -qam topic
 expect_allow 'topic -> origin' git push -u origin HEAD:refs/heads/feat/test
 
-# Old role entries are deliberately present: none may authorize a non-origin push.
-expect_deny 'legacy projection role -> projection' git push projection HEAD:refs/heads/feat/projection
-expect_deny 'legacy export role -> export' git push export HEAD:refs/heads/feat/export
-expect_deny 'legacy share_export role -> share' git push share HEAD:refs/heads/feat/share
-expect_deny 'unregistered remote -> unknown' git push unknown HEAD:refs/heads/feat/unknown
+# Extra remotes invalidate the clone even when the actual push targets origin.
+git remote add legacy git@github.com:example/DO_NOT_PRINT.git
+expect_rejected_push 'extra remote while pushing origin' git push origin HEAD:refs/heads/feat/extra-remote
+git remote remove legacy
+expect_allow 'origin-only recovers after extra remote removal' git push origin HEAD:refs/heads/feat/remote-recovered
+
+# Blank/(none) legacy rows are still a noncanonical registry, not authority.
+for row in 'projection=' 'projection=(none)' 'share_export=' 'share_export=(none)' \
+  'projection=projection' 'share_export=https://example.invalid/DO_NOT_PRINT' \
+  'authority=origin' 'unclassified=DO_NOT_PRINT'; do
+  printf 'authority=origin\n%s\n' "$row" > .agent-project-ops/remotes
+  expect_rejected_push "noncanonical registry row ${row%%=*}" git push origin HEAD:refs/heads/feat/bad-registry
+done
+printf 'authority=other\n' > .agent-project-ops/remotes
+expect_rejected_push 'wrong registry authority' git push origin HEAD:refs/heads/feat/wrong-authority
+printf '# authority not classified\n' > .agent-project-ops/remotes
+expect_rejected_push 'registry missing authority' git push origin HEAD:refs/heads/feat/missing-authority
+mv .agent-project-ops/remotes "$tmp/saved-registry"
+expect_rejected_push 'missing registry' git push origin HEAD:refs/heads/feat/missing-registry
+mv "$tmp/saved-registry" .agent-project-ops/remotes
+printf '# registered authority\r\n\r\nauthority=origin\r\n' > .agent-project-ops/remotes
+expect_allow 'canonical authority with comments and CRLF' git push origin HEAD:refs/heads/feat/registry-recovered
+printf 'authority=origin\n' > .agent-project-ops/remotes
+
+# A new tag ensures mirror mode has an actual update and reaches pre-push;
+# explicit refspecs would instead be rejected by Git before the hook runs.
+git tag hook-mirror-probe
+git config remote.origin.mirror true
+expect_rejected_push 'mirror origin' git push origin
+git config remote.origin.mirror false
+expect_allow 'explicit non-mirror origin' git push origin HEAD:refs/heads/feat/mirror-recovered
+git config --unset remote.origin.mirror
+git tag -d hook-mirror-probe >/dev/null
+
+# Old roles must never authorize a push to their named remote.
+for remote in projection export share unknown; do
+  role="$remote"; [[ "$remote" != share ]] || role=share_export
+  git remote add "$remote" "git@github.com:example/${remote}.git"
+  printf 'authority=origin\n%s=%s\n' "$role" "$remote" > .agent-project-ops/remotes
+  expect_rejected_push "legacy role -> $remote" git push "$remote" "HEAD:refs/heads/feat/$remote"
+  git remote remove "$remote"
+done
+printf 'authority=origin\n' > .agent-project-ops/remotes
 
 # The actual process boundary must reject pushurl and URL rewrite bypasses.
 git remote set-url --push origin 'git@elsewhere.invalid:example/origin.git'
@@ -129,6 +173,7 @@ hook_topic() { printf 'refs/heads/feat/test %s refs/heads/feat/test %s\n' "$(git
 zero=0000000000000000000000000000000000000000
 expect_deny 'unsafe actual URL' hook_topic 'https://user:secret@github.com/example/origin.git'
 expect_deny 'actual destination differs from configured origin' hook_topic 'https://github.com/example/other.git'
+expect_rejected_push 'raw URL target does not leak through remote name' git push git@github.com:example/origin.git HEAD:refs/heads/feat/raw-target
 for ref in bad-host bad-repo second-url second-fetch fetch-rewrite rewrite; do
   if git --git-dir="$APO_TEST_BARE" show-ref --verify --quiet "refs/heads/feat/$ref"; then bad "denied push created $ref"; fi
 done
