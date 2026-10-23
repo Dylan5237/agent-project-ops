@@ -22,7 +22,7 @@ cat > "$tmp/bin/gh" <<'GH'
 if [[ "${WT_MUTATE_REGISTRY:-0}" == 1 ]]; then
   case "$1 $2" in
     'repo view') git config remote.origin.pushurl https://example.invalid/wrong/project.git ;;
-    'pr list') printf '110 MERGED %s\n' "$(git rev-parse HEAD)" ;;
+    'pr list') printf '110 MERGED %s fix/110-prior false apo-test project\n' "$(git rev-parse HEAD)" ;;
   esac
 fi
 exit 0
