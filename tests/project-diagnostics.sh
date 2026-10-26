@@ -16,6 +16,64 @@ printf 'authority=origin\n' > "$tmp/project/.agent-project-ops/remotes"
 cp "$tmp/project/.agent-project-ops/remotes" "$tmp/remotes.before"
 
 doctor="$root/skills/project-diagnostics/scripts/doctor.sh"
+pin="$tmp/project/.agent-project-ops/PIN"
+registry="$tmp/project/.agent-project-ops/remotes"
+check_case() {
+  local name="$1" expected="$2" marker="$3" result=0
+  local status_before config_before
+  status_before="$(git -C "$tmp/project" status --porcelain --untracked-files=all)"
+  cp "$pin" "$tmp/$name.pin.before"
+  cp "$registry" "$tmp/$name.remotes.before"
+  cp "$tmp/project/.git/config" "$tmp/$name.config.before"
+  bash "$doctor" --dir "$tmp/project" > "$tmp/$name.out" 2> "$tmp/$name.err" || result=$?
+  [[ "$result" -eq "$expected" ]] || fail "$name exit $result (expected $expected)"
+  grep -Fq "$marker" "$tmp/$name.out" || fail "$name missing $marker"
+  [[ "$(git -C "$tmp/project" status --porcelain --untracked-files=all)" == "$status_before" ]] || fail "$name changed Git status"
+  cmp -s "$tmp/$name.pin.before" "$pin" || fail "$name changed PIN bytes"
+  cmp -s "$tmp/$name.remotes.before" "$registry" || fail "$name changed remotes bytes"
+  cmp -s "$tmp/$name.config.before" "$tmp/project/.git/config" || fail "$name changed Git config"
+}
+valid_sha=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+printf 'url=https://github.com/example/method\r\nsha=%s\r\n' "$valid_sha" > "$pin"
+printf 'authority=origin\r\n' > "$registry"
+check_case crlf-valid 0 PIN_FORMAT_OK
+grep -Fq 'AUTHORITY_ORIGIN' "$tmp/crlf-valid.out" || fail 'CRLF authority rejected'
+grep -Fq 'ORIGIN_ONLY' "$tmp/crlf-valid.out" || fail 'CRLF origin-only rejected'
+printf 'url=https://github.com/example/method\nsha=%s\n' "$valid_sha" > "$pin"
+printf 'authority=origin\n' > "$registry"
+check_case lf-valid 0 PIN_FORMAT_OK
+grep -Fq 'AUTHORITY_ORIGIN' "$tmp/lf-valid.out" || fail 'LF authority rejected'
+grep -Fq 'ORIGIN_ONLY' "$tmp/lf-valid.out" || fail 'LF origin-only rejected'
+
+printf 'url=https://github.com/example/method\nsha=bad\n' > "$pin"
+check_case invalid-sha 1 PIN_INVALID
+printf 'url=https://github.com/example/method\nsha=%s\n' "$valid_sha" > "$pin"
+printf 'authority=other\n' > "$registry"
+check_case invalid-authority 1 AUTHORITY_INVALID
+printf 'authority=origin\n' > "$registry"
+printf 'url=https://github.com/example/method\nsha=%s\r\r\n' "$valid_sha" > "$pin"
+check_case double-cr-sha 1 PIN_INVALID
+printf 'url=https://github.com/example/method\nsha=%s\rmore\n' "$valid_sha" > "$pin"
+check_case embedded-cr-sha 1 PIN_INVALID
+printf 'url=https://github.com/example/method\nsha=%s\n' "$valid_sha" > "$pin"
+printf 'authority=origin\r\r\n' > "$registry"
+check_case double-cr-authority 1 AUTHORITY_INVALID
+printf 'authority=ori\rgin\n' > "$registry"
+check_case embedded-cr-authority 1 AUTHORITY_INVALID
+printf 'authority=origin-extra\n' > "$registry"
+check_case extra-authority 1 AUTHORITY_INVALID
+printf 'authority=origin\n' > "$registry"
+printf 'url=https://private.example/sentinel-secret\r\r\nsha=%s\n' "$valid_sha" > "$pin"
+check_case double-cr-url 1 PIN_INVALID
+if grep -Fq 'sentinel-secret' "$tmp/double-cr-url.out" "$tmp/double-cr-url.err"; then fail 'private PIN URL leaked'; fi
+printf 'url=https://private.example/sentinel-secret\rmore\nsha=%s\n' "$valid_sha" > "$pin"
+check_case embedded-cr-url 1 PIN_INVALID
+if grep -Fq 'sentinel-secret' "$tmp/embedded-cr-url.out" "$tmp/embedded-cr-url.err"; then fail 'private PIN URL leaked'; fi
+printf 'url=https://private.example/sentinel-secret\nsha=%s\n' "$valid_sha" > "$pin"
+printf 'authority=origin\n' > "$registry"
+printf 'authority=origin\nprojection=\nexport=(none)\n' > "$registry"
+check_case empty-legacy-roles 0 ORIGIN_ONLY
+printf 'authority=origin\n' > "$registry"
 before="$(git -C "$tmp/project" status --porcelain --untracked-files=all)"
 bash "$doctor" --dir "$tmp/project" > "$tmp/one"
 bash "$doctor" --dir "$tmp/project" > "$tmp/two"
