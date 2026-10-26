@@ -4,9 +4,9 @@ APO 帮你把项目状态、改动范围和验收证据留在 GitHub 上，让�
 
 ## 当前版本
 
-- **本版版本号：v0.3.3。** [这版改了什么](./docs/releases/v0.3.3.md)说明推送前的单远端、规范登记和镜像配置校验；任务退休的来源与提交校验见 [v0.3.2 说明](./docs/releases/v0.3.2.md)，此前的边界修复见 [v0.3.1 说明](./docs/releases/v0.3.1.md)，新增与删除见 [v0.3.0 说明](./docs/releases/v0.3.0.md)。
-- **正式可用性以发行页为准。** 修改版本号、PR 检查通过都不代表正式 Release 已生成。使用前核对 [v0.3.3 发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.3)、标签提交和附件校验；若发行页尚未生成，继续使用已发布的 v0.3.2，并在推送前自行核对只有 origin、规范登记和非镜像配置。
-- **发行附件：** v0.3.3 沿用现有流程提供源码压缩包（tar.gz、zip）、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`，共 5 个。
+- **本版版本号：v0.3.4。** [这版改了什么](./docs/releases/v0.3.4.md)说明控制面完整权威校验、收尾查询的 GitHub 主机绑定和 Windows CRLF 诊断修复；推送前自检见 [v0.3.3 说明](./docs/releases/v0.3.3.md)，任务退休的来源与提交校验见 [v0.3.2 说明](./docs/releases/v0.3.2.md)，此前的边界修复见 [v0.3.1 说明](./docs/releases/v0.3.1.md)，新增与删除见 [v0.3.0 说明](./docs/releases/v0.3.0.md)。
+- **正式可用性以发行页为准。** 修改版本号、PR 检查通过都不代表正式 Release 已生成。使用前核对 [v0.3.4 发行页](https://github.com/Dylan5237/agent-project-ops/releases/tag/v0.3.4)、标签提交和附件校验；若发行页尚未生成，该源码版本仍非正式发行，当前正式版为 v0.3.3，受本次缺陷影响的控制面写入和工作区退休操作应暂缓。
+- **发行附件：** v0.3.4 沿用现有流程提供源码压缩包（tar.gz、zip）、`RELEASE_SHA.txt`、`SHA256SUMS` 和中文 `UPGRADE.md`，共 5 个。
 
 [查看最新正式发行页](https://github.com/Dylan5237/agent-project-ops/releases/latest)
 
@@ -43,4 +43,4 @@ v0.3.0 初始化会收集流程档位、Agent 工具和可选外部工具三项�
 - [模板](./templates/)
 - [历史决策](./docs/adr/README.md)、[历史提案](./docs/rfcs/README.md)、[研究记录](./docs/research/README.md)、[验证证据](./docs/evidence/)
 
-这些文档随 v0.3.3 源码维护；正式使用仍须按上面的发行页核对版本。升级已有项目要先审阅具体计划，不能只改 PIN，也不会自动升级其他仓库。
+这些文档随 v0.3.4 源码维护；正式使用仍须按上面的发行页核对版本。升级已有项目要先审阅具体计划，不能只改 PIN，也不会自动升级其他仓库。
