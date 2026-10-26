@@ -17,18 +17,26 @@ cat > "$tmp/bin/gh" <<'GH'
 #!/usr/bin/env bash
 if [[ "${FAKE_GH_OFFLINE:-0}" == 1 ]]; then exit 1; fi
 case "$1 $2" in
-  "repo view") exit 0 ;;
+  "repo view")
+    if [[ -n "${FAKE_GH_CALL_LOG:-}" ]]; then printf 'repo view %s\n' "$3" >> "$FAKE_GH_CALL_LOG"; fi
+    exit 0 ;;
   "pr list")
-    head="" json="" limit=20
+    head="" json="" limit=20 repo=""
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --head) head="$2"; shift ;;
         --json) json="$2"; shift ;;
         --limit) limit="$2"; shift ;;
+        -R) repo="$2"; shift ;;
       esac
       shift
     done
-    f="$FAKE_GH/$(printf '%s' "$head" | tr '/' '_')"
+    if [[ -n "${FAKE_GH_CALL_LOG:-}" ]]; then printf 'pr list -R %s\n' "$repo" >> "$FAKE_GH_CALL_LOG"; fi
+    if [[ "${GH_HOST:-github.com}" != github.com && "$repo" != github.com/* ]]; then
+      f="$FAKE_GH/enterprise/$(printf '%s' "$head" | tr '/' '_')"
+    else
+      f="$FAKE_GH/$(printf '%s' "$head" | tr '/' '_')"
+    fi
     case "$json" in
       number,state,headRefOid|number,state,headRefOid,headRefName,isCrossRepository,headRepositoryOwner,headRepository) ;;
       *) exit 2 ;;
@@ -92,6 +100,34 @@ maint_merge() { # fixture branch [squash]
 origin_deletes() { git -C "$tmp/$1-maint" push -q origin --delete "$2"; }
 has_branch() { git show-ref --verify --quiet "refs/heads/$1"; }
 on_origin() { [[ -n "$(git ls-remote --heads origin "$1")" ]]; }
+
+# Enterprise GH_HOST may have the same repo, branch and SHA. Its CLOSED PR
+# must never be used as retirement evidence for the public GitHub origin.
+fixture host-collision 'max_worktrees=0'
+cd "$tmp/host-collision"
+bash "$new" 70 agent host feat --worktree > /dev/null 2>"$tmp/host-new.err" \
+  || fail "host task start: $(cat "$tmp/host-new.err")"
+host_wt="$tmp/host-collision/.worktrees/70-agent-host"
+commit_in "$host_wt" 'host collision'
+git -C "$host_wt" push -q -u origin HEAD
+host_tip="$(git -C "$host_wt" rev-parse HEAD)"
+mkdir -p "$FAKE_GH/enterprise"
+export FAKE_GH_CALL_LOG="$tmp/host-gh-calls"
+printf '700 CLOSED %s feat/70-host false apo-test host-collision\n' "$host_tip" \
+  > "$FAKE_GH/enterprise/feat_70-host"
+GH_HOST=enterprise.invalid bash "$tidy" --apply --no-fetch > "$tmp/host-collision.out" \
+  || fail "host collision tidy failed: $(cat "$tmp/host-collision.out")"
+[[ -d "$host_wt" && -f "$host_wt/host_collision.txt" ]] \
+  && has_branch feat/70-host && on_origin feat/70-host \
+  || fail 'enterprise PR retired the public origin task'
+[[ -z "$(git --git-dir="$tmp/host-collision.git" for-each-ref --format='%(refname)' refs/tags/archive)" ]] \
+  || fail 'enterprise PR created an origin archive tag'
+grep -Fq 'gh=ok' "$tmp/host-collision.out" || fail 'public GitHub lookup was not exercised'
+grep -Fxq 'repo view github.com/apo-test/host-collision' "$FAKE_GH_CALL_LOG" \
+  || fail 'gh repo view did not explicitly select public GitHub'
+grep -Fxq 'pr list -R github.com/apo-test/host-collision' "$FAKE_GH_CALL_LOG" \
+  || fail 'gh pr list did not explicitly select public GitHub'
+unset FAKE_GH_CALL_LOG
 
 # --- Main matrix: merged / squash / dirty / ahead / open / closed / fresh / foreign / origin-only ---
 fixture m 'max_worktrees=0'

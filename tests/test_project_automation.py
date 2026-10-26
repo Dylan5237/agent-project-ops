@@ -4,9 +4,11 @@ import contextlib
 import copy
 import importlib.util
 import io
+import os
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -206,6 +208,66 @@ class AutomationTests(unittest.TestCase):
         with mock.patch.object(a, 'run', side_effect=a.Invalid('API unavailable')):
             with self.assertRaises(a.Invalid):
                 a.GitHub('example/test').api('issues/10')
+
+    def test_cli_uses_worktree_authority_before_any_github_api(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            subprocess.run(['git', 'init', '-q', str(root)], check=True)
+            subprocess.run(['git', '-C', str(root), 'remote', 'add', 'origin',
+                            'https://github.com/Example/Test.git'], check=True)
+            registry = root / '.agent-project-ops' / 'remotes'
+            registry.parent.mkdir()
+            registry.write_text('# approved\nauthority=origin\n', encoding='utf-8')
+
+            def cli():
+                with mock.patch.object(sys, 'argv', [str(SCRIPT), '--root', str(root),
+                                                     'dispatch-check', '--task', '30']):
+                    return a.main()
+
+            calls = []
+            def api(_self, path, **_kwargs):
+                calls.append(path)
+                raise a.Invalid('fixture API boundary')
+
+            with mock.patch.object(a.GitHub, 'api', api):
+                self.assertEqual(cli(), 2)
+                self.assertEqual(calls, ['issues/30'])
+                calls.clear()
+
+                cases = {
+                    'extra remote': lambda: subprocess.run(['git', '-C', str(root), 'remote', 'add',
+                        'backup', 'https://github.com/Example/Other.git'], check=True),
+                    'export entry': lambda: registry.write_text('authority=origin\nexport=backup\n', encoding='utf-8'),
+                    'missing registry': lambda: registry.unlink(),
+                    'mirror': lambda: subprocess.run(['git', '-C', str(root), 'config',
+                        'remote.origin.mirror', 'true'], check=True),
+                }
+                for label, setup in cases.items():
+                    with self.subTest(label=label):
+                        registry.write_text('authority=origin\n', encoding='utf-8')
+                        subprocess.run(['git', '-C', str(root), 'remote', 'remove', 'backup'],
+                                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        subprocess.run(['git', '-C', str(root), 'config', '--unset',
+                                        'remote.origin.mirror'], stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL)
+                        setup()
+                        self.assertEqual(cli(), 2)
+                        self.assertEqual(calls, [], label)
+                if hasattr(os, 'symlink'):
+                    registry.write_text('authority=origin\n', encoding='utf-8')
+                    subprocess.run(['git', '-C', str(root), 'config', '--unset',
+                                    'remote.origin.mirror'], stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+                    registry.unlink()
+                    (root / 'outside-remotes').write_text('authority=origin\n', encoding='utf-8')
+                    try:
+                        registry.symlink_to(root / 'outside-remotes')
+                    except (OSError, NotImplementedError):
+                        pass
+                    else:
+                        with self.subTest(label='symlink registry'):
+                            self.assertEqual(cli(), 2)
+                            self.assertEqual(calls, [])
 
 
 if __name__ == '__main__':
