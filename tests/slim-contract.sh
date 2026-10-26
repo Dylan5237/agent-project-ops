@@ -24,7 +24,7 @@ for name in ['.agent-project-ops/remotes', 'templates/remotes']:
     lines = [s.strip() for s in (root / name).read_text(encoding='utf-8').splitlines() if s.strip() and not s.lstrip().startswith('#')]
     assert lines == ['authority=origin'], f'unsupported current registry: {name}'
 # The reviewed patch release has its own publication authorization.
-assert (root / 'VERSION').read_text(encoding='utf-8').strip() == '0.3.3', 'patch candidate version must be 0.3.3'
+assert (root / 'VERSION').read_text(encoding='utf-8').strip() == '0.3.4', 'patch candidate version must be 0.3.4'
 principles = (root / 'PRINCIPLES.md').read_text(encoding='utf-8')
 assert principles.startswith('# PRINCIPLES — v0.3.0'), 'rules version does not match freeze'
 assert 'A separate evidence PR is **optional**' in principles
